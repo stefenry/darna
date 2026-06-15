@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: 'Inter Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/inter-var.woff2') format('woff2');
+  }
+
+  /* V1.5: Noto Sans Arabic Variable
+  @font-face {
+    font-family: 'Noto Sans Arabic Variable';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/fonts/noto-sans-arabic-var.woff2') format('woff2');
+  }
+  */
+
+  html {
+    font-family: 'Inter Variable', system-ui, sans-serif;
+  }
+
+  body {
+    @apply bg-bg-page text-neutral-700;
+  }
+}

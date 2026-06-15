@@ -1,0 +1,127 @@
+{
+  "metadata": {
+    "title": "دارنا",
+    "description": "تطبيق مجتمعي للحي — من السكان، للسكان."
+  },
+  "nav": {
+    "home": "الرئيسية",
+    "manifesto": "البيان",
+    "transparency": "الشفافية",
+    "legal": "الإشعارات القانونية",
+    "source": "الكود المصدري",
+    "install": "تثبيت",
+    "admission": "طلب الانضمام"
+  },
+  "home": {
+    "title": "دارنا",
+    "subtitle": "المنصة الرقمية المشتركة لحيّنا"
+  },
+  "footer": {
+    "attribution": "مفتوح المصدر MIT · مستضاف في أوروبا · بدون تتبع",
+    "transparency_link": "الشفافية"
+  },
+  "errors": {
+    "not_found": "الصفحة غير موجودة",
+    "not_found_description": "هذه الصفحة غير موجودة أو تم نقلها.",
+    "back_home": "العودة للرئيسية",
+    "generic": "حدث خطأ",
+    "generic_description": "حدث خطأ ما. حاول مرة أخرى أو عد إلى الرئيسية.",
+    "retry": "إعادة المحاولة",
+    "forbidden": "الوصول غير مصرح",
+    "auth": {
+      "required": "يجب تسجيل الدخول"
+    }
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "",
+      "intro": "",
+      "emailLabel": "",
+      "emailPlaceholder": "",
+      "emailErrorRequired": "",
+      "emailErrorInvalid": "",
+      "submit": "",
+      "submitting": "",
+      "noAccountHint": "",
+      "noAccountCta": ""
+    },
+    "checkEmail": {
+      "pageTitle": "",
+      "body": "",
+      "retryCta": ""
+    },
+    "expired": {
+      "pageTitle": "",
+      "body": "",
+      "retryCta": ""
+    },
+    "error": {
+      "expiredTitle": "",
+      "expiredBody": "",
+      "invalidTitle": "",
+      "invalidBody": "",
+      "usedTitle": "",
+      "usedBody": "",
+      "fallbackTitle": "",
+      "fallbackBody": "",
+      "backHome": "",
+      "backToLogin": ""
+    },
+    "common": {
+      "backToHome": "",
+      "signOutLocal": "",
+      "signOutGlobal": ""
+    }
+  },
+  "install": {
+    "pageTitle": "",
+    "ios": {
+      "pageTitle": "",
+      "intro": "",
+      "step1Title": "",
+      "step1Body": "",
+      "step1Alt": "",
+      "step2Title": "",
+      "step2Body": "",
+      "step2Alt": "",
+      "step3Title": "",
+      "step3Body": "",
+      "step3Alt": "",
+      "whatsappNotice": "",
+      "webviewTitle": "",
+      "webviewBody": "",
+      "openInSafari": "",
+      "linkCopied": "",
+      "openFailed": ""
+    },
+    "android": {
+      "pageTitle": "",
+      "intro": "",
+      "cta": "",
+      "ctaRetry": "",
+      "dismissedTitle": "",
+      "dismissedBody": "",
+      "alreadyInstalledTitle": "",
+      "alreadyInstalledBody": "",
+      "fallbackTitle": "",
+      "fallbackBody": "",
+      "faqQuestion": "",
+      "faqAnswer": ""
+    },
+    "androidWebview": {
+      "pageTitle": "",
+      "intro": "",
+      "step1Title": "",
+      "step1Body": "",
+      "step2Title": "",
+      "step2Body": ""
+    },
+    "desktop": {
+      "pageTitle": "",
+      "body": "",
+      "qrAlt": "",
+      "instructionsTitle": "",
+      "instructionsChrome": ""
+    }
+  }
+}

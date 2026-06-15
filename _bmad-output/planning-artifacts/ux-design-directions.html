@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darna — Design Directions MVP (v2 borderless)</title>
+<style>
+  /* ============================================================
+     Tokens v2 — design moderne, zero border, palette allégée
+     ============================================================ */
+  :root {
+    /* Accent — vert sage moderne (plus lumineux que v1 #4A7C4F) */
+    --accent-50:  #ECF4EE;
+    --accent-100: #D5E8DA;
+    --accent-200: #ABD0B4;
+    --accent-500: #5B9C66;
+    --accent-600: #4A8255;
+    --accent-700: #3B6944;
+    --accent-900: #1F3823;
+
+    /* Neutrals — beige très subtil, presque blanc cassé */
+    --bg-page:     #FBFAF6;   /* fond global, hint warm */
+    --bg-card:     #FFFFFF;   /* cards en blanc pur */
+    --bg-soft:     #F4F2EC;   /* zones secondaires */
+    --neutral-300: #C8C2B5;
+    --neutral-400: #95907F;
+    --neutral-500: #6E6A5C;
+    --neutral-700: #38362E;
+    --neutral-900: #1A1812;
+
+    /* Sémantiques */
+    --success: #5B9C66;
+    --warning: #D4A24A;
+    --danger:  #D45B4A;
+    --info:    #4A82A8;
+
+    /* Jauges typées 4 axes — versions allégées + lumineuses */
+    --gauge-depannage:        #4A82A8;
+    --gauge-petits-travaux:   #5B9C66;
+    --gauge-travail-soigne:   #CB7B2A;
+    --gauge-urgences:         #D45B4A;
+    --gauge-track:            #ECEAE2;
+
+    /* Radii — bumped */
+    --radius-sm:  10px;
+    --radius:     14px;
+    --radius-lg:  20px;
+
+    /* Shadows — ultra subtil */
+    --shadow-xs:  0 1px 1px rgba(20, 18, 14, 0.025);
+    --shadow-sm:  0 2px 6px rgba(20, 18, 14, 0.04);
+    --shadow:     0 6px 18px rgba(20, 18, 14, 0.06);
+  }
+
+  /* ============================================================
+     Reset & global
+     ============================================================ */
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(180deg, #E8E3D5 0%, #D8D2C0 100%);
+    color: var(--neutral-700);
+    line-height: 1.55;
+    min-height: 100vh;
+    padding: 40px 20px;
+    letter-spacing: -0.005em;
+  }
+
+  /* ============================================================
+     Page header documentaire
+     ============================================================ */
+  .doc-header {
+    max-width: 1400px;
+    margin: 0 auto 48px;
+    text-align: center;
+  }
+  .doc-header h1 {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+  .doc-header p {
+    font-size: 16px;
+    color: var(--neutral-700);
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .doc-header .meta {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--neutral-500);
+  }
+  .doc-header .version-tag {
+    display: inline-block;
+    background: var(--accent-100);
+    color: var(--accent-700);
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    letter-spacing: 0;
+  }
+
+  /* ============================================================
+     Grid de mockups
+     ============================================================ */
+  .mockups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 32px;
+    max-width: 1700px;
+    margin: 0 auto;
+    justify-items: center;
+  }
+
+  .mockup-frame {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .mockup-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 14px;
+  }
+  .mockup-label small {
+    display: block;
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--neutral-500);
+    text-transform: none;
+    letter-spacing: 0;
+    margin-top: 2px;
+  }
+
+  /* iPhone-like frame */
+  .phone {
+    width: 375px;
+    height: 740px;
+    background: var(--bg-page);
+    border-radius: 38px;
+    box-shadow:
+      0 24px 60px rgba(0,0,0,0.18),
+      0 0 0 8px #1A1812,
+      0 0 0 9px var(--neutral-300);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* iOS status bar */
+  .status-bar {
+    height: 44px;
+    background: var(--bg-page);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    flex-shrink: 0;
+  }
+  .status-bar .right {
+    display: flex;
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  /* App header (titre + back) */
+  .app-header {
+    height: 56px;
+    background: var(--bg-page);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    flex-shrink: 0;
+    gap: 8px;
+  }
+  .app-header .back, .app-header .right-action {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neutral-700);
+    font-size: 20px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: background 0.15s ease;
+  }
+  .app-header .back:hover, .app-header .right-action:hover {
+    background: var(--bg-soft);
+  }
+  .app-header h1 {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    flex: 1;
+    letter-spacing: -0.01em;
+  }
+
+  /* Scrollable content area */
+  .app-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+  }
+
+  /* SVG icon helper */
+  .icon-svg {
+    width: 1em;
+    height: 1em;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  /* ============================================================
+     MOCKUP 1 — Accueil (3 tuiles)
+     ============================================================ */
+  .home-greeting {
+    margin: 8px 4px 28px;
+  }
+  .home-greeting .welcome {
+    font-size: 14px;
+    color: var(--neutral-500);
+    margin-bottom: 4px;
+  }
+  .home-greeting h2 {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 4px;
+    letter-spacing: -0.02em;
+  }
+  .home-greeting .subtitle {
+    font-size: 14px;
+    color: var(--neutral-500);
+  }
+
+  .home-tiles {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .tile {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    box-shadow: var(--shadow-xs);
+    min-height: 96px;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .tile:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+
+  .tile .icon-wrap {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .tile .icon-wrap .icon-svg { font-size: 26px; stroke-width: 1.8; }
+  .tile-annuaire .icon-wrap { background: var(--accent-100); color: var(--accent-700); }
+  .tile-alertes  .icon-wrap { background: #FBEFE0; color: #B5651D; }
+  .tile-guide    .icon-wrap { background: #E6EEF6; color: #4A82A8; }
+
+  .tile .content { flex: 1; }
+  .tile .content .title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 3px;
+    letter-spacing: -0.01em;
+  }
+  .tile .content .description {
+    font-size: 13px;
+    color: var(--neutral-500);
+  }
+  .tile .arrow {
+    color: var(--neutral-400);
+    font-size: 18px;
+  }
+
+  .home-section { margin-top: 28px; }
+  .home-section h3 {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 4px 12px;
+  }
+
+  .recent-alert {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: var(--neutral-900);
+    box-shadow: var(--shadow-xs);
+    position: relative;
+    padding-left: 22px;
+  }
+  .recent-alert::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 16px;
+    bottom: 16px;
+    width: 3px;
+    background: var(--danger);
+    border-radius: 9999px;
+  }
+  .recent-alert .meta {
+    font-size: 12px;
+    color: var(--neutral-500);
+    margin-top: 6px;
+  }
+
+  .home-footer {
+    margin-top: 36px;
+    padding: 16px 0 8px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--neutral-500);
+  }
+  .home-footer a {
+    color: var(--accent-600);
+    text-decoration: none;
+  }
+
+  /* ============================================================
+     MOCKUP 2 — Annuaire liste
+     ============================================================ */
+  .search-bar {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .search-bar input {
+    width: 100%;
+    height: 48px;
+    border: none;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 0 16px 0 44px;
+    font-size: 15px;
+    color: var(--neutral-900);
+    font-family: inherit;
+    box-shadow: var(--shadow-xs);
+    outline: none;
+    transition: box-shadow 0.15s ease;
+  }
+  .search-bar input:focus {
+    box-shadow: var(--shadow-xs), 0 0 0 2px var(--accent-500);
+  }
+  .search-bar input::placeholder { color: var(--neutral-400); }
+  .search-bar .icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--neutral-400);
+    font-size: 18px;
+  }
+
+  .filter-chips {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-bottom: 18px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .filter-chips::-webkit-scrollbar { display: none; }
+
+  .chip {
+    flex-shrink: 0;
+    background: var(--bg-card);
+    border: none;
+    border-radius: 9999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--neutral-700);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+    transition: all 0.15s ease;
+  }
+  .chip:hover { box-shadow: var(--shadow-sm); }
+  .chip.active {
+    background: var(--accent-500);
+    color: white;
+    box-shadow: 0 2px 8px rgba(91, 156, 102, 0.3);
+  }
+  .chip .count {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    border-radius: 9999px;
+    padding: 1px 8px;
+    font-size: 11px;
+    margin-left: 4px;
+    font-weight: 600;
+  }
+  .chip:not(.active) .count {
+    background: var(--accent-100);
+    color: var(--accent-700);
+  }
+
+  .results-meta {
+    font-size: 12px;
+    color: var(--neutral-500);
+    margin: 0 4px 12px;
+  }
+
+  .artisan-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .artisan-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+
+  .artisan-card .header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .artisan-card .name {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 3px;
+    letter-spacing: -0.01em;
+  }
+  .artisan-card .tags {
+    font-size: 12px;
+    color: var(--neutral-500);
+  }
+  .artisan-card .price {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--neutral-700);
+  }
+
+  /* Jauges typées — signature visuelle Darna */
+  .gauges {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .gauge-row {
+    display: grid;
+    grid-template-columns: 96px 1fr 52px;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .gauge-label {
+    color: var(--neutral-700);
+    font-weight: 500;
+  }
+  .gauge-bar {
+    height: 6px;
+    background: var(--gauge-track);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+  .gauge-fill {
+    height: 100%;
+    border-radius: 9999px;
+  }
+  .gauge-fill.depannage      { background: var(--gauge-depannage); }
+  .gauge-fill.petits-travaux { background: var(--gauge-petits-travaux); }
+  .gauge-fill.travail-soigne { background: var(--gauge-travail-soigne); }
+  .gauge-fill.urgences       { background: var(--gauge-urgences); }
+  .gauge-score {
+    text-align: end;
+    color: var(--neutral-700);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .gauge-score .na {
+    color: var(--neutral-400);
+    font-weight: 400;
+    font-size: 11px;
+  }
+
+  .artisan-card .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 9999px;
+  }
+  .badge.facture {
+    background: var(--accent-50);
+    color: var(--accent-700);
+  }
+  .badge-soft {
+    background: var(--bg-soft);
+    color: var(--neutral-500);
+  }
+  .call-mini {
+    color: var(--accent-500);
+    font-size: 18px;
+    width: 38px;
+    height: 38px;
+    border-radius: 9999px;
+    background: var(--accent-50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ============================================================
+     MOCKUP 3 — Fiche artisan
+     ============================================================ */
+  .fiche-header {
+    padding: 8px 0 20px;
+    margin-bottom: 20px;
+  }
+  .fiche-header h2 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 10px;
+    letter-spacing: -0.02em;
+  }
+  .fiche-header .competences {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .competence-chip {
+    background: var(--bg-soft);
+    color: var(--neutral-700);
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .fiche-section { margin-bottom: 22px; }
+  .fiche-section h3 {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--neutral-500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 4px 12px;
+  }
+
+  .fiche .gauges {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 18px;
+    gap: 12px;
+    box-shadow: var(--shadow-xs);
+  }
+  .fiche .gauge-row {
+    grid-template-columns: 110px 1fr 62px;
+    font-size: 13px;
+  }
+  .fiche .gauge-bar {
+    height: 8px;
+  }
+
+  .price-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    box-shadow: var(--shadow-xs);
+  }
+
+  /* Sticky bottom CTA */
+  .sticky-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-page);
+    padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 24px rgba(20, 18, 14, 0.06);
+  }
+  .btn-primary-cta {
+    width: 100%;
+    min-height: 56px;
+    background: var(--accent-500);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 17px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.15s ease, transform 0.1s ease;
+    box-shadow: 0 4px 12px rgba(91, 156, 102, 0.25);
+    letter-spacing: -0.01em;
+  }
+  .btn-primary-cta:hover { background: var(--accent-600); }
+  .btn-primary-cta:active { transform: translateY(1px); }
+  .btn-primary-cta:focus-visible { outline: 2px solid var(--accent-700); outline-offset: 2px; }
+
+  .review {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-xs);
+  }
+  .review .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--neutral-500);
+    margin-bottom: 8px;
+  }
+  .review .axis-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-soft);
+    color: var(--neutral-700);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .review .axis-tag .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+  }
+  .review .body {
+    font-size: 14px;
+    color: var(--neutral-900);
+    line-height: 1.6;
+  }
+
+  /* ============================================================
+     MOCKUP 4 — Notation typée 4 axes (Innovation 3)
+     ============================================================ */
+  .rate-intro {
+    background: var(--accent-50);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 22px;
+    font-size: 13px;
+    color: var(--accent-900);
+    line-height: 1.55;
+  }
+  .rate-intro strong { color: var(--accent-700); }
+
+  .rate-axis {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow-xs);
+    transition: all 0.18s ease;
+  }
+  .rate-axis .header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .rate-axis .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+  }
+  .rate-axis .label {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    letter-spacing: -0.01em;
+  }
+  .rate-axis .na-toggle {
+    font-size: 12px;
+    color: var(--neutral-500);
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    background: var(--bg-soft);
+    font-weight: 500;
+  }
+  .stars {
+    display: flex;
+    gap: 6px;
+  }
+  .star {
+    width: 46px;
+    height: 46px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--bg-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    color: var(--neutral-300);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .star.filled {
+    background: var(--accent-100);
+    color: var(--accent-600);
+  }
+  .star:hover { background: var(--accent-50); color: var(--accent-500); }
+  .star:focus-visible { outline: 2px solid var(--accent-500); outline-offset: 2px; }
+
+  .rate-axis.na-state {
+    background: var(--bg-soft);
+    box-shadow: none;
+  }
+  .rate-axis.na-state .stars { opacity: 0.35; pointer-events: none; }
+  .rate-axis.na-state .na-toggle { background: var(--accent-100); color: var(--accent-700); }
+
+  .comment-section {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-xs);
+  }
+  .comment-section label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 10px;
+  }
+  .comment-section textarea {
+    width: 100%;
+    min-height: 84px;
+    border: none;
+    background: var(--bg-soft);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--neutral-900);
+    font-family: inherit;
+    resize: vertical;
+    outline: none;
+    transition: box-shadow 0.15s ease;
+  }
+  .comment-section textarea:focus {
+    box-shadow: 0 0 0 2px var(--accent-500);
+  }
+  .comment-section textarea::placeholder { color: var(--neutral-400); }
+  .comment-section .char-count {
+    text-align: end;
+    font-size: 11px;
+    color: var(--neutral-500);
+    margin-top: 6px;
+  }
+
+  .visibility-toggle {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow-xs);
+  }
+  .visibility-toggle .label-block { flex: 1; }
+  .visibility-toggle .label-title {
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 3px;
+    font-size: 14px;
+  }
+  .visibility-toggle .label-desc {
+    color: var(--neutral-500);
+    font-size: 12px;
+  }
+  .switch {
+    width: 46px;
+    height: 28px;
+    background: var(--neutral-300);
+    border-radius: 9999px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.18s ease;
+    flex-shrink: 0;
+  }
+  .switch.on { background: var(--accent-500); }
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 9999px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.18s ease;
+  }
+  .switch.on::after { transform: translateX(18px); }
+
+  /* ============================================================
+     Footer documentaire
+     ============================================================ */
+  .doc-footer {
+    max-width: 900px;
+    margin: 64px auto 0;
+    padding: 32px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    font-size: 13px;
+    color: var(--neutral-700);
+  }
+  .doc-footer h3 {
+    font-size: 18px;
+    color: var(--neutral-900);
+    margin-bottom: 12px;
+    letter-spacing: -0.01em;
+  }
+  .doc-footer ul {
+    list-style: none;
+    margin-top: 16px;
+    text-align: start;
+    max-width: 640px;
+    margin: 16px auto 0;
+  }
+  .doc-footer li {
+    padding: 5px 0;
+    color: var(--neutral-700);
+  }
+  .doc-footer li::before {
+    content: '✓ ';
+    color: var(--accent-500);
+    font-weight: 700;
+    margin-right: 4px;
+  }
+  .doc-footer .changes {
+    background: var(--accent-50);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-top: 16px;
+    text-align: start;
+    color: var(--accent-900);
+    font-size: 13px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <span class="version-tag">v2 · borderless · sage moderne</span>
+  <h1>Darna — Design Directions MVP</h1>
+  <p>Refonte v2 : zéro contour, ombres ultra subtiles, radius 14-20px, palette vert sage allégée. Backgrounds en blanc pur sur fond crème clair.</p>
+  <p class="meta">2026-05-23 · Spec UX étape 9 · itération après critique design « ancien »</p>
+</div>
+
+<div class="mockups-grid">
+
+  <!-- ============================================================
+       MOCKUP 1 — ACCUEIL 3 TUILES
+       ============================================================ -->
+  <div class="mockup-frame">
+    <div class="mockup-label">
+      Accueil
+      <small>3 tuiles · sans contour · ombres subtiles</small>
+    </div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:41</span>
+        <span class="right">5G ●●●</span>
+      </div>
+      <div class="app-header" style="justify-content: space-between;">
+        <div style="width: 44px;"></div>
+        <h1 style="text-align: center;">Darna</h1>
+        <div class="right-action">
+          <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+      </div>
+      <div class="app-content">
+
+        <div class="home-greeting">
+          <div class="welcome">Bonjour 👋</div>
+          <h2>Bienvenue, Salma</h2>
+          <div class="subtitle">Villa 87, tranche C</div>
+        </div>
+
+        <div class="home-tiles">
+          <div class="tile tile-annuaire">
+            <div class="icon-wrap">
+              <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            </div>
+            <div class="content">
+              <div class="title">Annuaire</div>
+              <div class="description">Artisans recommandés par les voisins</div>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+
+          <div class="tile tile-alertes">
+            <div class="icon-wrap">
+              <svg class="icon-svg" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div class="content">
+              <div class="title">Alertes</div>
+              <div class="description">Coupures, infos pratiques en cours</div>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+
+          <div class="tile tile-guide">
+            <div class="icon-wrap">
+              <svg class="icon-svg" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+            <div class="content">
+              <div class="title">Guide résident</div>
+              <div class="description">Codes, horaires, règles, traditions</div>
+            </div>
+            <div class="arrow">›</div>
+          </div>
+        </div>
+
+        <div class="home-section">
+          <h3>En cours</h3>
+          <div class="recent-alert">
+            Coupure d'eau zone B prévue jeudi 8h–12h.
+            <div class="meta">il y a 3 heures · expire dans 2 jours</div>
+          </div>
+        </div>
+
+        <div class="home-footer">
+          Open source MIT · Hébergé en UE · Aucun tracker<br>
+          <a href="#">/transparence</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MOCKUP 2 — ANNUAIRE LISTE
+       ============================================================ -->
+  <div class="mockup-frame">
+    <div class="mockup-label">
+      Annuaire — liste
+      <small>Yassine cherche un plombier · sans contours</small>
+    </div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:42</span>
+        <span class="right">5G ●●●</span>
+      </div>
+      <div class="app-header">
+        <div class="back">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        </div>
+        <h1>Annuaire</h1>
+        <div class="right-action">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+      </div>
+      <div class="app-content">
+
+        <div class="search-bar">
+          <span class="icon">
+            <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          </span>
+          <input type="text" value="plombier" placeholder="plombier, peintre…">
+        </div>
+
+        <div class="filter-chips">
+          <span class="chip active">Dépannage<span class="count">4</span></span>
+          <span class="chip">Prix</span>
+          <span class="chip">Facture ✅</span>
+          <span class="chip">Note 4★+</span>
+        </div>
+
+        <div class="results-meta">4 artisans correspondants</div>
+
+        <!-- Artisan card 1 -->
+        <div class="artisan-card">
+          <div class="header">
+            <div>
+              <div class="name">Hassan</div>
+              <div class="tags">Plomberie · Dépannage</div>
+            </div>
+            <div class="price">$$</div>
+          </div>
+          <div class="gauges">
+            <div class="gauge-row">
+              <span class="gauge-label">Dépannage</span>
+              <div class="gauge-bar"><div class="gauge-fill depannage" style="width: 90%;"></div></div>
+              <span class="gauge-score">4.5 (4)</span>
+            </div>
+            <div class="gauge-row">
+              <span class="gauge-label">Petits travaux</span>
+              <div class="gauge-bar"><div class="gauge-fill petits-travaux" style="width: 80%;"></div></div>
+              <span class="gauge-score">4.0 (2)</span>
+            </div>
+          </div>
+          <div class="footer">
+            <span class="badge facture">Facture ✅</span>
+            <span class="call-mini">
+              <svg class="icon-svg" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- Artisan card 2 -->
+        <div class="artisan-card">
+          <div class="header">
+            <div>
+              <div class="name">Karim</div>
+              <div class="tags">Plomberie · Petits travaux</div>
+            </div>
+            <div class="price">$$$</div>
+          </div>
+          <div class="gauges">
+            <div class="gauge-row">
+              <span class="gauge-label">Dépannage</span>
+              <div class="gauge-bar"><div class="gauge-fill depannage" style="width: 80%;"></div></div>
+              <span class="gauge-score">4.0 (3)</span>
+            </div>
+            <div class="gauge-row">
+              <span class="gauge-label">Travail soigné</span>
+              <div class="gauge-bar"><div class="gauge-fill travail-soigne" style="width: 95%;"></div></div>
+              <span class="gauge-score">4.7 (5)</span>
+            </div>
+          </div>
+          <div class="footer">
+            <span class="badge facture">Facture ✅</span>
+            <span class="call-mini">
+              <svg class="icon-svg" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- Artisan card 3 -->
+        <div class="artisan-card">
+          <div class="header">
+            <div>
+              <div class="name">Mehdi</div>
+              <div class="tags">Plomberie · Urgences</div>
+            </div>
+            <div class="price">$</div>
+          </div>
+          <div class="gauges">
+            <div class="gauge-row">
+              <span class="gauge-label">Urgences</span>
+              <div class="gauge-bar"><div class="gauge-fill urgences" style="width: 100%;"></div></div>
+              <span class="gauge-score">5.0 (2)</span>
+            </div>
+            <div class="gauge-row">
+              <span class="gauge-label">Dépannage</span>
+              <div class="gauge-bar"><div class="gauge-fill depannage" style="width: 70%;"></div></div>
+              <span class="gauge-score">3.5 (1)</span>
+            </div>
+          </div>
+          <div class="footer">
+            <span class="badge badge-soft">Facture sur demande</span>
+            <span class="call-mini">
+              <svg class="icon-svg" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MOCKUP 3 — FICHE ARTISAN
+       ============================================================ -->
+  <div class="mockup-frame">
+    <div class="mockup-label">
+      Fiche artisan
+      <small>Jauges typées · CTA sticky · cards sans contour</small>
+    </div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:43</span>
+        <span class="right">5G ●●●</span>
+      </div>
+      <div class="app-header">
+        <div class="back">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        </div>
+        <h1></h1>
+        <div class="right-action">
+          <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </div>
+      </div>
+      <div class="app-content" style="padding-bottom: 100px;">
+
+        <div class="fiche-header">
+          <h2>Hassan</h2>
+          <div class="competences">
+            <span class="competence-chip">Plomberie</span>
+            <span class="competence-chip">Petits travaux</span>
+          </div>
+        </div>
+
+        <div class="fiche fiche-section">
+          <h3>Notation par les voisins</h3>
+          <div class="gauges">
+            <div class="gauge-row">
+              <span class="gauge-label">Dépannage</span>
+              <div class="gauge-bar"><div class="gauge-fill depannage" style="width: 90%;"></div></div>
+              <span class="gauge-score">4.5 (4)</span>
+            </div>
+            <div class="gauge-row">
+              <span class="gauge-label">Petits travaux</span>
+              <div class="gauge-bar"><div class="gauge-fill petits-travaux" style="width: 80%;"></div></div>
+              <span class="gauge-score">4.0 (2)</span>
+            </div>
+            <div class="gauge-row">
+              <span class="gauge-label">Travail soigné</span>
+              <div class="gauge-bar"><div class="gauge-fill travail-soigne" style="width: 0%;"></div></div>
+              <span class="gauge-score"><span class="na">NA</span></span>
+            </div>
+            <div class="gauge-row">
+              <span class="gauge-label">Urgences</span>
+              <div class="gauge-bar"><div class="gauge-fill urgences" style="width: 70%;"></div></div>
+              <span class="gauge-score">3.5 (1)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fiche-section">
+          <h3>Infos</h3>
+          <div class="price-row">
+            <span style="font-size: 16px; font-weight: 600; color: var(--neutral-900);">$$</span>
+            <span style="color: var(--neutral-300);">·</span>
+            <span class="badge facture">Facture émise ✅</span>
+          </div>
+        </div>
+
+        <div class="fiche-section">
+          <h3>Avis (3)</h3>
+          <div class="review">
+            <div class="meta">
+              <span>Voisin anonyme</span>
+              <span>il y a 2 mois</span>
+            </div>
+            <span class="axis-tag"><span class="dot" style="background: var(--gauge-depannage);"></span>Dépannage · 5★</span>
+            <div class="body">« Est venu un dimanche, prix correct, parle pas anglais »</div>
+          </div>
+          <div class="review">
+            <div class="meta">
+              <span>Voisin anonyme</span>
+              <span>il y a 4 mois</span>
+            </div>
+            <span class="axis-tag"><span class="dot" style="background: var(--gauge-petits-travaux);"></span>Petits travaux · 4★</span>
+            <div class="body">« Travail correct, ponctuel. Devis clair. »</div>
+          </div>
+        </div>
+
+      </div>
+      <div class="sticky-bottom">
+        <button class="btn-primary-cta">
+          <svg class="icon-svg" viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          Appeler Hassan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       MOCKUP 4 — NOTATION TYPÉE 4 AXES (Innovation 3)
+       ============================================================ -->
+  <div class="mockup-frame">
+    <div class="mockup-label">
+      Noter un artisan
+      <small>Innovation 3 · « Non applicable » par axe · prototype Aïcha</small>
+    </div>
+    <div class="phone">
+      <div class="status-bar">
+        <span>9:44</span>
+        <span class="right">5G ●●●</span>
+      </div>
+      <div class="app-header">
+        <div class="back">
+          <svg class="icon-svg" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+        </div>
+        <h1>Noter Hassan</h1>
+        <div style="width: 44px;"></div>
+      </div>
+      <div class="app-content" style="padding-bottom: 100px;">
+
+        <div class="rate-intro">
+          <strong>Note seulement les axes que tu as testés.</strong> Tu peux ignorer ceux où tu n'as pas d'avis.
+        </div>
+
+        <!-- Axe Dépannage — noté 5 -->
+        <div class="rate-axis">
+          <div class="header">
+            <span class="dot" style="background: var(--gauge-depannage);"></span>
+            <span class="label">Dépannage</span>
+            <span class="na-toggle">Non applicable</span>
+          </div>
+          <div class="stars">
+            <button class="star filled">★</button>
+            <button class="star filled">★</button>
+            <button class="star filled">★</button>
+            <button class="star filled">★</button>
+            <button class="star filled">★</button>
+          </div>
+        </div>
+
+        <!-- Axe Petits travaux — noté 4 -->
+        <div class="rate-axis">
+          <div class="header">
+            <span class="dot" style="background: var(--gauge-petits-travaux);"></span>
+            <span class="label">Petits travaux</span>
+            <span class="na-toggle">Non applicable</span>
+          </div>
+          <div class="stars">
+            <button class="star filled">★</button>
+            <button class="star filled">★</button>
+            <button class="star filled">★</button>
+            <button class="star filled">★</button>
+            <button class="star">★</button>
+          </div>
+        </div>
+
+        <!-- Axe Travail soigné — NA -->
+        <div class="rate-axis na-state">
+          <div class="header">
+            <span class="dot" style="background: var(--gauge-travail-soigne);"></span>
+            <span class="label">Travail soigné</span>
+            <span class="na-toggle">Réactiver</span>
+          </div>
+          <div class="stars">
+            <button class="star">★</button>
+            <button class="star">★</button>
+            <button class="star">★</button>
+            <button class="star">★</button>
+            <button class="star">★</button>
+          </div>
+        </div>
+
+        <!-- Axe Urgences -->
+        <div class="rate-axis">
+          <div class="header">
+            <span class="dot" style="background: var(--gauge-urgences);"></span>
+            <span class="label">Urgences</span>
+            <span class="na-toggle">Non applicable</span>
+          </div>
+          <div class="stars">
+            <button class="star">★</button>
+            <button class="star">★</button>
+            <button class="star">★</button>
+            <button class="star">★</button>
+            <button class="star">★</button>
+          </div>
+        </div>
+
+        <div class="comment-section">
+          <label for="comment">Commentaire (facultatif)</label>
+          <textarea id="comment" placeholder="Partage ton expérience en quelques mots…">Est venu un dimanche pour réparer une fuite, prix correct.</textarea>
+          <div class="char-count">63 / 500</div>
+        </div>
+
+        <div class="visibility-toggle">
+          <div class="label-block">
+            <div class="label-title">Signer en mon nom</div>
+            <div class="label-desc">Par défaut tu apparais en « Voisin anonyme »</div>
+          </div>
+          <div class="switch"></div>
+        </div>
+
+      </div>
+      <div class="sticky-bottom">
+        <button class="btn-primary-cta">Publier ma note</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="doc-footer">
+  <h3>v2 — changements appliqués</h3>
+  <div class="changes">
+    <strong>Suite à la critique « design un peu ancien » :</strong>
+    <ul style="margin-top: 8px; margin-bottom: 0;">
+      <li><strong>Zéro contour</strong> sur cards, inputs, chips. Séparation par contraste blanc sur fond crème + ombre ultra-subtile (1-2px).</li>
+      <li><strong>Radius bumped</strong> : 14px standard, 20px tuiles d'accueil. Chips et boutons mini pill (9999px).</li>
+      <li><strong>Palette allégée</strong> : accent vert sage <code>#5B9C66</code> (vs <code>#4A7C4F</code>), backgrounds plus clairs, neutrals un peu plus contrastés (texte body <code>#38362E</code>).</li>
+      <li><strong>Jauges retouchées</strong> : tracks plus douces (<code>#ECEAE2</code>), couleurs un peu plus saturées pour le punch visuel.</li>
+      <li><strong>Icônes Lucide SVG</strong> (vs emojis dans v1) — cohérence stricte avec design system étape 6.</li>
+      <li><strong>CTA Appeler</strong> avec ombre colorée (glow vert subtil) qui le détache sans bordure.</li>
+      <li><strong>Chip actif</strong> en fond accent plein (pas juste border accent) — plus moderne et lisible.</li>
+    </ul>
+  </div>
+  <p style="margin-top: 16px;">Si la palette sage paraît encore trop sage, je peux pousser vers du <strong>vert plus vif (type Tailwind green-600)</strong>, ou vers une <strong>palette plus froide</strong> (Linear/Notion-like). Dis-moi ce qui manque.</p>
+</div>
+
+</body>
+</html>

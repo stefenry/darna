@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint-typecheck-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - run: corepack enable
+
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94d9d67 # v4.2.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+
+  lighthouse:
+    needs: lint-typecheck-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - run: corepack enable
+
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94d9d67 # v4.2.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Wait for Vercel preview deployment
+        id: vercel-preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "VERCEL_TOKEN or VERCEL_PROJECT_ID not set, skipping Lighthouse"
+            exit 0
+          fi
+          for i in $(seq 1 20); do
+            RESPONSE=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v13/deployments?projectId=$VERCEL_PROJECT_ID&meta.githubCommitSha=$PR_SHA&limit=1")
+            STATE=$(echo "$RESPONSE" | jq -r '.deployments[0].state // empty')
+            if [ "$STATE" = "READY" ]; then
+              URL=$(echo "$RESPONSE" | jq -r '.deployments[0].url // empty')
+              echo "preview_url=https://$URL" >> "$GITHUB_OUTPUT"
+              echo "Preview ready: https://$URL"
+              exit 0
+            fi
+            if [ "$STATE" = "ERROR" ]; then
+              echo "Vercel preview deployment failed"
+              exit 1
+            fi
+            echo "Waiting for preview deployment (state=$STATE)... ($i/20)"
+            sleep 15
+          done
+          echo "Timeout waiting for Vercel preview"
+          exit 1
+
+      - name: Run Lighthouse CI
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.event.pull_request.head.sha }}
+        run: |
+          npx @lhci/cli@0.15 autorun \
+            --collect.url="${{ steps.vercel-preview.outputs.preview_url }}"

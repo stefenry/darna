@@ -1,0 +1,124 @@
+# generated: 2026-05-23
+# last_updated: 2026-06-14
+# project: SmartResidence
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: {project-root}/_bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-05-23
+last_updated: 2026-06-15T15:15:00Z
+project: SmartResidence
+project_key: NOKEY
+tracking_system: file-system
+story_location: '{project-root}/_bmad-output/implementation-artifacts'
+
+development_status:
+  # Epic 1: Fondations techniques & Admission communautaire
+  epic-1: in-progress
+  1-1-initialisation-projet-toolchain-de-developpement: done
+  1-2-pipeline-ci-cd-observabilite-glitchtip-budget-alerting: done
+  1-3-schema-initial-admission-rls-multi-tenant-types-generes: done
+  1-4-pages-publiques-i18n-fr-ar-shell-middleware-locale-auth: done
+  1-5-page-install-os-aware-manifest-pwa-service-worker-shell: done
+  1-6-magic-link-e-mail-brevo-auth-callback-cookies-session-12-mois: done
+  1-7-demande-d-admission-visiteur-demandeur-en-file-d-attente: backlog
+  1-8-validation-co-mod-file-admission-accept-reject-notification-decision: backlog
+  1-9-profil-resident-deconnexion-suppression-compte-rgpd-cascade: backlog
+  1-10-hardening-rate-limiting-headers-securite-tests-rls-a11y-backup-hebdo-adrs: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Annuaire d'artisans noté (killer feature)
+  epic-2: backlog
+  2-1-schema-artisans-ratings-tags-bilingues-fts-postgres: backlog
+  2-2-annuaire-liste-avec-recherche-fts-bilingue-filtres-cache-offline: backlog
+  2-3-fiche-artisan-detaillee-action-tel: backlog
+  2-4-creation-fiche-artisan-workflow-consentement-sms-asynchrone: backlog
+  2-5-page-magic-link-consentement-artisan-accept-refuse-1-tap-sans-compte: backlog
+  2-6-notation-typee-multi-axes-commentaire-pseudo-identite: backlog
+  2-7-edition-retrait-de-ses-propres-contributions: backlog
+  2-8-droit-de-reponse-artisan: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Contenu durable — Guide résident, Numéros utiles, Pack accueil
+  epic-3: backlog
+  3-1-schema-contenu-durable-guide-entries-useful-numbers-pack-entries: backlog
+  3-2-guide-resident-lecture-recherche-deep-linking-par-entree: backlog
+  3-3-numeros-utiles-acces-rapide-avec-action-tel: backlog
+  3-4-pack-accueil-mis-en-avant-post-validation: backlog
+  3-5-interface-crud-co-mod-sur-guide-numeros-utiles-pack-accueil: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Contenu éphémère — Alertes & Bons plans
+  epic-4: backlog
+  4-1-schema-contenu-ephemere-alerts-tips-templates: backlog
+  4-2-publication-alerte-1-tap-depuis-modele-pre-redige: backlog
+  4-3-publication-bon-plan-type-expirable: backlog
+  4-4-feed-alertes-bons-plans-tri-fraicheur: backlog
+  4-5-cron-auto-expiration-alertes-bons-plans: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Modération réactive & Transparence radicale
+  epic-5: backlog
+  5-1-schema-reports-extension-moderation-log-rls-transparence: backlog
+  5-2-signalement-contenu-par-resident-raison-fermee: backlog
+  5-3-interface-co-mod-queue-signalements-retrait-notification-auteur: backlog
+  5-4-journal-public-sur-transparence: backlog
+  5-5-workflow-escalade-juridique: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Partage WhatsApp, deep linking & engagement léger
+  epic-6: backlog
+  6-1-slugs-canoniques-urls-canoniques-tombstone: backlog
+  6-2-bouton-partager-1-tap-presse-papier-native-share: backlog
+  6-3-capture-contexte-pre-login-pour-visiteur-public: backlog
+  6-4-1-tap-sur-commentaire-alerte-bon-plan-sans: backlog
+  6-5-formulaire-suggestion-d-evolution-produit-lue-par-co-mods-uniquement: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Notifications, hors-ligne, langues & accessibilité avancée
+  epic-7: backlog
+  7-1-preferences-notifications-opt-in-3-categories: backlog
+  7-2-delivrance-notifications-e-mail-bilingues-avec-opt-in-respecte: backlog
+  7-3-service-worker-offline-lecture-sur-annuaire-guide-pack-numeros: backlog
+  7-4-bascule-langue-fr-ar-depuis-parametres-avec-memorisation: backlog
+  7-5-detection-accept-language-fallback-fr-fallback-contenu-manquant: backlog
+  7-6-navigation-clavier-complete-prefers-reduced-motion-respecte: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Conformité opérationnelle, exports RGPD & compteurs publics
+  epic-8: backlog
+  8-1-page-transparence-compteurs-publics-agreges: backlog
+  8-2-section-comment-vos-donnees-sont-protegees-sur-transparence-fr-ar: backlog
+  8-3-export-rgpd-json-self-service-resident: backlog
+  8-4-export-journal-moderation-co-mod-sur-periode-audit-cndp: backlog
+  8-5-purge-automatique-logs-serveur-30j: backlog
+  epic-8-retrospective: optional

@@ -1,0 +1,33 @@
+name: Mirror
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Mirror to GitLab
+        continue-on-error: true
+        env:
+          GITLAB_MIRROR_TOKEN: ${{ secrets.GITLAB_MIRROR_TOKEN }}
+        run: |
+          git remote add gitlab "https://oauth2:${GITLAB_MIRROR_TOKEN}@gitlab.com/stefenry/darna.git" || true
+          git push gitlab --mirror --force
+
+      - name: Mirror to Codeberg
+        continue-on-error: true
+        env:
+          CODEBERG_MIRROR_TOKEN: ${{ secrets.CODEBERG_MIRROR_TOKEN }}
+        run: |
+          git remote add codeberg "https://stefenry:${CODEBERG_MIRROR_TOKEN}@codeberg.org/stefenry/darna.git" || true
+          git push codeberg --mirror --force

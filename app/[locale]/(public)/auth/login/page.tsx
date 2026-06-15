@@ -1,0 +1,57 @@
+import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import type { Metadata } from 'next';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { PageContainer } from '@/components/layout/page-container';
+import { routing } from '@/lib/i18n/routing';
+import { LoginForm } from './login-form';
+
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+function assertLocale(locale: string) {
+  if (!routing.locales.includes(locale as (typeof routing.locales)[number])) {
+    notFound();
+  }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  assertLocale(locale);
+  const t = await getTranslations({ locale, namespace: 'auth.login' });
+  return { title: t('pageTitle') };
+}
+
+export default async function LoginPage({ params }: Props) {
+  const { locale } = await params;
+  assertLocale(locale);
+  setRequestLocale(locale);
+
+  const t = await getTranslations('auth.login');
+
+  return (
+    <PageContainer className="py-10" as="main">
+      <section className="flex flex-col gap-6">
+        <header className="flex flex-col gap-2">
+          <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
+            {t('pageTitle')}
+          </h1>
+          <p className="text-base text-neutral-500">{t('intro')}</p>
+        </header>
+
+        <LoginForm />
+
+        <p className="text-sm text-neutral-500">
+          {t('noAccountHint')}{' '}
+          <Link
+            href={`/${locale}/admission`}
+            className="font-medium text-accent-500 underline-offset-4 hover:underline"
+          >
+            {t('noAccountCta')}
+          </Link>
+        </p>
+      </section>
+    </PageContainer>
+  );
+}
