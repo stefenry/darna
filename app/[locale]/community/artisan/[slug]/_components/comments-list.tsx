@@ -1,0 +1,61 @@
+// Story 2.3 (AC1) — liste des avis voisins (10 plus récents). Pseudonyme ou nom
+// selon le `visibility` du contributeur (résolu en amont : `authorName` null →
+// libellé générique). Scores par axe noté affichés en petit.
+
+import { useTranslations } from 'next-intl';
+import type { ArtisanComment } from '../data';
+
+function formatDate(s: string, locale: string): string {
+  const d = new Date(s);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+export function CommentsList({ locale, comments }: { locale: string; comments: ArtisanComment[] }) {
+  const t = useTranslations('community.artisan.comments');
+  const tAxes = useTranslations('community.annuaire.axes');
+
+  return (
+    <section className="flex flex-col gap-3">
+      <h2 className="text-lg font-medium text-neutral-900">{t('title')}</h2>
+      {comments.length === 0 ? (
+        <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
+          {t('empty')}
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {comments.map((comment) => {
+            const formattedDate = formatDate(comment.createdAt, locale);
+            return (
+              <li
+                key={comment.id}
+                className="flex flex-col gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-neutral-900">
+                    {comment.authorName ?? t('anonymousAuthor')}
+                  </span>
+                  {formattedDate && (
+                    <time dateTime={comment.createdAt} className="text-xs text-neutral-400">
+                      {formattedDate}
+                    </time>
+                  )}
+                </div>
+                {comment.scores.length > 0 && (
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-neutral-500">
+                    {comment.scores.map((s) => (
+                      <span key={s.axis} className="tabular-nums">
+                        {tAxes(s.axis)} {s.value}/5
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <p className="text-base text-neutral-700">{comment.commentText}</p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
+  );
+}

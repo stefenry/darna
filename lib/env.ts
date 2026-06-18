@@ -1,34 +1,73 @@
 import { z } from 'zod';
 
-const serverSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.url(),
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
-    .string()
-    .regex(/^sb_publishable_/, 'expected sb_publishable_* (new Supabase key format, AR3)'),
-  SUPABASE_SECRET_KEY: z
-    .string()
-    .regex(/^sb_secret_/, 'expected sb_secret_* (new Supabase key format, AR3)'),
-  BREVO_API_KEY: z.string().min(1),
-  BREVO_SENDER_EMAIL: z.email(),
-  BREVO_SENDER_NAME: z.string().min(1).default('Darna'),
-  GLITCHTIP_DSN: z.url(),
-  UPSTASH_REDIS_REST_URL: z.url(),
-  UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
-  CRON_SECRET: z.string().min(32, 'CRON_SECRET must be ≥32 chars (random)'),
-  LEGAL_CONTACT_EMAIL: z.email(),
-  INITIAL_COMOD_EMAILS: z
-    .string()
-    .transform((s) =>
-      s
-        .split(',')
-        .map((e) => e.trim())
-        .filter(Boolean),
-    )
-    .pipe(z.array(z.email()).min(1, 'INITIAL_COMOD_EMAILS must contain ≥1 valid email')),
-  SENTRY_AUTH_TOKEN: z.string().optional(),
-  SENTRY_ORG: z.string().optional(),
-  SENTRY_PROJECT: z.string().optional(),
-});
+const serverSchema = z
+  .object({
+    NEXT_PUBLIC_SUPABASE_URL: z.url(),
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
+      .string()
+      .regex(/^sb_publishable_/, 'expected sb_publishable_* (new Supabase key format, AR3)'),
+    SUPABASE_SECRET_KEY: z
+      .string()
+      .regex(/^sb_secret_/, 'expected sb_secret_* (new Supabase key format, AR3)'),
+    BREVO_API_KEY: z.string().min(1),
+    BREVO_SENDER_EMAIL: z.email(),
+    BREVO_SENDER_NAME: z.string().min(1).default('Darna'),
+    GLITCHTIP_DSN: z.url(),
+    UPSTASH_REDIS_REST_URL: z.url(),
+    UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+    CRON_SECRET: z.string().min(32, 'CRON_SECRET must be ≥32 chars (random)'),
+    // Story 2.4 — secret HMAC des tokens de consentement artisan (signe le token
+    // magic-link SMS ; validé par le webhook 2.5). ≥32 char aléatoires.
+    CONSENT_TOKEN_SECRET: z.string().min(32, 'CONSENT_TOKEN_SECRET must be ≥32 chars (random)'),
+    // Story 2.4 — provider SMS. `log` (défaut MVP) = loggue le magic link sans
+    // envoi réel (aucun compte requis). `brevo` = Brevo SMS (réutilise BREVO_API_KEY)
+    // → nécessite BREVO_SMS_SENDER + couverture Maroc confirmée.
+    SMS_PROVIDER: z.enum(['log', 'brevo']).default('log'),
+    BREVO_SMS_SENDER: z.string().max(11).optional(),
+    LEGAL_CONTACT_EMAIL: z.email(),
+    // Optional post-invite : l'app ne crashe pas si purgé (runbook §3). Les
+    // notifications co-mod (admission-submit.ts) itèrent sur [] si absent.
+    INITIAL_COMOD_EMAILS: z
+      .string()
+      .optional()
+      .transform((s) =>
+        (s ?? '')
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean),
+      )
+      .pipe(z.array(z.email())),
+    SENTRY_AUTH_TOKEN: z.string().optional(),
+    SENTRY_ORG: z.string().optional(),
+    SENTRY_PROJECT: z.string().optional(),
+    // Story 1.10d — Backup hebdo R2 (AR29). Optionnels au MVP : le scaffold ne
+    // fail-fast pas l'app tant que le bucket R2 n'est pas provisionné. Requis en
+    // prod pour que l'Edge Function weekly-backup uploade le dump (cf. runbook).
+    R2_ACCOUNT_ID: z.string().optional(),
+    R2_ACCESS_KEY_ID: z.string().optional(),
+    R2_SECRET_ACCESS_KEY: z.string().optional(),
+    R2_BUCKET: z.string().optional(),
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  })
+  .superRefine((env, ctx) => {
+    // Review 2026-06-18 P13 — si Brevo activé, sender requis.
+    if (env.SMS_PROVIDER === 'brevo' && !env.BREVO_SMS_SENDER) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['BREVO_SMS_SENDER'],
+        message: 'BREVO_SMS_SENDER required when SMS_PROVIDER=brevo',
+      });
+    }
+    // Review 2026-06-18 P4 — l'adapter `log` est dev/MVP seulement. Ne JAMAIS
+    // déployer en prod (le SMS body contient le raw token magic-link).
+    if (env.NODE_ENV === 'production' && env.SMS_PROVIDER === 'log') {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['SMS_PROVIDER'],
+        message: 'SMS_PROVIDER=log interdit en production (leak token raw dans logs)',
+      });
+    }
+  });
 
 const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.url(),

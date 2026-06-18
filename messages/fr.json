@@ -60,6 +60,55 @@
     "forbidden": "Accès non autorisé",
     "auth": {
       "required": "Connexion requise"
+    },
+    "admission": {
+      "villa_out_of_range": "Ce numéro de villa n'existe pas dans la résidence (1 à 150).",
+      "tranche_invalid": "Choisis une tranche valide (A à E).",
+      "first_name_required": "Indique ton prénom pour que les co-mods te reconnaissent.",
+      "email_invalid": "Cet e-mail ne semble pas valide.",
+      "cgu_required": "Tu dois accepter les conditions d'utilisation pour continuer.",
+      "duplicate_pending": "Une demande pour cet e-mail est déjà en file d'attente. Vérifie ta boîte mail."
+    },
+    "comod": {
+      "forbidden": "Cette action est réservée aux co-modérateurs.",
+      "invalid_id": "Demande introuvable. Actualise la file et réessaie.",
+      "motive_required": "Choisis un motif avant de confirmer.",
+      "motive_invalid": "Ce motif n'est pas valide.",
+      "already_decided": "Un voisin a déjà traité cette demande.",
+      "wrong_residence": "Cette demande ne relève pas de ta résidence.",
+      "decision_failed": "La décision n'a pas pu être enregistrée. Réessaie."
+    },
+    "profil": {
+      "forbidden": "Tu dois être connecté pour faire ça.",
+      "confirm_mismatch": "Tape exactement SUPPRIMER pour confirmer.",
+      "settings_failed": "Tes préférences n'ont pas pu être enregistrées. Réessaie.",
+      "delete_failed": "La suppression n'a pas pu aboutir. Réessaie."
+    },
+    "cron": {
+      "unauthorized": "Non autorisé.",
+      "failed": "Échec de l'opération planifiée."
+    },
+    "rate_limit": {
+      "exceeded": "Trop de tentatives. Réessaie dans un moment."
+    },
+    "annuaire": {
+      "fetch_failed": "Impossible de charger l’annuaire pour le moment.",
+      "retry": "Réessayer"
+    },
+    "artisan": {
+      "fetch_failed": "Impossible de charger cette fiche pour le moment.",
+      "retry": "Réessayer",
+      "display_name_required": "Le nom de l’artisan est requis.",
+      "phone_invalid": "Numéro de téléphone marocain invalide (format +212).",
+      "tags_required": "Sélectionnez au moins une compétence.",
+      "comment_too_long": "La recommandation dépasse 500 caractères.",
+      "price_invalid": "Tarif invalide.",
+      "invoice_invalid": "Option de facture invalide.",
+      "consent_required": "Vous devez confirmer avoir prévenu l’artisan.",
+      "phone_duplicate": "Un artisan avec ce numéro existe déjà.",
+      "submit_failed": "Échec de l’envoi. Réessayez.",
+      "missing_residence": "Vous devez être résident validé pour ajouter un artisan.",
+      "visibility_invalid": "Visibilité invalide."
     }
   },
   "auth": {
@@ -101,6 +150,215 @@
       "backToHome": "Retour à l'accueil",
       "signOutLocal": "Se déconnecter de cet appareil",
       "signOutGlobal": "Se déconnecter de tous mes appareils"
+    }
+  },
+  "admission": {
+    "form": {
+      "pageTitle": "Demander l'accès à Darna",
+      "intro": "Une fois validé par un voisin co-mod (sous 24h max), tu pourras consulter l'annuaire, le guide et les alertes.",
+      "villaLabel": "Numéro de villa",
+      "villaPlaceholder": "Entre 1 et 150",
+      "trancheLabel": "Tranche",
+      "tranchePlaceholder": "Choisis ta tranche",
+      "trancheOptionA": "A",
+      "trancheOptionB": "B",
+      "trancheOptionC": "C",
+      "trancheOptionD": "D",
+      "trancheOptionE": "E",
+      "firstNameLabel": "Prénom",
+      "firstNamePlaceholder": "Ton prénom (visible des co-mods)",
+      "emailLabel": "Adresse e-mail",
+      "emailPlaceholder": "toi@exemple.com",
+      "cguLabel": "J'ai lu et j'accepte les",
+      "cguLinkText": "conditions d'utilisation",
+      "submit": "Demander l'accès",
+      "submitting": "Envoi…",
+      "alreadyAccessHint": "Déjà demandé l'accès ?",
+      "alreadyAccessCta": "Me connecter"
+    },
+    "pending": {
+      "pageTitle": "Ton inscription est en file ⏳",
+      "body": "Un voisin co-mod va valider sous 24h max. On te prévient par e-mail dès la décision.",
+      "subBody": "Tu peux fermer cette page — on te réveille à la décision.",
+      "alreadyValidatedCta": "Déjà validé ? Me connecter"
+    },
+    "refused": {
+      "pageTitle": "Demande non retenue",
+      "body": "Ta demande n'a pas pu être acceptée. Le motif détaillé est dans l'e-mail que tu as reçu.",
+      "learnMoreLink": "En savoir plus sur la modération"
+    }
+  },
+  "comod": {
+    "admission": {
+      "pageTitle": "File d'admission",
+      "intro": "Valide ou rejette les demandes de ta résidence. Objectif : décider sous 24h max.",
+      "emptyState": "Aucune demande en attente 🎉 Tout est à jour.",
+      "columnVilla": "Villa",
+      "columnTranche": "Tranche",
+      "columnName": "Prénom",
+      "requestedAt": "Demandé le",
+      "emailUnverifiedBadge": "e-mail non confirmé",
+      "validateCta": "Valider",
+      "rejectCta": "Rejeter",
+      "submitting": "…",
+      "rejectDialogTitle": "Rejeter cette demande",
+      "rejectDialogIntro": "Choisis un motif. Le voisin recevra un e-mail neutre.",
+      "confirmRejectCta": "Confirmer le rejet",
+      "cancelCta": "Annuler",
+      "motive_villa_out_of_range": "Numéro de villa hors résidence",
+      "motive_duplicate": "Demande en double",
+      "motive_incomplete_info": "Informations incomplètes",
+      "motive_manual_review_needed": "Vérification manuelle nécessaire"
+    },
+    "forbidden": {
+      "title": "Accès réservé",
+      "body": "Cet espace est réservé aux co-modérateurs de la résidence."
+    }
+  },
+  "community": {
+    "home": {
+      "title": "Bienvenue à Darna",
+      "body": "L'annuaire, le guide et les alertes de la résidence arrivent bientôt."
+    },
+    "nav": {
+      "settings": "Mon profil"
+    },
+    "annuaire": {
+      "title": "Annuaire des artisans",
+      "intro": "Trouvez un artisan recommandé par vos voisins.",
+      "resultsCount": "{count, plural, =0 {Aucun artisan} one {# artisan correspondant} other {# artisans correspondants}}",
+      "resultsMore": "plus de résultats disponibles",
+      "search": {
+        "label": "Rechercher un artisan",
+        "placeholder": "plombier, peintre…"
+      },
+      "axes": {
+        "depannage": "Dépannage",
+        "petits-travaux": "Petits travaux",
+        "travail-soigne": "Travail soigné",
+        "urgences": "Urgences"
+      },
+      "gauge": {
+        "na": "NA",
+        "voters": "{count, plural, one {# voisin} other {# voisins}}",
+        "valueText": "{average} sur 5 sur {axis}, {count, plural, one {# voisin} other {# voisins}}",
+        "valueTextNa": "{axis} non noté"
+      },
+      "card": {
+        "open": "Voir la fiche de {name}",
+        "call": "Appeler {name}",
+        "price": "Prix indicatif {price}",
+        "invoice": "Facture émise",
+        "invoiceOnRequest": "Facture sur demande"
+      },
+      "filters": {
+        "competence": "Compétence",
+        "price": "Prix",
+        "invoice": "Facture émise",
+        "minRating": "Note min",
+        "minRatingValue": "{stars}★",
+        "activeBadge": "Filtre sélectionné"
+      },
+      "empty": {
+        "title": "Aucun artisan correspondant",
+        "description": "Personne ne correspond à votre recherche pour l’instant.",
+        "cta": "Ajouter le tien ?"
+      },
+      "offline": {
+        "banner": "Mode hors ligne — mise à jour il y a {hours, plural, =0 {moins d’une heure} one {# heure} other {# heures}}",
+        "bannerUnknown": "Mode hors ligne — affichage des données en cache"
+      }
+    },
+    "artisan": {
+      "call": "Appeler {name}",
+      "back": "Retour",
+      "more": "Plus d’options",
+      "invoice": "Facture émise",
+      "invoiceOnRequest": "Facture sur demande",
+      "phoneAriaLabel": "Numéro de téléphone",
+      "phoneUnavailable": "Numéro indisponible",
+      "comments": {
+        "title": "Avis des voisins",
+        "empty": "Aucun avis pour l’instant.",
+        "anonymousAuthor": "Un voisin",
+        "rate": "Noter cet artisan"
+      },
+      "gone": {
+        "title": "Cette fiche n’est plus disponible",
+        "description": "Cet artisan a été retiré de l’annuaire.",
+        "back": "Retour à l’annuaire"
+      },
+      "owner": {
+        "title": "Votre contribution",
+        "edit": "Modifier ma contribution",
+        "remove": "Retirer",
+        "soon": "Bientôt disponible"
+      }
+    },
+    "artisanCreate": {
+      "title": "Ajouter un artisan",
+      "intro": "Recommandez un artisan à vos voisins. Il recevra un SMS pour confirmer (gratuit, sans compte).",
+      "displayNameFr": "Nom de l’artisan",
+      "displayNameAr": "Nom en arabe (optionnel)",
+      "phone": "Téléphone",
+      "phonePlaceholder": "+212 6 00 00 00 00",
+      "competences": "Compétences",
+      "competencesHint": "Sélectionnez au moins une compétence.",
+      "price": "Tarif indicatif",
+      "priceNone": "Non précisé",
+      "invoice": "Facture",
+      "invoiceNone": "Non précisé",
+      "invoiceOui": "Oui",
+      "invoiceNon": "Non",
+      "invoiceSurDemande": "Sur demande",
+      "comment": "Votre recommandation (optionnel)",
+      "commentPlaceholder": "Pourquoi le recommandez-vous ?",
+      "visibility": "Affichage de votre nom",
+      "visibilityPseudonym": "Pseudonyme",
+      "visibilityNamed": "Mon nom",
+      "consentLabel": "Je confirme avoir prévenu l’artisan que je soumets sa fiche.",
+      "submit": "Envoyer la demande",
+      "submitting": "Envoi…",
+      "success": "{name} va recevoir un SMS pour confirmer. Sa fiche apparaîtra une fois consentie.",
+      "duplicateView": "Voir l’artisan existant",
+      "back": "Retour à l’annuaire",
+      "smsFailedWarning": "Création OK, mais l'envoi du SMS a échoué. Un co-mod pourra renvoyer le lien depuis l'admin.",
+      "tagsUnavailable": "Les compétences sont indisponibles pour le moment. Réessayez plus tard."
+    }
+  },
+  "profil": {
+    "pageTitle": "Mon profil",
+    "villaLabel": "Villa",
+    "trancheLabel": "Tranche",
+    "firstNameLabel": "Prénom",
+    "emailLabel": "Adresse e-mail",
+    "emailReadonlyHint": "Non modifiable pour le moment.",
+    "languageLabel": "Langue",
+    "visibilityLabel": "Visibilité par défaut",
+    "visibilityPseudo": "Pseudonyme",
+    "visibilityIdentified": "Identité visible",
+    "notifStubTitle": "Notifications",
+    "notifStubHint": "Le réglage complet arrive bientôt.",
+    "notifAlerts": "Alertes urgentes",
+    "notifDirectory": "Nouvelles entrées de l'annuaire",
+    "notifActivity": "Activité sur mes contributions",
+    "settingsCta": "Paramètres",
+    "deleteCta": "Supprimer mon compte",
+    "settings": {
+      "pageTitle": "Paramètres",
+      "visibilityToggleLabel": "Afficher mon identité (au lieu d'un pseudonyme)",
+      "languageLabel": "Langue",
+      "saved": "Préférences enregistrées."
+    },
+    "delete": {
+      "pageTitle": "Supprimer mon compte",
+      "dangerTitle": "Zone sensible",
+      "cascadeBody": "Tes contributions (avis, commentaires, alertes, etc.) seront anonymisées (mention « Voisin supprimé »). Tes données personnelles seront purgées sous 7 jours conformément RGPD.",
+      "confirmLabel": "Tape {phrase} pour confirmer.",
+      "confirmPlaceholder": "SUPPRIMER",
+      "submitCta": "Supprimer définitivement",
+      "submitting": "Suppression…",
+      "cancelCta": "Annuler, garder mon compte"
     }
   },
   "install": {
@@ -153,5 +411,24 @@
       "instructionsTitle": "Vous préférez installer sur ordinateur ?",
       "instructionsChrome": "Sur Chrome ou Edge, ouvrez le menu ⋮ puis « Installer Darna »."
     }
+  },
+  "consent": {
+    "title": "Votre fiche sur Darna",
+    "intro": "{name}, un voisin de votre résidence vous recommande sur l’annuaire d’artisans Darna.",
+    "competences": "Compétences",
+    "visibilityNote": "Votre nom n’est pas affiché publiquement sauf si le contributeur l’a indiqué.",
+    "privacy": "En acceptant, votre fiche devient visible par les résidents. Vous pourrez demander son retrait à tout moment.",
+    "accept": "J’accepte",
+    "refuse": "Je refuse",
+    "langToggle": "العربية",
+    "expiredTitle": "Demande expirée",
+    "expiredBody": "Cette demande de consentement a expiré. Si vous souhaitez être référencé, demandez à votre voisin de soumettre une nouvelle fiche.",
+    "usedAcceptedTitle": "Fiche confirmée",
+    "usedAcceptedBody": "Vous avez accepté votre fiche. Elle est visible par les résidents.",
+    "usedRefusedTitle": "Demande déclinée",
+    "usedRefusedBody": "Vous avez décliné cette fiche. Vos données ont été supprimées.",
+    "viewFiche": "Consulter ma fiche",
+    "invalidTitle": "Lien invalide ou expiré",
+    "invalidBody": "Ce lien de consentement n’est pas valide. Il a peut-être expiré ou déjà été utilisé."
   }
 }

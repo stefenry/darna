@@ -41,6 +41,7 @@ export type Database = {
           deleted_at: string | null;
           deleted_by: string | null;
           deletion_reason: string | null;
+          email_verified_at: string | null;
           first_name: string;
           id: string;
           residence_id: string;
@@ -59,6 +60,7 @@ export type Database = {
           deleted_at?: string | null;
           deleted_by?: string | null;
           deletion_reason?: string | null;
+          email_verified_at?: string | null;
           first_name: string;
           id?: string;
           residence_id: string;
@@ -77,6 +79,7 @@ export type Database = {
           deleted_at?: string | null;
           deleted_by?: string | null;
           deletion_reason?: string | null;
+          email_verified_at?: string | null;
           first_name?: string;
           id?: string;
           residence_id?: string;
@@ -113,6 +116,166 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      artisan_consent_tokens: {
+        Row: {
+          artisan_id: string;
+          created_at: string;
+          expires_at: string;
+          id: string;
+          residence_id: string;
+          token_hash: string;
+          used_at: string | null;
+        };
+        Insert: {
+          artisan_id: string;
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          residence_id: string;
+          token_hash: string;
+          used_at?: string | null;
+        };
+        Update: {
+          artisan_id?: string;
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          residence_id?: string;
+          token_hash?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'artisan_consent_tokens_artisan_id_fkey';
+            columns: ['artisan_id'];
+            isOneToOne: false;
+            referencedRelation: 'artisans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'artisan_consent_tokens_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      artisan_tags: {
+        Row: {
+          artisan_id: string;
+          tag_id: string;
+        };
+        Insert: {
+          artisan_id: string;
+          tag_id: string;
+        };
+        Update: {
+          artisan_id?: string;
+          tag_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'artisan_tags_artisan_id_fkey';
+            columns: ['artisan_id'];
+            isOneToOne: false;
+            referencedRelation: 'artisans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'artisan_tags_tag_id_fkey';
+            columns: ['tag_id'];
+            isOneToOne: false;
+            referencedRelation: 'tags';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      artisans: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          display_name_ar: string | null;
+          display_name_ar_tsv: unknown;
+          display_name_fr: string;
+          display_name_fr_tsv: unknown;
+          has_invoice: Database['public']['Enums']['artisan_has_invoice'] | null;
+          id: string;
+          phone_e164: string;
+          price_relative: Database['public']['Enums']['artisan_price_relative'] | null;
+          published_at: string | null;
+          residence_id: string;
+          slug: string;
+          state: Database['public']['Enums']['artisan_state'];
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          display_name_ar?: string | null;
+          display_name_ar_tsv?: unknown;
+          display_name_fr: string;
+          display_name_fr_tsv?: unknown;
+          has_invoice?: Database['public']['Enums']['artisan_has_invoice'] | null;
+          id?: string;
+          phone_e164: string;
+          price_relative?: Database['public']['Enums']['artisan_price_relative'] | null;
+          published_at?: string | null;
+          residence_id: string;
+          slug: string;
+          state?: Database['public']['Enums']['artisan_state'];
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          display_name_ar?: string | null;
+          display_name_ar_tsv?: unknown;
+          display_name_fr?: string;
+          display_name_fr_tsv?: unknown;
+          has_invoice?: Database['public']['Enums']['artisan_has_invoice'] | null;
+          id?: string;
+          phone_e164?: string;
+          price_relative?: Database['public']['Enums']['artisan_price_relative'] | null;
+          published_at?: string | null;
+          residence_id?: string;
+          slug?: string;
+          state?: Database['public']['Enums']['artisan_state'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'artisans_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'artisans_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'artisans_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
             referencedColumns: ['id'];
           },
         ];
@@ -290,6 +453,95 @@ export type Database = {
           },
         ];
       };
+      ratings: {
+        Row: {
+          artisan_id: string;
+          author_display_name: string | null;
+          comment_text: string | null;
+          comment_tsv: unknown;
+          created_at: string;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          id: string;
+          residence_id: string;
+          score_depannage: number | null;
+          score_petits_travaux: number | null;
+          score_travail_soigne: number | null;
+          score_urgences: number | null;
+          updated_at: string;
+          user_id: string | null;
+          visibility: Database['public']['Enums']['rating_visibility'];
+        };
+        Insert: {
+          artisan_id: string;
+          author_display_name?: string | null;
+          comment_text?: string | null;
+          comment_tsv?: unknown;
+          created_at?: string;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          residence_id: string;
+          score_depannage?: number | null;
+          score_petits_travaux?: number | null;
+          score_travail_soigne?: number | null;
+          score_urgences?: number | null;
+          updated_at?: string;
+          user_id?: string | null;
+          visibility?: Database['public']['Enums']['rating_visibility'];
+        };
+        Update: {
+          artisan_id?: string;
+          author_display_name?: string | null;
+          comment_text?: string | null;
+          comment_tsv?: unknown;
+          created_at?: string;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          residence_id?: string;
+          score_depannage?: number | null;
+          score_petits_travaux?: number | null;
+          score_travail_soigne?: number | null;
+          score_urgences?: number | null;
+          updated_at?: string;
+          user_id?: string | null;
+          visibility?: Database['public']['Enums']['rating_visibility'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'ratings_artisan_id_fkey';
+            columns: ['artisan_id'];
+            isOneToOne: false;
+            referencedRelation: 'artisans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ratings_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ratings_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ratings_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       residences: {
         Row: {
           created_at: string;
@@ -333,6 +585,30 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      tags: {
+        Row: {
+          created_at: string;
+          id: string;
+          key: string;
+          label_ar: string | null;
+          label_fr: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          key: string;
+          label_ar?: string | null;
+          label_fr: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          key?: string;
+          label_ar?: string | null;
+          label_fr?: string;
+        };
+        Relationships: [];
       };
       users: {
         Row: {
@@ -393,11 +669,67 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      artisan_rating_aggregates: {
+        Row: {
+          artisan_id: string | null;
+          avg_depannage: number | null;
+          avg_petits_travaux: number | null;
+          avg_travail_soigne: number | null;
+          avg_urgences: number | null;
+          n_depannage: number | null;
+          n_petits_travaux: number | null;
+          n_total: number | null;
+          n_travail_soigne: number | null;
+          n_urgences: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'ratings_artisan_id_fkey';
+            columns: ['artisan_id'];
+            isOneToOne: false;
+            referencedRelation: 'artisans';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
+      accept_admission: {
+        Args: { p_actor_id: string; p_admission_id: string };
+        Returns: {
+          requester_user_id: string;
+          residence_id: string;
+          villa: number;
+        }[];
+      };
       auth_residence_id: { Args: never; Returns: string };
       auth_role: { Args: never; Returns: string };
+      process_artisan_consent: {
+        Args: { p_decision: string; p_token_hash: string };
+        Returns: {
+          artisan_id: string;
+          contributor_id: string;
+          display_name_fr: string;
+          slug: string;
+          state: Database['public']['Enums']['artisan_state'];
+          status: string;
+        }[];
+      };
+      reject_admission: {
+        Args: {
+          p_actor_id: string;
+          p_admission_id: string;
+          p_reason: Database['public']['Enums']['admission_decision_reason'];
+        };
+        Returns: {
+          requester_user_id: string;
+          residence_id: string;
+          villa: number;
+        }[];
+      };
+      request_account_deletion: { Args: never; Returns: undefined };
+      show_limit: { Args: never; Returns: number };
+      show_trgm: { Args: { '': string }; Returns: string[] };
     };
     Enums: {
       admission_contact_channel: 'email' | 'sms';
@@ -407,13 +739,20 @@ export type Database = {
         | 'incomplete_info'
         | 'manual_review_needed';
       admission_state: 'pending' | 'accepted' | 'rejected';
+      artisan_has_invoice: 'oui' | 'non' | 'sur_demande';
+      artisan_price_relative: '$' | '$$' | '$$$' | '$$$$';
+      artisan_state: 'pending_consent' | 'published' | 'refused';
       moderation_action:
         | 'admission_accepted'
         | 'admission_rejected'
         | 'user_deleted'
         | 'content_removed'
         | 'rating_removed'
-        | 'comment_removed';
+        | 'comment_removed'
+        | 'purge_completed'
+        | 'artisan_published'
+        | 'artisan_consent_refused';
+      rating_visibility: 'pseudonym' | 'named';
       user_role: 'resident' | 'co_mod' | 'demandeur' | 'public';
     };
     CompositeTypes: {
@@ -551,6 +890,9 @@ export const Constants = {
         'manual_review_needed',
       ],
       admission_state: ['pending', 'accepted', 'rejected'],
+      artisan_has_invoice: ['oui', 'non', 'sur_demande'],
+      artisan_price_relative: ['$', '$$', '$$$', '$$$$'],
+      artisan_state: ['pending_consent', 'published', 'refused'],
       moderation_action: [
         'admission_accepted',
         'admission_rejected',
@@ -558,7 +900,11 @@ export const Constants = {
         'content_removed',
         'rating_removed',
         'comment_removed',
+        'purge_completed',
+        'artisan_published',
+        'artisan_consent_refused',
       ],
+      rating_visibility: ['pseudonym', 'named'],
       user_role: ['resident', 'co_mod', 'demandeur', 'public'],
     },
   },

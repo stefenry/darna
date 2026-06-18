@@ -1,5 +1,5 @@
 # generated: 2026-05-23
-# last_updated: 2026-06-14
+# last_updated: 2026-06-15T00:00:00Z
 # project: SmartResidence
 # project_key: NOKEY
 # tracking_system: file-system
@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-23
-last_updated: 2026-06-15T15:15:00Z
+last_updated: 2026-06-17T23:00:00Z
 project: SmartResidence
 project_key: NOKEY
 tracking_system: file-system
@@ -50,19 +50,23 @@ development_status:
   1-4-pages-publiques-i18n-fr-ar-shell-middleware-locale-auth: done
   1-5-page-install-os-aware-manifest-pwa-service-worker-shell: done
   1-6-magic-link-e-mail-brevo-auth-callback-cookies-session-12-mois: done
-  1-7-demande-d-admission-visiteur-demandeur-en-file-d-attente: backlog
-  1-8-validation-co-mod-file-admission-accept-reject-notification-decision: backlog
-  1-9-profil-resident-deconnexion-suppression-compte-rgpd-cascade: backlog
-  1-10-hardening-rate-limiting-headers-securite-tests-rls-a11y-backup-hebdo-adrs: backlog
+  1-7-demande-d-admission-visiteur-demandeur-en-file-d-attente: done
+  1-8-validation-co-mod-file-admission-accept-reject-notification-decision: done
+  1-9-profil-resident-deconnexion-suppression-compte-rgpd-cascade: done
+  # Story 1.10 (hardening) scindée en 4 clusters indépendants (2026-06-16)
+  1-10a-hardening-securite-headers-csp-deps: done
+  1-10b-rate-limiting-upstash: done
+  1-10c-tests-rls-a11y-ci: done
+  1-10d-ops-backup-adrs-runbook-invite-comods: done
   epic-1-retrospective: optional
 
   # Epic 2: Annuaire d'artisans noté (killer feature)
-  epic-2: backlog
-  2-1-schema-artisans-ratings-tags-bilingues-fts-postgres: backlog
-  2-2-annuaire-liste-avec-recherche-fts-bilingue-filtres-cache-offline: backlog
-  2-3-fiche-artisan-detaillee-action-tel: backlog
-  2-4-creation-fiche-artisan-workflow-consentement-sms-asynchrone: backlog
-  2-5-page-magic-link-consentement-artisan-accept-refuse-1-tap-sans-compte: backlog
+  epic-2: in-progress
+  2-1-schema-artisans-ratings-tags-bilingues-fts-postgres: done
+  2-2-annuaire-liste-avec-recherche-fts-bilingue-filtres-cache-offline: done
+  2-3-fiche-artisan-detaillee-action-tel: done
+  2-4-creation-fiche-artisan-workflow-consentement-sms-asynchrone: done
+  2-5-page-magic-link-consentement-artisan-accept-refuse-1-tap-sans-compte: review
   2-6-notation-typee-multi-axes-commentaire-pseudo-identite: backlog
   2-7-edition-retrait-de-ses-propres-contributions: backlog
   2-8-droit-de-reponse-artisan: backlog

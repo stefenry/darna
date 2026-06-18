@@ -78,6 +78,17 @@ describe('resolveRedirect', () => {
     expect(result).toBe('/fr/admission?from=login');
   });
 
+  it('honors nextParam pointing to /<locale>/admission/pending (Story 1.7 magic-link callback)', async () => {
+    const supabase = makeSupabase(null);
+    const result = await resolveRedirect({
+      supabase,
+      user,
+      locale: 'fr',
+      nextParam: '/fr/admission/pending',
+    });
+    expect(result).toBe('/fr/admission/pending');
+  });
+
   it('rejects nextParam that does not start with /<locale>/admission', async () => {
     const supabase = makeSupabase('accepted');
     const result = await resolveRedirect({

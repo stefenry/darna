@@ -7,6 +7,8 @@ import { zEmail } from '@/lib/validation/email';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { detectLocaleFromHeaders } from '@/lib/i18n/detect-locale';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { isSafeActionLink } from '@/lib/auth/safe-action-link';
+import { checkLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
 import { env } from '@/lib/env';
 
@@ -20,19 +22,12 @@ export type SignInState = {
 };
 
 const MAGIC_LINK_TTL_MINUTES = 15;
+// AR31 — 3 magic-links / 15 min / e-mail.
+const MAGIC_RATE_LIMIT = 3;
+const MAGIC_RATE_WINDOW_SECONDS = 900;
 
 function getBaseUrl(): string {
   return env.client.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '');
-}
-
-function isSafeActionLink(value: unknown): value is string {
-  if (typeof value !== 'string' || value.length === 0) return false;
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
-  } catch {
-    return false;
-  }
 }
 
 export async function signInMagicLink(
@@ -59,6 +54,26 @@ export async function signInMagicLink(
   const redirectTo = `${getBaseUrl()}/auth/confirm?next=${encodeURIComponent(
     `/${locale}/admission`,
   )}`;
+
+  // AR31 — rate-limit par e-mail. Anti-énumération préservée : on redirige
+  // toujours vers check-email, mais sans envoyer de lien si la limite est
+  // dépassée (le rl.success gate le bloc generateLink/send ci-dessous).
+  const rl = await checkLimit(
+    `magic:${parsed.data.email.toLowerCase()}`,
+    MAGIC_RATE_LIMIT,
+    MAGIC_RATE_WINDOW_SECONDS,
+  );
+  if (!rl.success) {
+    log({
+      level: 'info',
+      event: 'auth.rate_limited',
+      user_id: null,
+      residence_id: null,
+      request_id: null,
+      payload: { locale },
+    });
+    redirect(`/${locale}/auth/check-email`);
+  }
 
   try {
     const admin = createAdminClient();

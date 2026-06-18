@@ -30,6 +30,55 @@
     "forbidden": "الوصول غير مصرح",
     "auth": {
       "required": "يجب تسجيل الدخول"
+    },
+    "admission": {
+      "villa_out_of_range": "",
+      "tranche_invalid": "",
+      "first_name_required": "",
+      "email_invalid": "",
+      "cgu_required": "",
+      "duplicate_pending": ""
+    },
+    "comod": {
+      "forbidden": "",
+      "invalid_id": "",
+      "motive_required": "",
+      "motive_invalid": "",
+      "already_decided": "",
+      "wrong_residence": "",
+      "decision_failed": ""
+    },
+    "profil": {
+      "forbidden": "",
+      "confirm_mismatch": "",
+      "settings_failed": "",
+      "delete_failed": ""
+    },
+    "cron": {
+      "unauthorized": "",
+      "failed": ""
+    },
+    "rate_limit": {
+      "exceeded": ""
+    },
+    "annuaire": {
+      "fetch_failed": "",
+      "retry": ""
+    },
+    "artisan": {
+      "fetch_failed": "",
+      "retry": "",
+      "display_name_required": "",
+      "phone_invalid": "",
+      "tags_required": "",
+      "comment_too_long": "",
+      "price_invalid": "",
+      "invoice_invalid": "",
+      "consent_required": "",
+      "phone_duplicate": "",
+      "submit_failed": "",
+      "missing_residence": "",
+      "visibility_invalid": ""
     }
   },
   "auth": {
@@ -71,6 +120,215 @@
       "backToHome": "",
       "signOutLocal": "",
       "signOutGlobal": ""
+    }
+  },
+  "admission": {
+    "form": {
+      "pageTitle": "",
+      "intro": "",
+      "villaLabel": "",
+      "villaPlaceholder": "",
+      "trancheLabel": "",
+      "tranchePlaceholder": "",
+      "trancheOptionA": "",
+      "trancheOptionB": "",
+      "trancheOptionC": "",
+      "trancheOptionD": "",
+      "trancheOptionE": "",
+      "firstNameLabel": "",
+      "firstNamePlaceholder": "",
+      "emailLabel": "",
+      "emailPlaceholder": "",
+      "cguLabel": "",
+      "cguLinkText": "",
+      "submit": "",
+      "submitting": "",
+      "alreadyAccessHint": "",
+      "alreadyAccessCta": ""
+    },
+    "pending": {
+      "pageTitle": "",
+      "body": "",
+      "subBody": "",
+      "alreadyValidatedCta": ""
+    },
+    "refused": {
+      "pageTitle": "",
+      "body": "",
+      "learnMoreLink": ""
+    }
+  },
+  "comod": {
+    "admission": {
+      "pageTitle": "",
+      "intro": "",
+      "emptyState": "",
+      "columnVilla": "",
+      "columnTranche": "",
+      "columnName": "",
+      "requestedAt": "",
+      "emailUnverifiedBadge": "",
+      "validateCta": "",
+      "rejectCta": "",
+      "submitting": "",
+      "rejectDialogTitle": "",
+      "rejectDialogIntro": "",
+      "confirmRejectCta": "",
+      "cancelCta": "",
+      "motive_villa_out_of_range": "",
+      "motive_duplicate": "",
+      "motive_incomplete_info": "",
+      "motive_manual_review_needed": ""
+    },
+    "forbidden": {
+      "title": "",
+      "body": ""
+    }
+  },
+  "community": {
+    "home": {
+      "title": "",
+      "body": ""
+    },
+    "nav": {
+      "settings": ""
+    },
+    "annuaire": {
+      "title": "",
+      "intro": "",
+      "resultsCount": "",
+      "resultsMore": "",
+      "search": {
+        "label": "",
+        "placeholder": ""
+      },
+      "axes": {
+        "depannage": "",
+        "petits-travaux": "",
+        "travail-soigne": "",
+        "urgences": ""
+      },
+      "gauge": {
+        "na": "",
+        "voters": "",
+        "valueText": "",
+        "valueTextNa": ""
+      },
+      "card": {
+        "open": "",
+        "call": "",
+        "price": "",
+        "invoice": "",
+        "invoiceOnRequest": ""
+      },
+      "filters": {
+        "competence": "",
+        "price": "",
+        "invoice": "",
+        "minRating": "",
+        "minRatingValue": "",
+        "activeBadge": ""
+      },
+      "empty": {
+        "title": "",
+        "description": "",
+        "cta": ""
+      },
+      "offline": {
+        "banner": "",
+        "bannerUnknown": ""
+      }
+    },
+    "artisan": {
+      "call": "",
+      "back": "",
+      "more": "",
+      "invoice": "",
+      "invoiceOnRequest": "",
+      "phoneAriaLabel": "",
+      "phoneUnavailable": "",
+      "comments": {
+        "title": "",
+        "empty": "",
+        "anonymousAuthor": "",
+        "rate": ""
+      },
+      "gone": {
+        "title": "",
+        "description": "",
+        "back": ""
+      },
+      "owner": {
+        "title": "",
+        "edit": "",
+        "remove": "",
+        "soon": ""
+      }
+    },
+    "artisanCreate": {
+      "title": "",
+      "intro": "",
+      "displayNameFr": "",
+      "displayNameAr": "",
+      "phone": "",
+      "phonePlaceholder": "",
+      "competences": "",
+      "competencesHint": "",
+      "price": "",
+      "priceNone": "",
+      "invoice": "",
+      "invoiceNone": "",
+      "invoiceOui": "",
+      "invoiceNon": "",
+      "invoiceSurDemande": "",
+      "comment": "",
+      "commentPlaceholder": "",
+      "visibility": "",
+      "visibilityPseudonym": "",
+      "visibilityNamed": "",
+      "consentLabel": "",
+      "submit": "",
+      "submitting": "",
+      "success": "",
+      "duplicateView": "",
+      "back": "",
+      "smsFailedWarning": "",
+      "tagsUnavailable": ""
+    }
+  },
+  "profil": {
+    "pageTitle": "",
+    "villaLabel": "",
+    "trancheLabel": "",
+    "firstNameLabel": "",
+    "emailLabel": "",
+    "emailReadonlyHint": "",
+    "languageLabel": "",
+    "visibilityLabel": "",
+    "visibilityPseudo": "",
+    "visibilityIdentified": "",
+    "notifStubTitle": "",
+    "notifStubHint": "",
+    "notifAlerts": "",
+    "notifDirectory": "",
+    "notifActivity": "",
+    "settingsCta": "",
+    "deleteCta": "",
+    "settings": {
+      "pageTitle": "",
+      "visibilityToggleLabel": "",
+      "languageLabel": "",
+      "saved": ""
+    },
+    "delete": {
+      "pageTitle": "",
+      "dangerTitle": "",
+      "cascadeBody": "",
+      "confirmLabel": "",
+      "confirmPlaceholder": "",
+      "submitCta": "",
+      "submitting": "",
+      "cancelCta": ""
     }
   },
   "install": {
@@ -123,5 +381,24 @@
       "instructionsTitle": "",
       "instructionsChrome": ""
     }
+  },
+  "consent": {
+    "title": "بطاقتك على دارنا",
+    "intro": "{name}، يوصي بك أحد جيران إقامتك في دليل الحرفيين دارنا.",
+    "competences": "المهارات",
+    "visibilityNote": "لن يظهر اسمك علنًا إلا إذا أشار إلى ذلك المساهم.",
+    "privacy": "بالقبول، تصبح بطاقتك مرئية للسكان. يمكنك طلب حذفها في أي وقت.",
+    "accept": "أوافق",
+    "refuse": "أرفض",
+    "langToggle": "Français",
+    "expiredTitle": "انتهت صلاحية الطلب",
+    "expiredBody": "انتهت صلاحية طلب الموافقة هذا. إذا كنت ترغب في الإدراج، اطلب من جارك تقديم بطاقة جديدة.",
+    "usedAcceptedTitle": "تم تأكيد البطاقة",
+    "usedAcceptedBody": "لقد قبلت بطاقتك. أصبحت مرئية للسكان.",
+    "usedRefusedTitle": "تم رفض الطلب",
+    "usedRefusedBody": "لقد رفضت هذه البطاقة. تم حذف بياناتك.",
+    "viewFiche": "عرض بطاقتي",
+    "invalidTitle": "رابط غير صالح أو منتهي",
+    "invalidBody": "رابط الموافقة هذا غير صالح. ربما انتهت صلاحيته أو تم استخدامه بالفعل."
   }
 }

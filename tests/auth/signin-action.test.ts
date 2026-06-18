@@ -8,6 +8,7 @@ const redirectMock = vi.fn((path: string): never => {
 const generateLinkMock = vi.fn();
 const sendTransactionalEmailMock = vi.fn();
 const logMock = vi.fn();
+const checkLimitMock = vi.fn();
 
 vi.mock('next/navigation', () => ({
   redirect: (path: string) => redirectMock(path),
@@ -42,6 +43,10 @@ vi.mock('@/lib/logger', () => ({
   log: (entry: unknown) => logMock(entry),
 }));
 
+vi.mock('@/lib/rate-limit', () => ({
+  checkLimit: (...args: unknown[]) => checkLimitMock(...args),
+}));
+
 import { signInMagicLink } from '@/app/actions/auth-signin';
 
 const initial = { ok: false };
@@ -58,6 +63,8 @@ describe('signInMagicLink Server Action', () => {
     generateLinkMock.mockReset();
     sendTransactionalEmailMock.mockReset();
     logMock.mockReset();
+    checkLimitMock.mockReset();
+    checkLimitMock.mockResolvedValue({ success: true, reset: 0 });
   });
 
   afterEach(() => {
@@ -109,6 +116,22 @@ describe('signInMagicLink Server Action', () => {
       locale: 'fr',
     });
     expect(redirectMock).toHaveBeenCalledWith('/fr/auth/check-email');
+  });
+
+  it('redirects to check-email WITHOUT sending when rate-limited (story 1.10b, anti-enumeration preserved)', async () => {
+    checkLimitMock.mockResolvedValue({ success: false, reset: Date.now() + 1000 });
+
+    await expect(signInMagicLink(initial, makeFormData('salma@example.com'))).rejects.toThrow(
+      'NEXT_REDIRECT',
+    );
+
+    expect(generateLinkMock).not.toHaveBeenCalled();
+    expect(sendTransactionalEmailMock).not.toHaveBeenCalled();
+    expect(redirectMock).toHaveBeenCalledWith('/fr/auth/check-email');
+    const limited = logMock.mock.calls
+      .map((c) => c[0] as { event: string })
+      .find((e) => e.event === 'auth.rate_limited');
+    expect(limited).toBeDefined();
   });
 
   it('still redirects to /fr/auth/check-email when generateLink fails (anti-enumeration)', async () => {

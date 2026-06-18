@@ -16,6 +16,10 @@ const COMMUNITY_PATTERN =
   /^\/(?:(?:fr|ar)\/)?(?:community|annuaire|artisan|alertes|guide|profil)(?:\/|$)/;
 const COMOD_PATTERN = /^\/(?:(?:fr|ar)\/)?(?:comod|moderation|admin)(?:\/|$)/;
 
+// Story 1.10a — constante anti-typo (deferred 1.4 #56). Une faute de frappe sur
+// la valeur fermerait silencieusement l'accès co-mod.
+const CO_MOD_ROLE = 'co_mod';
+
 function isCommunityRoute(pathname: string) {
   return COMMUNITY_PATTERN.test(pathname);
 }
@@ -105,8 +109,24 @@ export async function proxy(request: NextRequest) {
       return redirectResponse;
     }
 
-    if (isComodRoute(pathname) && user.app_metadata?.role !== 'co_mod') {
-      const forbidden = new NextResponse('Forbidden', { status: 403 });
+    if (isComodRoute(pathname) && user.app_metadata?.role !== CO_MOD_ROLE) {
+      // NFR21 — 403 avec corps localisé (story 1.8). Le statut HTTP 403 est
+      // conservé ; le message est minimal (une page React 403 riche reste
+      // différée à 1.10). Une garde server-side requireComod() double cette
+      // protection côté (comod)/layout.tsx.
+      const locale = detectLocale(request);
+      // Texte cohérent avec messages/{fr,ar}.json comod.forbidden.body.
+      const message =
+        locale === 'ar'
+          ? 'الوصول محجوز لمشرفي الحي.'
+          : 'Cet espace est réservé aux co-modérateurs de la résidence.';
+      const forbidden = new NextResponse(message, {
+        status: 403,
+        headers: {
+          'content-type': 'text/plain; charset=utf-8',
+          vary: 'accept-language',
+        },
+      });
       copyCookies(supabaseResponse, forbidden);
       return forbidden;
     }
@@ -120,6 +140,19 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|fonts/|icons/|install/|og/|manifest.webmanifest|sw.js|robots.txt|sitemap.xml|api/|auth/).*)',
+    {
+      source:
+        '/((?!_next/static|_next/image|favicon.ico|fonts/|icons/|install/|og/|manifest.webmanifest|sw.js|robots.txt|sitemap.xml|api/|auth/|consent/).*)',
+      // Story 1.10a (deferred 1.4 #58) — skip les requêtes RSC/prefetch :
+      // évite un appel Supabase getUser() à chaque fetch RSC client-side
+      // (latence + risque de boucle redirect). Les soft-navigations restent
+      // gardées par les layouts (requireComod / requireResident, défense en
+      // profondeur) ; les chargements complets (sans header RSC) passent par
+      // le proxy. Le refresh de session se fait aux chargements complets.
+      missing: [
+        { type: 'header', key: 'RSC' },
+        { type: 'header', key: 'Next-Router-Prefetch' },
+      ],
+    },
   ],
 };

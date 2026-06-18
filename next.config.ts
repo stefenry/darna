@@ -12,6 +12,23 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
+// AR30 / NFL10 — CSP stricte (story 1.10a). connect-src whitelist : Supabase
+// (REST + Realtime wss), Brevo, GlitchTip, Upstash. img-src : Supabase Storage +
+// R2. `script-src 'unsafe-inline'` accepté au MVP (bootstrap Next) — CSP
+// nonce-based différée post-bêta. ⚠️ valider sur preview Vercel avant prod.
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: https://*.supabase.co https://*.r2.cloudflarestorage.com",
+  "font-src 'self'",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.brevo.com https://*.glitchtip.app https://*.upstash.io",
+  "frame-ancestors 'none'",
+  "form-action 'self'",
+  "base-uri 'self'",
+  'upgrade-insecure-requests',
+].join('; ');
+
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   async headers() {
@@ -31,8 +48,9 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
           },
+          { key: 'Content-Security-Policy', value: CSP },
         ],
       },
       {

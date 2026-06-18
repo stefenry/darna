@@ -88,3 +88,90 @@ jobs:
         run: |
           npx @lhci/cli@0.15 autorun \
             --collect.url="${{ steps.vercel-preview.outputs.preview_url }}"
+
+  # Story 1.10c (AR32) — Tests d'isolation RLS sur la stack Supabase locale.
+  # BLOQUANT : toute fuite cross-user / cross-résidence échoue le merge.
+  e2e-rls:
+    needs: lint-typecheck-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - run: corepack enable
+
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94d9d67 # v4.2.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: supabase/setup-cli@v1 # TODO: pin to full commit SHA for supply-chain hardening
+        with:
+          version: 2.22.4 # pinned — do not use 'latest'; bump intentionally
+
+      - name: Start Supabase local stack
+        run: supabase start
+
+      - name: Run RLS isolation tests
+        run: |
+          STATUS=$(supabase status -o json)
+          # CLI v1 uses uppercase keys, v2 uses lowercase — handle both.
+          SUPABASE_LOCAL_URL=$(echo "$STATUS" | jq -r '.API_URL // .api_url // empty')
+          SUPABASE_LOCAL_SERVICE_KEY=$(echo "$STATUS" | jq -r '.SERVICE_ROLE_KEY // .service_role_key // empty')
+          SUPABASE_LOCAL_PUBLISHABLE_KEY=$(echo "$STATUS" | jq -r '.ANON_KEY // .anon_key // empty')
+          if [ -z "$SUPABASE_LOCAL_URL" ] || [ -z "$SUPABASE_LOCAL_SERVICE_KEY" ] || [ -z "$SUPABASE_LOCAL_PUBLISHABLE_KEY" ]; then
+            echo "ERROR: failed to extract Supabase credentials from 'supabase status -o json'" >&2
+            echo "$STATUS" >&2
+            exit 1
+          fi
+          export SUPABASE_LOCAL_URL SUPABASE_LOCAL_SERVICE_KEY SUPABASE_LOCAL_PUBLISHABLE_KEY
+          SUPABASE_LOCAL_TEST=true pnpm vitest run tests/rls.test.ts
+
+  # Story 1.10c (AR33) — Scan a11y axe sur les pages publiques.
+  # NON-BLOQUANT au MVP (continue-on-error) ; deviendra bloquant avant la bêta.
+  a11y:
+    needs: lint-typecheck-test
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_stub
+      SUPABASE_SECRET_KEY: sb_secret_ci_stub
+      BREVO_API_KEY: xkeysib-ci-stub
+      BREVO_SENDER_EMAIL: noreply@darna.local
+      GLITCHTIP_DSN: https://stub@glitchtip.local/1
+      UPSTASH_REDIS_REST_URL: http://localhost:8079
+      UPSTASH_REDIS_REST_TOKEN: tok_stub
+      CRON_SECRET: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      LEGAL_CONTACT_EMAIL: legal@darna.local
+      INITIAL_COMOD_EMAILS: co1@darna.local,co2@darna.local
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - run: corepack enable
+
+      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94d9d67 # v4.2.0
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-${{ runner.os }}-
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build
+      - name: Start app + run axe a11y scan
+        run: |
+          pnpm start &
+          pnpm exec wait-on http://localhost:3000/fr --timeout 60000
+          pnpm exec playwright test --project=chromium e2e/a11y.spec.ts

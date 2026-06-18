@@ -4,6 +4,8 @@ import { type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { detectLocale } from '@/lib/i18n/detect-locale';
 import { resolveRedirect } from '@/lib/auth/redirect-by-state';
+import { markAdmissionEmailVerified } from '@/lib/auth/mark-admission-email-verified';
+import { isAccountDeleted } from '@/lib/auth/is-account-deleted';
 import { log } from '@/lib/logger';
 
 // Map Supabase verifyOtp error.code → user-facing reason in the whitelist
@@ -79,6 +81,38 @@ export async function GET(request: NextRequest) {
     residence_id: null,
     request_id: null,
   });
+
+  // Story 1.9 (D3) — Garde re-login : un compte soft-deleted (suppression RGPD
+  // en attente de purge J+7) ne doit pas pouvoir rouvrir une session. On invalide
+  // toutes les sessions et on renvoie sur l'accueil public.
+  if (await isAccountDeleted(user.id)) {
+    log({
+      level: 'info',
+      event: 'auth.deleted_account_login_blocked',
+      user_id: user.id,
+      residence_id: null,
+      request_id: null,
+    });
+    const { error: signOutErr } = await supabase.auth.signOut({ scope: 'global' });
+    if (signOutErr) {
+      log({
+        level: 'error',
+        event: 'auth.deleted_signout_failed',
+        user_id: user.id,
+        residence_id: null,
+        request_id: null,
+        payload: { errorCode: signOutErr.code ?? 'unknown' },
+      });
+    }
+    redirect(`/${locale}/`);
+  }
+
+  // Story 1.7 — Marque admission_requests.email_verified_at pour la demande
+  // pending de cet utilisateur (idempotent, ne throw jamais). Doit tourner
+  // AVANT resolveRedirect car la décision de routage est state-based, mais
+  // l'audit `email_verified_at` est utile aux co-mods pour filtrer la queue
+  // (story 1.8) — pas pour rediriger ici.
+  await markAdmissionEmailVerified({ userId: user.id });
 
   const destination = await resolveRedirect({
     supabase,

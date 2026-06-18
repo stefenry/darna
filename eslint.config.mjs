@@ -29,6 +29,7 @@ const eslintConfig = [
       '.claude/**',
       'design-artifacts/**',
       'docs/**',
+      'supabase/functions/**',
       'public/sw.js',
       'public/sw.js.map',
       'public/swe-worker-*.js',

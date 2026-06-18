@@ -137,4 +137,86 @@ describe('sendTransactionalEmail (Brevo boundary AR16)', () => {
     if (!c) throw new Error('logger was not called');
     expect(c[0]).toMatchObject({ event: 'email.sent' });
   });
+
+  it('routes template "admission-notify-comod" through the same boundary without logging PII (first_name)', async () => {
+    const fetchMock = mockBrevoSuccess('msg-comod-1');
+
+    const result = await sendTransactionalEmail({
+      template: 'admission-notify-comod',
+      to: 'comod@darna.local',
+      locale: 'fr',
+      vars: {
+        villa: 87,
+        tranche: 'C',
+        first_name: 'Salma',
+        queue_url: 'https://darna.example/fr/comod/admission',
+      },
+    });
+
+    expect(result).toEqual({ ok: true, messageId: 'msg-comod-1' });
+    const call = fetchMock.mock.calls[0];
+    if (!call) throw new Error('fetch was not called');
+    const [, init] = call;
+    const body = JSON.parse(init?.body as string);
+    expect(body.to).toEqual([{ email: 'comod@darna.local' }]);
+    expect(body.subject).toContain('87');
+    // first_name est légitimement dans l'e-mail rendu (le co-mod doit le voir)
+    // mais ne doit JAMAIS apparaître dans les payloads logger.
+    expect(body.textContent).toContain('Salma');
+
+    expect(logSpy).toHaveBeenCalledOnce();
+    const logCall = logSpy.mock.calls[0];
+    if (!logCall) throw new Error('logger was not called');
+    const entry = logCall[0] as { payload: Record<string, unknown>; event: string };
+    expect(entry.event).toBe('email.sent');
+    expect(entry.payload.template).toBe('admission-notify-comod');
+    expect(entry.payload).not.toHaveProperty('first_name');
+    expect(entry.payload).not.toHaveProperty('email');
+    expect(entry.payload).not.toHaveProperty('to');
+  });
+
+  it('routes template "admission-validated" through the boundary without logging PII', async () => {
+    mockBrevoSuccess('msg-welcome-1');
+
+    const result = await sendTransactionalEmail({
+      template: 'admission-validated',
+      to: 'salma@example.org',
+      locale: 'fr',
+      vars: { first_name: 'Salma', villa: 87, magic_link: 'https://darna.example/auth/confirm' },
+    });
+
+    expect(result).toEqual({ ok: true, messageId: 'msg-welcome-1' });
+    const logCall = logSpy.mock.calls[0];
+    if (!logCall) throw new Error('logger was not called');
+    const entry = logCall[0] as { payload: Record<string, unknown>; event: string };
+    expect(entry.event).toBe('email.sent');
+    expect(entry.payload.template).toBe('admission-validated');
+    expect(entry.payload).not.toHaveProperty('first_name');
+    expect(entry.payload).not.toHaveProperty('email');
+    expect(entry.payload).not.toHaveProperty('magic_link');
+  });
+
+  it('routes template "admission-rejected" through the boundary with the motive', async () => {
+    const fetchMock = mockBrevoSuccess('msg-reject-1');
+
+    const result = await sendTransactionalEmail({
+      template: 'admission-rejected',
+      to: 'mehdi@example.org',
+      locale: 'fr',
+      vars: { villa: 203, motive: 'villa_out_of_range' },
+    });
+
+    expect(result).toEqual({ ok: true, messageId: 'msg-reject-1' });
+    const call = fetchMock.mock.calls[0];
+    if (!call) throw new Error('fetch was not called');
+    const [, init] = call;
+    const body = JSON.parse(init?.body as string);
+    expect(body.textContent).toContain('villa');
+
+    const logCall = logSpy.mock.calls[0];
+    if (!logCall) throw new Error('logger was not called');
+    const entry = logCall[0] as { payload: Record<string, unknown>; event: string };
+    expect(entry.payload.template).toBe('admission-rejected');
+    expect(entry.payload).not.toHaveProperty('email');
+  });
 });
