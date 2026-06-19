@@ -1,4 +1,5 @@
 import type { RenderedTemplate } from './magic-link.fr';
+import { escapeHtml, singleLine } from '../escape';
 
 export type ArtisanConsentAcceptedVars = {
   artisanName: string;
@@ -8,12 +9,12 @@ export type ArtisanConsentAcceptedVars = {
 export type { RenderedTemplate };
 
 // Story 2.5 — e-mail au contributeur quand l'artisan ACCEPTE sa fiche.
+// Review P26 : `singleLine` strippe CRLF du subject (anti header injection).
+// Review P27 : `escapeHtml` centralisé dans `../escape`.
 export function artisanConsentAcceptedTemplate(vars: ArtisanConsentAcceptedVars): RenderedTemplate {
-  const name = String(vars.artisanName ?? '')
-    .slice(0, 120)
-    .trim();
+  const name = singleLine(String(vars.artisanName ?? '')).slice(0, 120);
   const url = String(vars.ficheUrl ?? '');
-  const subject = `La fiche de ${name} est en ligne 🎉`;
+  const subject = singleLine(`La fiche de ${name} est en ligne 🎉`);
 
   const textContent = `Bonne nouvelle !
 
@@ -34,13 +35,4 @@ Merci pour ta contribution — c'est grâce à toi que l'annuaire s'enrichit.
 </body></html>`;
 
   return { subject, htmlContent, textContent };
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }

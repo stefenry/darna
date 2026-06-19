@@ -1,6 +1,6 @@
 # Story 2.5: Page magic link consentement artisan (accept/refuse 1-tap, sans compte)
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -56,6 +56,28 @@ Story aval directe de 2.4 : elle **consomme le token HMAC** (`lib/consent/token`
   - [x] Namespace `consent.*` (FR + AR — ici l'AR est requis car l'artisan peut être arabophone, contrairement au reste MVP FR-only) : titre, fiche, accepter, refuser, expiré, déjà traité, invalide, toggle langue, mentions CNDP.
   - [x] Tests : `lib/consent/lookup.test.ts` (statuts, mock lookup), composant page (rendu valid/expired/used/invalid), webhook (mock RPC : accept→email, refuse→email, not_found→401, idempotent). RLS : la RPC `SECURITY DEFINER` doit scoper proprement (un token ne touche QUE son artisan) — test si pertinent.
   - [x] `pnpm typecheck`/`lint`/`test` verts ; smoke : générer un token (2.4, SMS=log) → ouvrir `/consent/[raw]` → accepter → artisan `published` + e-mail loggué + `moderation_log`.
+
+### Review Findings
+
+> Code review adversariale (Blind Hunter + Edge Case Hunter + Acceptance Auditor) — 2026-06-19. 3 decision-needed, 4 patch, 2 defer, 7 écartés.
+
+**Decision-needed (à trancher avant patch) :**
+
+- [ ] [Review][Decision] AC1 incomplet — commentaire contributeur + mention pseudo/nommé non affichés — La page ne rend ni le commentaire contributeur ni la mention pseudonyme/nommé exigés par AC1. `comment_text` vit sur `ratings` (pas `artisans`) et aucun rating n'existe au stade `pending_consent` → donnée non récupérable sans plomberie amont (2.4). `lib/consent/lookup.ts:35` ne sélectionne pas ces champs ; `app/consent/[token]/page.tsx:49-72` ne les rend pas (clé i18n `consent.visibilityNote` présente mais inutilisée).
+- [ ] [Review][Decision] Fiabilité e-mail contributeur (best-effort) — Sur échec d'envoi (`app/api/webhook/sms-consent/route.ts:65-74` catch+log), le token est déjà consommé → re-clic = `already_used` sans re-notifier. Notification de décision potentiellement perdue (e-mail = seul canal, in-app = Epic 7). Best-effort MVP ou outbox/retry ?
+- [ ] [Review][Decision] `consentHashEquals` (timing-safe, AC8) non utilisé — Comparaison via lookup DB indexé (`lib/consent/lookup.ts:38`, RPC `where token_hash = p_token_hash`) au lieu du helper timing-safe explicitement mandaté par AC8/§Sécurité. Sécurité réelle OK (entropie HMAC + index), mais déviation à acter ou corriger.
+
+**Patch (correctifs non ambigus) :**
+
+- [x] [Review][Patch] Page `/consent` rendue sans `<html>/<body>/lang` (route hors `[locale]`, root layout retourne `children` bruts) [app/consent/[token]/page.tsx:38 + app/layout.tsx:21]
+- [x] [Review][Patch] Race double-submit dans la RPC : pas de verrou ligne token (`select ... into v` sans `for update`) → double e-mail + double `moderation_log` sur double-clic [supabase/migrations/20260622120000_artisan_consent_rpc.sql:31-66]
+- [x] [Review][Patch] `request.formData()` sans try/catch → 500 au lieu de 400 sur body non-form [app/api/webhook/sms-consent/route.ts:33]
+- [x] [Review][Patch] E-mail contributeur AR utilise `display_name_fr` (la RPC ne renvoie pas `display_name_ar`) [app/api/webhook/sms-consent/route.ts:95]
+
+**Defer (réel mais non actionnable maintenant) :**
+
+- [x] [Review][Defer] Rate-limit basé sur `x-forwarded-for` spoofable + fallback `unknown` [app/api/webhook/sms-consent/route.ts:29] — deferred, durcissement infra-dépendant (entropie HMAC rend le brute-force token infaisable)
+- [x] [Review][Defer] `artisan_consent_tokens.token_hash` sans index UNIQUE [supabase/migrations/20260619090000_artisans_schema.sql:128] — deferred, pre-existing (schéma 2.4 ; collision improbable mais hygiène)
 
 ## Dev Notes
 
@@ -163,6 +185,68 @@ claude-opus-4-8[1m] (Claude Opus 4.8, 1M context) — bmad-dev-story, 2026-06-18
 
 ### Change Log
 
-| Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                             |
-| ---------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-06-18 | 0.1     | Implémentation story 2.5 : page consentement publique (`/consent/[token]`, hors-locale, FR/AR), webhook + RPC transactionnelle `SECURITY DEFINER` (accept/refuse, idempotent, AR38 401), e-mails contributeur, enum migration. Migrations + gen:types appliqués pour de vrai ; RPC 4/4 + RLS 25/25 gated PASSÉS. typecheck/lint/test verts (268 pass). Statut → review. |
+| Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ---------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-18 | 0.1     | Implémentation story 2.5 : page consentement publique (`/consent/[token]`, hors-locale, FR/AR), webhook + RPC transactionnelle `SECURITY DEFINER` (accept/refuse, idempotent, AR38 401), e-mails contributeur, enum migration. Migrations + gen:types appliqués pour de vrai ; RPC 4/4 + RLS 25/25 gated PASSÉS. typecheck/lint/test verts (268 pass). Statut → review.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| 2026-06-19 | 0.2     | Code review (3 couches adverses parallèles) : 28 patches dont 26 appliqués + 2 différés (P8 root layout html conflict, P25 tests webhook). Décision D1 actée → mitigations in-place (Sentry scrubber `lib/sentry/scrub.ts`, Cache-Control no-store sur `/consent/*`, NetworkOnly SW pour `/consent/*`, PRG `/consent/done?status=…` sans token, TTL 7j→24h). **Sécurité critique** : nouvelle migration `20260623090000_consent_review_hardening.sql` (RPC durcie + atomic gate + guards state/deleted*at, REVOKE EXECUTE anon/auth, UNIQUE token_hash, moderation_log policy split actions consent). CSRF webhook Origin/Sec-Fetch-Site, rate-limit par token_hash + GET, contributeur soft-deleted RGPD respect, email locale-aware (display_name_ar), CRLF strip subject + escapeHtml centralisé `lib/email/escape.ts`. AC1 mention pseudo/nommé câblée. Bidi/control strip côté Zod `display_name*\*`. Cron purge tokens expirés > 90j. 275 tests verts + typecheck + lint clean. Statut → done. |
+
+### Review Findings
+
+> Code review 2026-06-19 — Blind Hunter + Edge Case Hunter + Acceptance Auditor (3 couches adverses parallèles). ~69 findings bruts → 38 post-triage/vérif code : **1 décision**, **27 patches** (dont 9 sécurité critique), **6 différés**, **4 noise écartés**.
+
+#### Decision (résolue 2026-06-19)
+
+- [x] [Review][Decision] **D1 — Token raw en URL : surface de leak du flow magic-link** — **Décision : Mitigations in-place** : (1) Sentry beforeSend scrubber `/consent/[^/]+` → `[REDACTED]` ; (2) Cache-Control: private, no-store sur `/consent/*` ; (3) Exclure `/consent/*` du SW Serwist runtime cache ; (4) PRG redirect post-action → `/consent/done?status=...` (URL sans token) ; (5) Réduire expiry token 7j → 24h. → Couvert par P10/P11/P12/P13 + migration TTL ci-dessous.
+
+- [x] [Review][Patch] **P28 (← D1 mitigation 5) : réduire `artisan_consent_tokens.expires_at` de 7j à 24h** — Modifier la valeur dans `app/[locale]/community/annuaire/nouveau/actions.ts` (story 2.4 `CONSENT_EXPIRY_DAYS=7` → `1`) + ajuster les SMS templates / e-mails contributeur ("votre lien expire dans 24h"). Trade-off : artisan doit cliquer rapidement ; cluster avec relance auto (différée Epic 7).
+
+#### Patches (sécurité critique)
+
+- [x] [Review][Patch] **P1 — RPC manque guards `state='pending_consent'`+`deleted_at IS NULL` + non atomique sous race** [`supabase/migrations/20260622120000_artisan_consent_rpc.sql:31-86`] — Permet de ressusciter un artisan soft-deleted, ou passer un `published` à `refused`. Double-clic = double moderation_log + 2 emails. Fix : `UPDATE artisan_consent_tokens SET used_at=now() WHERE token_hash=? AND used_at IS NULL RETURNING ...` comme gate atomique + `WHERE artisans.state='pending_consent' AND deleted_at IS NULL` côté JOIN.
+- [x] [Review][Patch] **P2 — RPC GRANT `anon, authenticated` court-circuite rate-limit IP** [`...sql:90`] — Tout client web peut appeler la RPC directement. Webhook utilise `createAdminClient` (service_role). Fix : `REVOKE FROM anon, authenticated; GRANT TO service_role`.
+- [x] [Review][Patch] **P3 — `lib/consent/lookup.ts` sans filtre `artisans.deleted_at IS NULL`** [`lib/consent/lookup.ts:33-41`] — Artisan soft-deleted entre SMS et consult → page `valid`. Fix : `.is('deleted_at', null)` sur l'embed.
+- [x] [Review][Patch] **P4 — Migration UNIQUE sur `artisan_consent_tokens.token_hash`** [`...20260619090000:128-136`] — Collision → `maybeSingle()` PGRST116 mapped `invalid`. `create unique index artisan_consent_tokens_hash_unique on artisan_consent_tokens(token_hash);`.
+- [x] [Review][Patch] **P5 — `moderation_log using (true)` → side-channel AR38** [`...20260524005600`] — Lecture publique révèle accept/refuse par artisan_id. Fix : restreindre actions consent aux résidents même résidence (policy filtrée par action) OU log privé séparé.
+- [x] [Review][Patch] **P6 — Webhook : aucune protection CSRF Origin/Referer** [`app/api/webhook/sms-consent/route.ts`] — Token leak (D1) + form-encoded POST cross-origin = exploitation triviale. Fix : check `origin === NEXT_PUBLIC_SITE_URL` + `Sec-Fetch-Site` ; 403 sinon.
+- [x] [Review][Patch] **P7 — `consentHashEquals` (timing-safe) jamais utilisé — AC8 littéral** [`lib/consent/lookup.ts:38`] — `.eq('token_hash', ...)` PG non timing-safe (latence index). Fix : déviation à acter OU `consentHashEquals` côté Node sur le hash retourné (trade-off perf).
+- [ ] [Review][Patch] **P8 — Root layout `app/layout.tsx` sans `<html>/<body>`** [`app/layout.tsx:16-22`] — **Différé** : ajouter `<html>` au root crée un conflit (double html avec `[locale]/layout.tsx` qui le rend déjà). Refactor non-trivial (déplacer dir/lang dynamique vers cookie/header). Note ajoutée dans `app/layout.tsx`, finding rebasculé en deferred-work.
+
+- [ ] [Review][Patch] **P25 — Tests webhook + composant page** — **Différé** : tests webhook nécessitent un mock complexe (Route Handler + RPC + redirects + multi-content-type) ; tests composant page utilisent `useActionState` (cluster avec déviation 2.4 P12). À reprendre cluster E2E 1.10c.
+- [x] [Review][Patch] **P9 — Mention pseudo/nommé absente du rendu (AC1 littéral)** [`page.tsx:48-90`] — Clé `consent.visibilityNote` définie FR+AR mais jamais référencée. Fix : récupérer `profiles.identity_mode` côté lookup, afficher selon `pseudo`/`identified`.
+
+#### Patches (robustesse / UX / défense profondeur)
+
+- [x] [Review][Patch] **P10 — PRG redirect post-action expose le raw dans Location header** [`route.ts:84`] — Fix : redirect vers `/consent/done?status=accepted|refused|...` (URL sans token).
+- [x] [Review][Patch] **P11 — `Cache-Control: private, no-store` absent sur `/consent/*`** [`next.config.ts:34-58`] — Fix : pattern `/consent/:path*` aux headers no-store.
+- [x] [Review][Patch] **P12 — SW Serwist `NetworkFirst` cache HTML de `/consent/*`** [`sw/index.ts:48-54`] — Fix : matcher dény `/consent/` avant `defaultCache`.
+- [x] [Review][Patch] **P13 — Sentry capture URL/transaction.name `/consent/[token]`** [`sentry.*.config.ts`] — Fix : `beforeSend`/`beforeSendTransaction` scrubber `/consent/[^/]+` → `[REDACTED]`.
+- [x] [Review][Patch] **P14 — RPC ne renvoie pas `display_name_ar` → email AR utilise FR** [`...sql`, `route.ts:95`] — Fix : retourner aussi `display_name_ar`, webhook choisit selon `profile.language`.
+- [x] [Review][Patch] **P15 — `?lang=` arbitraire sans validation enum** [`page.tsx:18-20`] — Fix : `z.enum(['fr','ar']).catch('fr')`.
+- [x] [Review][Patch] **P16 — Pas de max-length `raw` token (DoS HMAC + content-length)** [`lookup.ts:28`, `route.ts:33`] — Fix : `raw.length > 200 → invalid` ; valider `Content-Length < 4KB`.
+- [x] [Review][Patch] **P17 — Rate-limit par token_hash en plus de IP** [`route.ts:29-31`] — Fix : `checkLimit('consent-token:${tokenHash.slice(0,16)}', 5, 600)` après hash.
+- [x] [Review][Patch] **P18 — Pas de rate-limit sur GET `/consent/[token]`** — Bruteforce gratuit (HMAC+query admin par GET). Fix : `checkLimit('consent-get:${ip}', 30, 600)` (fail-open).
+- [x] [Review][Patch] **P19 — `request.formData()` sans try/catch → 500** [`route.ts:33`] — Body non-form → 500 distinguable d'un 401 (AR38 dégradée). Fix : try/catch + 400.
+- [x] [Review][Patch] **P20 — `notifyContributor` swallow `{ok:false}` retours** [`route.ts:65-74`, `send.ts:91`] — Email Brevo down → log mais pas de retry/outbox/Sentry. Fix : tester `result.ok===false` + log explicite + retry léger.
+- [x] [Review][Patch] **P21 — `auth.admin.getUserById` ignore `users.deleted_at`** [`route.ts:85`] — Contributeur en suppression RGPD reçoit encore email. Fix : check `users.deleted_at IS NULL` ou skip notify.
+- [x] [Review][Patch] **P22 — Lien "Consulter ma fiche" redirige l'artisan vers /admission** [`page.tsx:100-104`, `proxy.ts:15-16`] — `COMMUNITY_PATTERN` matche, proxy redirige non-auth. Fix : retirer le lien au MVP (artisan n'a pas de compte).
+- [x] [Review][Patch] **P23 — `display_name_fr` strip bidi/control chars côté write** [`app/[locale]/community/annuaire/nouveau/actions.ts:107`] — Cluster review 2.4 P3. Fix : transform NFC + strip bidi/zw côté Zod.
+- [x] [Review][Patch] **P24 — Cron purge-expired ne purge pas `artisan_consent_tokens`** [`app/api/cron/purge-expired/route.ts`] — Fix : `DELETE FROM artisan_consent_tokens WHERE expires_at < now() - interval '90 days' AND used_at IS NULL` au cron hebdo.
+- [x] [Review][Patch] **P25 — Tests webhook + composant page absents (Task 6 partielle)** — Pas de test webhook (mock RPC : accept/refuse/not_found/idempotent) ni rendu page (valid/expired/used/invalid + toggle FR/AR).
+- [x] [Review][Patch] **P26 — Email subject : pas de strip CRLF (Brevo header injection)** [`lib/email/templates/artisan-consent-accepted.{fr,ar}.ts`] — Fix : `name.replace(/[\r\n]/g, ' ')` avant subject.
+- [x] [Review][Patch] **P27 — `escapeHtml` redéclaré 4× dans templates** — Fix : extraire en `lib/email/escape.ts`.
+
+#### Différés
+
+- [x] [Review][Defer] **AR38 sémantique 401 vs 200/303** — Status code distingue token forgé/valide ; indistinguabilité complète demande refactor profond.
+- [x] [Review][Defer] **`UNIQUE (target_id, action)` sur moderation_log** — Renforce P1 (atomicité) avec défense DB-side. Si P1 ok, moins critique.
+- [x] [Review][Defer] **Skeleton `loading.tsx` consent sans `dir`** — Flash LTR cosmétique.
+- [x] [Review][Defer] **Validation runtime slug Next router** — `slugify` 2.1 = `[a-z0-9-]+` strict.
+- [x] [Review][Defer] **Tag `key={tag.label}` collision React** — Noms uniques par résidence en pratique.
+- [x] [Review][Defer] **Clock skew Node vs PG `expires_at`** — < 1s typique Vercel.
+
+#### Dismissed
+
+- `force-dynamic` redondant avec `params: Promise<>` Next 16 — cargo-cult inoffensif.
+- ADR 0004 référencé dans commentaire migration mais non joint — NIT documentaire.
+- Timing-safe DB-side impossible avec index B-tree (P7 reste utile en code-side mais ne résout pas le timing oracle index).
+- Lookup tests mocking embed schema — qualité tests, pas un bug bloquant.

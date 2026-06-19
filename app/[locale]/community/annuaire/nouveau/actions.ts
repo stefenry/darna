@@ -35,7 +35,10 @@ import { checkLimit } from '@/lib/rate-limit';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
 
-const CONSENT_EXPIRY_DAYS = 7;
+// Review 2026-06-19 P28 (D1 mitigation 5) — TTL réduit 7j → 24h. Le raw token
+// reste dans l'URL/SMS de l'artisan ; raccourcir la fenêtre de leak. Si délai
+// trop court en pratique, ré-augmenter et coupler avec une relance auto (E7).
+const CONSENT_EXPIRY_DAYS = 1;
 const CREATE_RATE_LIMIT = 5;
 const CREATE_RATE_WINDOW_SECONDS = 3600;
 const PHONE_RATE_LIMIT = 3;

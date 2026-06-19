@@ -709,6 +709,7 @@ export type Database = {
         Returns: {
           artisan_id: string;
           contributor_id: string;
+          display_name_ar: string;
           display_name_fr: string;
           slug: string;
           state: Database['public']['Enums']['artisan_state'];

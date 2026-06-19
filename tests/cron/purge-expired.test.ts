@@ -5,6 +5,7 @@ import { NextRequest } from 'next/server';
 const queryMock = vi.fn();
 const insertMock = vi.fn();
 const deleteUserMock = vi.fn();
+const tokenDeleteMock = vi.fn();
 const logMock = vi.fn();
 
 vi.mock('@/lib/env', () => ({
@@ -18,6 +19,13 @@ vi.mock('@/lib/supabase/admin', () => ({
         return {
           select: () => ({
             not: () => ({ lt: () => queryMock() }),
+          }),
+        };
+      }
+      if (table === 'artisan_consent_tokens') {
+        return {
+          delete: () => ({
+            is: () => ({ lt: () => tokenDeleteMock() }),
           }),
         };
       }
@@ -42,6 +50,8 @@ describe('GET /api/cron/purge-expired', () => {
     queryMock.mockReset();
     insertMock.mockReset();
     deleteUserMock.mockReset();
+    tokenDeleteMock.mockReset();
+    tokenDeleteMock.mockResolvedValue({ count: 0, error: null });
     logMock.mockReset();
     insertMock.mockResolvedValue({ error: null });
     deleteUserMock.mockResolvedValue({ error: null });

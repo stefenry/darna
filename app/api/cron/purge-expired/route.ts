@@ -92,14 +92,35 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  // Story 2.5 review P24 — purger les `artisan_consent_tokens` expirés depuis
+  // >90j (used_at NULL = jamais consommés ; on garde une fenêtre d'audit).
+  // Les tokens utilisés restent indéfiniment (trace `moderation_log` lie
+  // l'action consent au token via target_id artisan).
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const { count: tokensPurged, error: tokenPurgeErr } = await admin
+    .from('artisan_consent_tokens')
+    .delete({ count: 'exact' })
+    .is('used_at', null)
+    .lt('expires_at', ninetyDaysAgo);
+  if (tokenPurgeErr) {
+    log({
+      level: 'error',
+      event: 'cron.purge_tokens_failed',
+      user_id: null,
+      residence_id: null,
+      request_id: null,
+      payload: { errorCode: tokenPurgeErr.code ?? 'unknown' },
+    });
+  }
+
   log({
     level: 'info',
     event: 'cron.purge_completed',
     user_id: null,
     residence_id: null,
     request_id: null,
-    payload: { purged },
+    payload: { purged, tokensPurged: tokensPurged ?? 0 },
   });
 
-  return Response.json({ data: { purged } });
+  return Response.json({ data: { purged, tokensPurged: tokensPurged ?? 0 } });
 }

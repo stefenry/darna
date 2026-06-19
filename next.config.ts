@@ -57,6 +57,11 @@ const nextConfig: NextConfig = {
         source: '/:locale/install',
         headers: [{ key: 'Cache-Control', value: 'no-store, must-revalidate' }],
       },
+      {
+        // Story 2.5 review P11 — token raw dans l'URL ; jamais cacher.
+        source: '/consent/:path*',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
     ];
   },
 };

@@ -1,15 +1,15 @@
 import type { RenderedTemplate } from './magic-link.fr';
 import type { ArtisanConsentAcceptedVars } from './artisan-consent-accepted.fr';
+import { escapeHtml, singleLine } from '../escape';
 
 export type { ArtisanConsentAcceptedVars, RenderedTemplate };
 
 // Story 2.5 — version AR (le contributeur peut avoir choisi l'arabe, V1.5).
+// Review P26/P27 : singleLine + escape centralisé.
 export function artisanConsentAcceptedTemplate(vars: ArtisanConsentAcceptedVars): RenderedTemplate {
-  const name = String(vars.artisanName ?? '')
-    .slice(0, 120)
-    .trim();
+  const name = singleLine(String(vars.artisanName ?? '')).slice(0, 120);
   const url = String(vars.ficheUrl ?? '');
-  const subject = `بطاقة ${name} أصبحت متاحة 🎉`;
+  const subject = singleLine(`بطاقة ${name} أصبحت متاحة 🎉`);
 
   const textContent = `خبر سار!
 
@@ -30,13 +30,4 @@ ${url}
 </body></html>`;
 
   return { subject, htmlContent, textContent };
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }

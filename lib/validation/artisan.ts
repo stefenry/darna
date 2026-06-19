@@ -9,11 +9,28 @@ export const HAS_INVOICE = ['oui', 'non', 'sur_demande'] as const;
 export const VISIBILITY = ['pseudonym', 'named'] as const;
 export const MAX_TAG_KEYS = 8;
 
+// Story 2.5 review P23 — strip bidi / zero-width / control chars qui spoofent
+// visuellement le nom (RIGHT-TO-LEFT OVERRIDE, ZWJ, soft hyphen, BOM). NFC
+// normalise puis collapse les multiples espaces.
+const STRIP_CONTROL_AND_BIDI = new RegExp(
+  '[\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u200B-\\u200F\\u202A-\\u202E\\u2060\\u2066-\\u2069\\uFEFF]',
+  'g',
+);
+function sanitizeName(s: string): string {
+  return s.normalize('NFC').replace(STRIP_CONTROL_AND_BIDI, '').replace(/\s+/g, ' ').trim();
+}
+
 const zOptionalText = (max: number) => z.string().trim().max(max).optional().or(z.literal(''));
 
 export const zCreateArtisanForm = z.object({
-  display_name_fr: z.string().trim().min(1).max(120),
-  display_name_ar: zOptionalText(120),
+  display_name_fr: z.preprocess(
+    (v) => (typeof v === 'string' ? sanitizeName(v) : v),
+    z.string().min(1).max(120),
+  ),
+  display_name_ar: z.preprocess(
+    (v) => (typeof v === 'string' && v.trim() ? sanitizeName(v) : undefined),
+    z.string().max(120).optional(),
+  ),
   phone: zPhoneMaroc,
   // Review 2026-06-18 P1 — borner le nombre de tags. La validation que chaque
   // clé est un slug existant est faite côté action (lookup `tags` + check de

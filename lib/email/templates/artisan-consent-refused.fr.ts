@@ -1,4 +1,5 @@
 import type { RenderedTemplate } from './magic-link.fr';
+import { escapeHtml, singleLine } from '../escape';
 
 export type ArtisanConsentRefusedVars = {
   artisanName: string;
@@ -7,11 +8,10 @@ export type ArtisanConsentRefusedVars = {
 export type { RenderedTemplate };
 
 // Story 2.5 — e-mail neutre au contributeur quand l'artisan REFUSE (NFR18).
+// Review P26/P27 : singleLine + escape centralisé.
 export function artisanConsentRefusedTemplate(vars: ArtisanConsentRefusedVars): RenderedTemplate {
-  const name = String(vars.artisanName ?? '')
-    .slice(0, 120)
-    .trim();
-  const subject = `${name} a décliné la publication`;
+  const name = singleLine(String(vars.artisanName ?? '')).slice(0, 120);
+  const subject = singleLine(`${name} a décliné la publication`);
 
   const textContent = `${name} a choisi de ne pas être référencé sur l'annuaire Darna.
 
@@ -29,13 +29,4 @@ Merci quand même pour ton intention d'aider tes voisins.
 </body></html>`;
 
   return { subject, htmlContent, textContent };
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }

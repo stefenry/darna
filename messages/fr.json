@@ -416,7 +416,8 @@
     "title": "Votre fiche sur Darna",
     "intro": "{name}, un voisin de votre résidence vous recommande sur l’annuaire d’artisans Darna.",
     "competences": "Compétences",
-    "visibilityNote": "Votre nom n’est pas affiché publiquement sauf si le contributeur l’a indiqué.",
+    "visibilityNoteNamed": "Votre nom n’est pas affiché publiquement sauf si le contributeur l’a indiqué.",
+    "visibilityNotePseudo": "Le voisin qui a soumis votre fiche apparaîtra sous pseudonyme dans votre annuaire.",
     "privacy": "En acceptant, votre fiche devient visible par les résidents. Vous pourrez demander son retrait à tout moment.",
     "accept": "J’accepte",
     "refuse": "Je refuse",
@@ -429,6 +430,11 @@
     "usedRefusedBody": "Vous avez décliné cette fiche. Vos données ont été supprimées.",
     "viewFiche": "Consulter ma fiche",
     "invalidTitle": "Lien invalide ou expiré",
-    "invalidBody": "Ce lien de consentement n’est pas valide. Il a peut-être expiré ou déjà été utilisé."
+    "invalidBody": "Ce lien de consentement n’est pas valide. Il a peut-être expiré ou déjà été utilisé.",
+    "doneTitle": "Confirmation",
+    "doneAcceptedTitle": "Merci, votre fiche est en ligne",
+    "doneAcceptedBody": "Votre fiche est désormais visible par les résidents. Vous pouvez fermer cet onglet.",
+    "doneRefusedTitle": "Votre choix est enregistré",
+    "doneRefusedBody": "Les données vous concernant ont été supprimées. Vous pouvez fermer cet onglet."
   }
 }

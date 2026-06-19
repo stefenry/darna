@@ -1,14 +1,13 @@
 import type { RenderedTemplate } from './magic-link.fr';
 import type { ArtisanConsentRefusedVars } from './artisan-consent-refused.fr';
+import { escapeHtml, singleLine } from '../escape';
 
 export type { ArtisanConsentRefusedVars, RenderedTemplate };
 
-// Story 2.5 — version AR.
+// Story 2.5 — version AR. Review P26/P27 : singleLine + escape centralisé.
 export function artisanConsentRefusedTemplate(vars: ArtisanConsentRefusedVars): RenderedTemplate {
-  const name = String(vars.artisanName ?? '')
-    .slice(0, 120)
-    .trim();
-  const subject = `${name} رفض النشر`;
+  const name = singleLine(String(vars.artisanName ?? '')).slice(0, 120);
+  const subject = singleLine(`${name} رفض النشر`);
 
   const textContent = `اختار ${name} عدم الظهور في دليل دارنا.
 
@@ -26,13 +25,4 @@ export function artisanConsentRefusedTemplate(vars: ArtisanConsentRefusedVars): 
 </body></html>`;
 
   return { subject, htmlContent, textContent };
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }

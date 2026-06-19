@@ -3,7 +3,7 @@
 // La prod (`pnpm build && pnpm start`) marche normalement.
 import { defaultCache } from '@serwist/next/worker';
 import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from 'serwist';
-import { CacheFirst, ExpirationPlugin, Serwist } from 'serwist';
+import { CacheFirst, ExpirationPlugin, NetworkOnly, Serwist } from 'serwist';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -45,12 +45,20 @@ const annuaireCache: RuntimeCaching = {
 // l'annuaire (lecture publique anonyme) reste cachable. Le 410/cache strict
 // reviendra avec Story 6.1 (slugs canoniques + invalidation explicite).
 
+// Story 2.5 review P12 — `/consent/[token]` JAMAIS cacher (token raw dans URL).
+// Le matcher passe BEFORE defaultCache (NetworkFirst HTML same-origin) qui sinon
+// stockerait le HTML de la fiche localement (leak token + nom artisan).
+const consentBypass: RuntimeCaching = {
+  matcher: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/consent/'),
+  handler: new NetworkOnly(),
+};
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST ?? [],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: supportsNavigationPreload,
-  runtimeCaching: [annuaireCache, ...defaultCache],
+  runtimeCaching: [consentBypass, annuaireCache, ...defaultCache],
 });
 
 serwist.addEventListeners();
