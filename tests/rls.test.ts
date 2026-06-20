@@ -1757,3 +1757,245 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu éphémère (Epic 4)', () => 
     expect(insErr?.code).toBe('42501');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Story 5.1 — RLS modération réactive & transparence (Epic 5).
+//   Tables : reports (signalement résident → co_mod) + vue moderation_log_public.
+//   RLS asymétrique : résident INSERT/SELECT own (jamais cross), co_mod
+//   SELECT/UPDATE résidence. Idempotence open report (index UNIQUE partiel).
+//   Vue publique : masque report_opened + acteurs non-co_mod + cibles user_deleted.
+// ─────────────────────────────────────────────────────────────────────────────
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS modération & transparence (Epic 5)', () => {
+  let admin: DarnaClient;
+  let reporterId: string;
+  let otherResidentId: string;
+  let comodId: string;
+  let comodOtherId: string;
+  let reporterClient: DarnaClient; // résident Darna (auteur du signalement)
+  let otherResidentClient: DarnaClient; // résident Darna (tiers)
+  let comodClient: DarnaClient; // co_mod Darna
+  let comodOtherClient: DarnaClient; // co_mod résidence 2
+  // Cible polymorphe : reports.target_id n'a pas de FK (couple target_type +
+  // target_id) → un uuid arbitraire suffit, ça découple le test du schéma artisans.
+  const targetId = crypto.randomUUID();
+
+  async function makeUser(
+    localUrl: string,
+    publishableKey: string,
+    role: 'resident' | 'co_mod',
+    label: string,
+    residenceId: string,
+  ): Promise<{ id: string; client: DarnaClient }> {
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    const id = created.user.id;
+    await admin.auth.admin.updateUserById(id, {
+      app_metadata: { role, residence_id: residenceId },
+    });
+    const { error: updateErr } = await admin
+      .from('users')
+      .update({ role, residence_id: residenceId, display_name: label })
+      .eq('id', id);
+    if (updateErr) throw new Error(`${label} users update failed: ${updateErr.message}`);
+    const client = createClient<Database>(localUrl, publishableKey, {
+      auth: { storageKey: `rls-reports-${label}`, persistSession: false },
+    });
+    await establishSession(admin, client, email, label);
+    return { id, client };
+  }
+
+  beforeAll(async () => {
+    const localEnv = parseSupabaseLocalEnv();
+    admin = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+    );
+
+    await admin.from('residences').upsert({
+      id: RESIDENCE_2_ID,
+      name: 'Test Residence 2',
+      slug: `test2-reports-${Date.now()}`,
+      villa_count: 150,
+    });
+
+    const reporter = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'resident',
+      'rrep',
+      DARNA_RESIDENCE_ID,
+    );
+    reporterId = reporter.id;
+    reporterClient = reporter.client;
+
+    const other = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'resident',
+      'rother',
+      DARNA_RESIDENCE_ID,
+    );
+    otherResidentId = other.id;
+    otherResidentClient = other.client;
+
+    const comod = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'co_mod',
+      'rcomod',
+      DARNA_RESIDENCE_ID,
+    );
+    comodId = comod.id;
+    comodClient = comod.client;
+
+    const comodOther = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'co_mod',
+      'rcomod2',
+      RESIDENCE_2_ID,
+    );
+    comodOtherId = comodOther.id;
+    comodOtherClient = comodOther.client;
+  });
+
+  afterAll(async () => {
+    if (!admin) return;
+    await admin.from('reports').delete().eq('target_id', targetId);
+    await admin.from('moderation_log').delete().eq('target_id', targetId);
+    for (const id of [reporterId, otherResidentId, comodId, comodOtherId]) {
+      if (id) await admin.auth.admin.deleteUser(id);
+    }
+  });
+
+  it('(a) résident INSERT son propre signalement (reporter_id default auth.uid())', async () => {
+    const { data, error } = await reporterClient
+      .from('reports')
+      .insert({
+        residence_id: DARNA_RESIDENCE_ID,
+        target_type: 'artisan',
+        target_id: targetId,
+        reason: 'info_erronee',
+        note_text: 'Le numéro ne répond plus.',
+      })
+      .select('id, reporter_id, state')
+      .single();
+    expect(error).toBeNull();
+    expect(data?.reporter_id).toBe(reporterId);
+    expect(data?.state).toBe('open');
+  });
+
+  it('(b) INSERT déclenche le trigger audit report_opened (payload no-PII, sans note_text)', async () => {
+    const { data: ml } = await admin
+      .from('moderation_log')
+      .select('action, actor_id, payload_json, reason_code')
+      .eq('target_id', targetId)
+      .eq('action', 'report_opened');
+    expect((ml ?? []).length).toBeGreaterThanOrEqual(1);
+    const row = ml?.[0];
+    expect(row?.reason_code).toBe('info_erronee');
+    expect(JSON.stringify(row?.payload_json)).not.toContain('répond plus');
+  });
+
+  it('(c) résident relit SON signalement ; le tiers ne le voit PAS (RLS own-only)', async () => {
+    const mine = await reporterClient.from('reports').select('id');
+    expect(mine.error).toBeNull();
+    expect((mine.data ?? []).length).toBe(1);
+
+    const theirs = await otherResidentClient.from('reports').select('id');
+    expect(theirs.error).toBeNull();
+    expect((theirs.data ?? []).length).toBe(0);
+  });
+
+  it('(d) idempotence : 2e signalement ouvert même (reporter, cible) → 23505', async () => {
+    const { error } = await reporterClient.from('reports').insert({
+      residence_id: DARNA_RESIDENCE_ID,
+      target_type: 'artisan',
+      target_id: targetId,
+      reason: 'spam',
+    });
+    expect(error?.code).toBe('23505');
+  });
+
+  it('(e) co_mod Darna voit le signalement de sa résidence', async () => {
+    const { data, error } = await comodClient
+      .from('reports')
+      .select('id, reporter_id')
+      .eq('target_id', targetId);
+    expect(error).toBeNull();
+    expect((data ?? []).length).toBe(1);
+    expect(data?.[0]?.reporter_id).toBe(reporterId);
+  });
+
+  it('(f) co_mod résidence 2 ne voit PAS le signalement de Darna (isolation)', async () => {
+    const { data, error } = await comodOtherClient
+      .from('reports')
+      .select('id')
+      .eq('target_id', targetId);
+    expect(error).toBeNull();
+    expect((data ?? []).length).toBe(0);
+  });
+
+  it('(g) résident ne peut PAS UPDATE un signalement (aucune policy UPDATE résident → 0 ligne)', async () => {
+    const { data: rows } = await reporterClient.from('reports').select('id').limit(1);
+    const reportId = rows?.[0]?.id;
+    expect(reportId).toBeTruthy();
+    const { data, error } = await reporterClient
+      .from('reports')
+      .update({ state: 'closed_kept' })
+      .eq('id', reportId!)
+      .select('id');
+    expect(error).toBeNull();
+    expect((data ?? []).length).toBe(0); // RLS : aucune ligne mutée.
+  });
+
+  it('(h) co_mod résout le signalement (UPDATE state + resolved_by)', async () => {
+    const { data: rows } = await comodClient
+      .from('reports')
+      .select('id')
+      .eq('target_id', targetId)
+      .limit(1);
+    const reportId = rows?.[0]?.id;
+    const { data, error } = await comodClient
+      .from('reports')
+      .update({
+        state: 'closed_kept',
+        resolved_by: comodId,
+        resolution_motive: 'Vérifié, conservé.',
+      })
+      .eq('id', reportId!)
+      .select('id, state')
+      .single();
+    expect(error).toBeNull();
+    expect(data?.state).toBe('closed_kept');
+  });
+
+  it('(i) client ne peut PAS INSERT dans moderation_log (writes système only → 42501)', async () => {
+    const { error } = await reporterClient.from('moderation_log').insert({
+      residence_id: DARNA_RESIDENCE_ID,
+      action: 'content_kept',
+      target_kind: 'artisan',
+      target_id: targetId,
+    });
+    expect(error?.code).toBe('42501');
+  });
+
+  it('(j) vue moderation_log_public : report_opened est masqué (anon)', async () => {
+    const anon = createClient<Database>(
+      parseSupabaseLocalEnv().SUPABASE_LOCAL_URL,
+      parseSupabaseLocalEnv().SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      { auth: { storageKey: 'rls-reports-anon', persistSession: false } },
+    );
+    const { data, error } = await anon
+      .from('moderation_log_public')
+      .select('action')
+      .eq('target_id', targetId);
+    expect(error).toBeNull();
+    expect((data ?? []).every((r) => r.action !== 'report_opened')).toBe(true);
+  });
+});

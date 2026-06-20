@@ -636,6 +636,7 @@ export type Database = {
           deleted_by: string | null;
           deletion_reason: string | null;
           id: string;
+          payload_json: Json | null;
           reason_code: string | null;
           reason_text_anonymized: string | null;
           residence_id: string;
@@ -650,6 +651,7 @@ export type Database = {
           deleted_by?: string | null;
           deletion_reason?: string | null;
           id?: string;
+          payload_json?: Json | null;
           reason_code?: string | null;
           reason_text_anonymized?: string | null;
           residence_id: string;
@@ -664,6 +666,7 @@ export type Database = {
           deleted_by?: string | null;
           deletion_reason?: string | null;
           id?: string;
+          payload_json?: Json | null;
           reason_code?: string | null;
           reason_text_anonymized?: string | null;
           residence_id?: string;
@@ -962,6 +965,73 @@ export type Database = {
           {
             foreignKeyName: 'ratings_user_id_fkey';
             columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      reports: {
+        Row: {
+          created_at: string;
+          id: string;
+          note_text: string | null;
+          reason: Database['public']['Enums']['report_reason'];
+          reporter_id: string | null;
+          residence_id: string;
+          resolution_motive: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          state: Database['public']['Enums']['report_state'];
+          target_id: string;
+          target_type: Database['public']['Enums']['report_target_type'];
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          note_text?: string | null;
+          reason: Database['public']['Enums']['report_reason'];
+          reporter_id?: string | null;
+          residence_id: string;
+          resolution_motive?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          state?: Database['public']['Enums']['report_state'];
+          target_id: string;
+          target_type: Database['public']['Enums']['report_target_type'];
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          note_text?: string | null;
+          reason?: Database['public']['Enums']['report_reason'];
+          reporter_id?: string | null;
+          residence_id?: string;
+          resolution_motive?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          state?: Database['public']['Enums']['report_state'];
+          target_id?: string;
+          target_type?: Database['public']['Enums']['report_target_type'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'reports_reporter_id_fkey';
+            columns: ['reporter_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_resolved_by_fkey';
+            columns: ['resolved_by'];
             isOneToOne: false;
             referencedRelation: 'users';
             referencedColumns: ['id'];
@@ -1270,6 +1340,28 @@ export type Database = {
           },
         ];
       };
+      moderation_log_public: {
+        Row: {
+          action: Database['public']['Enums']['moderation_action'] | null;
+          actor_display_name: string | null;
+          created_at: string | null;
+          id: string | null;
+          payload_json: Json | null;
+          reason_code: string | null;
+          residence_id: string | null;
+          target_id: string | null;
+          target_kind: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'moderation_log_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Functions: {
       accept_admission: {
@@ -1415,8 +1507,27 @@ export type Database = {
         | 'tip_created'
         | 'alert_self_retracted'
         | 'tip_self_retracted'
-        | 'content_expired';
+        | 'content_expired'
+        | 'report_opened'
+        | 'content_kept'
+        | 'escalation_triggered';
       rating_visibility: 'pseudonym' | 'named';
+      report_reason:
+        | 'diffamation'
+        | 'info_erronee'
+        | 'harcelement'
+        | 'spam'
+        | 'hors_charte'
+        | 'autre';
+      report_state: 'open' | 'closed_removed' | 'closed_kept';
+      report_target_type:
+        | 'artisan'
+        | 'rating'
+        | 'alert'
+        | 'alert_comment'
+        | 'tip'
+        | 'guide_entry'
+        | 'useful_number';
       tip_category: 'offre_voisin' | 'pret_objet' | 'evenement' | 'autre';
       useful_number_category: 'securite' | 'syndic' | 'urgences' | 'sante' | 'autre';
       user_role: 'resident' | 'co_mod' | 'demandeur' | 'public';
@@ -1602,8 +1713,22 @@ export const Constants = {
         'alert_self_retracted',
         'tip_self_retracted',
         'content_expired',
+        'report_opened',
+        'content_kept',
+        'escalation_triggered',
       ],
       rating_visibility: ['pseudonym', 'named'],
+      report_reason: ['diffamation', 'info_erronee', 'harcelement', 'spam', 'hors_charte', 'autre'],
+      report_state: ['open', 'closed_removed', 'closed_kept'],
+      report_target_type: [
+        'artisan',
+        'rating',
+        'alert',
+        'alert_comment',
+        'tip',
+        'guide_entry',
+        'useful_number',
+      ],
       tip_category: ['offre_voisin', 'pret_objet', 'evenement', 'autre'],
       useful_number_category: ['securite', 'syndic', 'urgences', 'sante', 'autre'],
       user_role: ['resident', 'co_mod', 'demandeur', 'public'],
