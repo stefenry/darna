@@ -119,7 +119,8 @@
       "comment_too_long": "Ton commentaire dépasse 500 caractères.",
       "visibility_invalid": "Choix de visibilité invalide.",
       "submit_failed": "Impossible d'enregistrer ta note. Réessaie.",
-      "artisan_not_found": "Cet artisan n'est plus disponible."
+      "artisan_not_found": "Cet artisan n'est plus disponible.",
+      "self_rating": "Vous ne pouvez pas noter une fiche que vous avez créée."
     },
     "artisanResponse": {
       "submit_failed": "Impossible d'enregistrer. Réessaie.",
@@ -364,7 +365,9 @@
       "back": "Retour",
       "retractRating": "Retirer ma note",
       "retractRatingConfirm": "Confirmer le retrait",
-      "retractComment": "Retirer mon commentaire seulement"
+      "retractComment": "Retirer mon commentaire seulement",
+      "reactivatedHint": "Choisissez une note pour cet axe.",
+      "visibilityMemorizeFailedWarning": "Votre note est enregistrée, mais le choix de visibilité n'a pas pu être mémorisé. Vous pourrez le re-régler."
     },
     "artisanEdit": {
       "title": "Modifier ma fiche",

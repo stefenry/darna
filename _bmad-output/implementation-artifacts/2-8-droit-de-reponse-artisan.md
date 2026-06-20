@@ -1,6 +1,6 @@
 # Story 2.8: Droit de réponse artisan
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -47,91 +47,91 @@ Story aval directe de **2.4** (token HMAC + `artisan_consent_tokens`), **2.5** (
 - [x] **Task 1 — Migrations : schéma + RPCs SECURITY DEFINER + enum extensions** (AC: 2, 4, 5, 7, 11)
   - [x] Migration `<ts>_artisan_response.sql`. **Étape A — enum extensions** (additives, commit avant usage — leçon 2.5) :
         `sql
-    alter type public.moderation_action add value if not exists 'artisan_response_published';
-    alter type public.moderation_action add value if not exists 'artisan_rectification_requested';
-    `
+alter type public.moderation_action add value if not exists 'artisan_response_published';
+alter type public.moderation_action add value if not exists 'artisan_rectification_requested';
+`
         Migration séparée si nécessaire (`ADD VALUE` ne peut tourner dans le même bloc transactionnel qu'un usage immédiat).
   - [x] **Étape B — `artisan_consent_tokens.purpose enum`** :
         `sql
-    create type public.consent_token_purpose as enum ('consent', 'respond');
-    alter table public.artisan_consent_tokens
-      add column purpose public.consent_token_purpose not null default 'consent';
-    create index idx_artisan_consent_tokens_purpose_hash
-      on public.artisan_consent_tokens (purpose, token_hash);
-    `
+create type public.consent_token_purpose as enum ('consent', 'respond');
+alter table public.artisan_consent_tokens
+  add column purpose public.consent_token_purpose not null default 'consent';
+create index idx_artisan_consent_tokens_purpose_hash
+  on public.artisan_consent_tokens (purpose, token_hash);
+`
         La RLS deny-all client reste (2.1) — purpose ne change pas le périmètre, seulement la discrimination interne. Les tokens existants restent `'consent'` (default).
   - [x] **Étape C — table `artisan_responses`** (FR22, AR9 soft-delete homogène) :
         ``sql
-    create type public.artisan_response_target as enum ('listing', 'rating');
-    create table public.artisan_responses (
-      id uuid primary key default gen_random_uuid(),
-      artisan_id uuid not null references public.artisans(id) on delete cascade,
-      residence_id uuid not null references public.residences(id) on delete restrict,
-      target_kind public.artisan_response_target not null,
-      target_id uuid,  -- rating.id si target_kind='rating', NULL si 'listing'
-      response_text text not null check (length(response_text) between 1 and 500),
-      response_tsv tsvector generated always as
-        (to_tsvector('french', coalesce(response_text, ''))) stored,
-      created_at timestamptz not null default now(),
-      deleted_at timestamptz,
-      deleted_by uuid references public.users(id) on delete set null,
-      deletion_reason text
-    );
-    create index idx_artisan_responses_artisan_id on public.artisan_responses (artisan_id, created_at desc);
-    create index idx_artisan_responses_tsv on public.artisan_responses using gin (response_tsv);
-    alter table public.artisan_responses enable row level security;
-    -- SELECT : public scopé comme `ratings` (fiche published + même résidence + deleted_at IS NULL).
-    create policy artisan_responses_resident_select on public.artisan_responses
-      for select using (
-        deleted_at is null and exists (
-          select 1 from public.artisans a
-          where a.id = artisan_id and a.state='published' and a.deleted_at is null
-            and a.residence_id = (
-              select residence_id from public.users
-              where id = auth.uid() and role in ('resident','co_mod')
-                and deleted_at is null
-            )
+create type public.artisan_response_target as enum ('listing', 'rating');
+create table public.artisan_responses (
+  id uuid primary key default gen_random_uuid(),
+  artisan_id uuid not null references public.artisans(id) on delete cascade,
+  residence_id uuid not null references public.residences(id) on delete restrict,
+  target_kind public.artisan_response_target not null,
+  target_id uuid,  -- rating.id si target_kind='rating', NULL si 'listing'
+  response_text text not null check (length(response_text) between 1 and 500),
+  response_tsv tsvector generated always as
+    (to_tsvector('french', coalesce(response_text, ''))) stored,
+  created_at timestamptz not null default now(),
+  deleted_at timestamptz,
+  deleted_by uuid references public.users(id) on delete set null,
+  deletion_reason text
+);
+create index idx_artisan_responses_artisan_id on public.artisan_responses (artisan_id, created_at desc);
+create index idx_artisan_responses_tsv on public.artisan_responses using gin (response_tsv);
+alter table public.artisan_responses enable row level security;
+-- SELECT : public scopé comme `ratings` (fiche published + même résidence + deleted_at IS NULL).
+create policy artisan_responses_resident_select on public.artisan_responses
+  for select using (
+    deleted_at is null and exists (
+      select 1 from public.artisans a
+      where a.id = artisan_id and a.state='published' and a.deleted_at is null
+        and a.residence_id = (
+          select residence_id from public.users
+          where id = auth.uid() and role in ('resident','co_mod')
+            and deleted_at is null
         )
-      );
-    -- Pas de policy INSERT/UPDATE/DELETE → écriture via RPC SECURITY DEFINER seule.
-    ``
+    )
+  );
+-- Pas de policy INSERT/UPDATE/DELETE → écriture via RPC SECURITY DEFINER seule.
+``
         `response_tsv` posé tout de suite pour préparer la recherche full-text future (Epic 6) — coût stockage négligeable.
   - [x] **Étape D — table `artisan_rectification_requests`** (queue passive, traitement Epic 5) :
         `sql
-    create type public.artisan_rectification_state as enum ('pending', 'accepted', 'rejected');
-    create type public.artisan_rectification_field as enum (
-      'display_name_fr', 'display_name_ar', 'phone_e164',
-      'competences', 'price_relative', 'has_invoice'
-    );
-    create table public.artisan_rectification_requests (
-      id uuid primary key default gen_random_uuid(),
-      artisan_id uuid not null references public.artisans(id) on delete cascade,
-      residence_id uuid not null references public.residences(id) on delete restrict,
-      field_target public.artisan_rectification_field not null,
-      requested_value text not null check (length(requested_value) between 1 and 200),
-      justification_text text not null check (length(justification_text) between 1 and 500),
-      state public.artisan_rectification_state not null default 'pending',
-      decided_by uuid references public.users(id) on delete set null,
-      decided_at timestamptz,
-      decision_reason text,
-      created_at timestamptz not null default now(),
-      updated_at timestamptz not null default now()
-    );
-    create index idx_artisan_rectification_requests_state
-      on public.artisan_rectification_requests (state, created_at);
-    create trigger trg_artisan_rectification_updated_at
-      before update on public.artisan_rectification_requests
-      for each row execute function public.set_updated_at();
-    alter table public.artisan_rectification_requests enable row level security;
-    -- SELECT : co-mods de la résidence (queue privée — pas de transparence publique
-    -- avant traitement, contrairement à moderation_log). FR22 ne demande pas
-    -- de queue publique ; protège les données PII demandées en rectification.
-    create policy artisan_rectification_resident_select_comod on public.artisan_rectification_requests
-      for select using (
-        public.auth_role() = 'co_mod' and residence_id = public.auth_residence_id()
-      );
-    -- Pas de policy write → tout passe par RPC SECURITY DEFINER (insertion 2.8, traitement Epic 5).
-    `
+create type public.artisan_rectification_state as enum ('pending', 'accepted', 'rejected');
+create type public.artisan_rectification_field as enum (
+  'display_name_fr', 'display_name_ar', 'phone_e164',
+  'competences', 'price_relative', 'has_invoice'
+);
+create table public.artisan_rectification_requests (
+  id uuid primary key default gen_random_uuid(),
+  artisan_id uuid not null references public.artisans(id) on delete cascade,
+  residence_id uuid not null references public.residences(id) on delete restrict,
+  field_target public.artisan_rectification_field not null,
+  requested_value text not null check (length(requested_value) between 1 and 200),
+  justification_text text not null check (length(justification_text) between 1 and 500),
+  state public.artisan_rectification_state not null default 'pending',
+  decided_by uuid references public.users(id) on delete set null,
+  decided_at timestamptz,
+  decision_reason text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index idx_artisan_rectification_requests_state
+  on public.artisan_rectification_requests (state, created_at);
+create trigger trg_artisan_rectification_updated_at
+  before update on public.artisan_rectification_requests
+  for each row execute function public.set_updated_at();
+alter table public.artisan_rectification_requests enable row level security;
+-- SELECT : co-mods de la résidence (queue privée — pas de transparence publique
+-- avant traitement, contrairement à moderation_log). FR22 ne demande pas
+-- de queue publique ; protège les données PII demandées en rectification.
+create policy artisan_rectification_resident_select_comod on public.artisan_rectification_requests
+  for select using (
+    public.auth_role() = 'co_mod' and residence_id = public.auth_residence_id()
+  );
+-- Pas de policy write → tout passe par RPC SECURITY DEFINER (insertion 2.8, traitement Epic 5).
+`
   - [x] **Étape E — RPC `request_artisan_contact_link(p_phone_e164 text, p_token_hash text, p_expires_at timestamptz)` SECURITY DEFINER set search_path=public** (AC2) :
     - Signature : `returns table(status text, sms_target_phone text, sms_artisan_name text)`. Le **raw token est généré côté Server Action** (réutilise `lib/consent/token.ts`), seul `token_hash` + `expires_at` sont passés à la RPC.
     - Logique : lookup `artisans` `phone_e164 = p_phone_e164` AND `state='published'` AND `deleted_at IS NULL` `order by published_at desc limit 1`.
@@ -155,28 +155,28 @@ Story aval directe de **2.4** (token HMAC + `artisan_consent_tokens`), **2.5** (
     - `revoke execute from public, anon, authenticated; grant execute to service_role`.
   - [x] **Étape G — moderation_log policy** : étendre la policy `moderation_log_consent_residence_select` (2.5/P5) aux 2 nouvelles actions consent — actions privées par résidence, pas publiques (anti side-channel AR38) :
         `sql
-    drop policy if exists moderation_log_public_select on public.moderation_log;
-    drop policy if exists moderation_log_consent_residence_select on public.moderation_log;
-    create policy moderation_log_public_select on public.moderation_log
-      for select using (
-        action not in (
-          'artisan_published', 'artisan_consent_refused',
-          'artisan_response_published', 'artisan_rectification_requested'
-        )
-      );
-    create policy moderation_log_consent_residence_select on public.moderation_log
-      for select to authenticated using (
-        action in (
-          'artisan_published', 'artisan_consent_refused',
-          'artisan_response_published', 'artisan_rectification_requested'
-        )
-        and exists (
-          select 1 from public.users u
-          where u.id = auth.uid() and u.residence_id = moderation_log.residence_id
-            and u.deleted_at is null
-        )
-      );
-    `
+drop policy if exists moderation_log_public_select on public.moderation_log;
+drop policy if exists moderation_log_consent_residence_select on public.moderation_log;
+create policy moderation_log_public_select on public.moderation_log
+  for select using (
+    action not in (
+      'artisan_published', 'artisan_consent_refused',
+      'artisan_response_published', 'artisan_rectification_requested'
+    )
+  );
+create policy moderation_log_consent_residence_select on public.moderation_log
+  for select to authenticated using (
+    action in (
+      'artisan_published', 'artisan_consent_refused',
+      'artisan_response_published', 'artisan_rectification_requested'
+    )
+    and exists (
+      select 1 from public.users u
+      where u.id = auth.uid() and u.residence_id = moderation_log.residence_id
+        and u.deleted_at is null
+    )
+  );
+`
   - [x] `pnpm supabase db reset` + `pnpm gen:types` (2 nouvelles tables + 4 nouveaux enums + 2 RPCs + 2 valeurs `moderation_action`). Voir [[project_rls_tests_local_setup]].
 
 - [x] **Task 2 — Lookup token réponse (lecture)** (AC: 3, 6, 7)
@@ -214,10 +214,10 @@ Story aval directe de **2.4** (token HMAC + `artisan_consent_tokens`), **2.5** (
   - [x] `lib/sms/templates/respond.fr.ts` : calque exact `consent.fr.ts` (sanitize `artisanName` NFC + strip control/bidi, truncate 40 chars). Message : `Darna : ${safe}, votre droit de réponse. Publiez votre réponse ou demandez rectification (sans compte) : ${link}` (≤ 160 chars GSM-7 multi-segment OK). Tests colocalisés (calque `consent.fr.test.ts`).
   - [x] Étendre l'union `SmsArgs` de `lib/sms/send.ts` :
         `ts
-    export type SmsArgs =
-      | { template: 'artisan-consent'; to: string; vars: ConsentSmsVars }
-      | { template: 'artisan-respond'; to: string; vars: RespondSmsVars };
-    ` + switch dans `sendTransactionalSms` (pattern `lib/email/send.ts`). Logique d'adapter (`log` MVP / `brevo` provisionné) inchangée.
+export type SmsArgs =
+  | { template: 'artisan-consent'; to: string; vars: ConsentSmsVars }
+  | { template: 'artisan-respond'; to: string; vars: RespondSmsVars };
+` + switch dans `sendTransactionalSms` (pattern `lib/email/send.ts`). Logique d'adapter (`log` MVP / `brevo` provisionné) inchangée.
 
 - [x] **Task 6 — Page `/respond/[token]` + form sections** (AC: 3, 4, 5, 6, 7, 10)
   - [x] `app/respond/[token]/page.tsx` (RSC, **HORS `[locale]`**). Toggle FR/AR. Rate-limit GET (`checkLimit('respond-get:${ip}', 30, 600)`, fail-open — pattern 2.5/P18). `force-dynamic`. `generateMetadata` → `robots:noindex`.
@@ -260,16 +260,16 @@ Story aval directe de **2.4** (token HMAC + `artisan_consent_tokens`), **2.5** (
   - [x] UPDATE `app/[locale]/community/artisan/[slug]/data.ts` : étendre `fetchArtisanBySlug` (ou ajouter `fetchArtisanResponses(artisanId)`) — lecture publique scopée par RLS `artisan_responses_resident_select`. Mapping `{id, targetKind, targetId, responseText, createdAt}`.
   - [x] UPDATE `app/[locale]/community/artisan/[slug]/page.tsx` : injecter `<ArtisanResponses responses={…} locale={…} />` après `<CommentsList>` (section dédiée). Pas dans le header — FR22 droit de réponse a un poids éditorial distinct de l'agrégat.
   - [x] NEW `_components/artisan-responses.tsx` (server component) : itère les réponses. Chaque entrée :
-        `tsx
-    <blockquote className="border-l-4 border-accent-500 bg-accent-50 px-4 py-3">
-      <p className="text-xs font-medium text-accent-700">
-        {t('signature', { name: artisan.displayName })} · {formatDate(r.createdAt, locale)}
-      </p>
-      {r.targetKind === 'rating' && <span className="text-xs text-neutral-500">{t('inReplyToRating')}</span>}
-      <p className="mt-2 whitespace-pre-wrap text-sm text-neutral-800">{r.responseText}</p>
-    </blockquote>
-    `
-        Le `displayName` est **toujours** affiché (FR22 : réponse identifiée), jamais pseudonyme — même si le contributeur du rating cible est en pseudo.
+      `tsx
+  <blockquote className="border-l-4 border-accent-500 bg-accent-50 px-4 py-3">
+    <p className="text-xs font-medium text-accent-700">
+      {t('signature', { name: artisan.displayName })} · {formatDate(r.createdAt, locale)}
+    </p>
+    {r.targetKind === 'rating' && <span className="text-xs text-neutral-500">{t('inReplyToRating')}</span>}
+    <p className="mt-2 whitespace-pre-wrap text-sm text-neutral-800">{r.responseText}</p>
+  </blockquote>
+  `
+      Le `displayName` est **toujours** affiché (FR22 : réponse identifiée), jamais pseudonyme — même si le contributeur du rating cible est en pseudo.
   - [x] Pas de pagination MVP (Epic 6+) — afficher les 10 réponses les plus récentes, calque `comments-list.tsx` (defer documenté 2.3).
 
 - [x] **Task 10 — i18n + a11y** (AC: 1, 3, 4, 5, 6, 7, 8)
@@ -284,30 +284,30 @@ Story aval directe de **2.4** (token HMAC + `artisan_consent_tokens`), **2.5** (
 - [x] **Task 11 — Sécurité défense en profondeur (extensions infra)** (AC: 9)
   - [x] UPDATE `proxy.ts` `config.matcher` : ajouter `respond/` et `artisan/contact` à la liste négative (à côté de `consent/`) — exclusion middleware locale :
         `ts
-    source: '/((?!_next/static|...|consent/|respond/|artisan/contact|...).*)'
-    `
+source: '/((?!_next/static|...|consent/|respond/|artisan/contact|...).*)'
+`
   - [x] UPDATE `next.config.ts` `headers()` : étendre `Cache-Control: private, no-store` :
         `ts
-    { source: '/respond/:path*', headers: [{ key: 'Cache-Control', value: 'private, no-store' }] },
-    { source: '/artisan/contact', headers: [{ key: 'Cache-Control', value: 'private, no-store' }] },
-    `
+{ source: '/respond/:path*', headers: [{ key: 'Cache-Control', value: 'private, no-store' }] },
+{ source: '/artisan/contact', headers: [{ key: 'Cache-Control', value: 'private, no-store' }] },
+`
   - [x] UPDATE `sw/index.ts` `runtimeCaching` : étendre le matcher NetworkOnly :
         `ts
-    const responseBypass: RuntimeCaching = {
-      matcher: ({ url, sameOrigin }) =>
-        sameOrigin && (
-          url.pathname.startsWith('/consent/') ||
-          url.pathname.startsWith('/respond/') ||
-          url.pathname === '/artisan/contact'
-        ),
-      handler: new NetworkOnly(),
-    };
-    `
+const responseBypass: RuntimeCaching = {
+  matcher: ({ url, sameOrigin }) =>
+    sameOrigin && (
+      url.pathname.startsWith('/consent/') ||
+      url.pathname.startsWith('/respond/') ||
+      url.pathname === '/artisan/contact'
+    ),
+  handler: new NetworkOnly(),
+};
+`
         (fusionner le matcher consent existant, ou ajouter une seconde entrée — un seul matcher fusionné est plus lisible).
   - [x] UPDATE `lib/sentry/scrub.ts` : étendre la regex `CONSENT_PATH` → `CONSENT_OR_RESPOND_PATH` :
         `ts
-    const CONSENT_OR_RESPOND_PATH = /\/(consent|respond)\/[^/?#]+/g;
-    `
+const CONSENT_OR_RESPOND_PATH = /\/(consent|respond)\/[^/?#]+/g;
+`
         Le scrubber remplace par `/$1/[REDACTED]` (préserve la classe pour debug agrégé).
   - [x] UPDATE `app/api/cron/purge-expired/route.ts` (cluster 2.5/P24) : la requête `DELETE FROM artisan_consent_tokens WHERE expires_at < now() - interval '90 days' AND used_at IS NULL` couvre déjà les 2 purposes (pas de discrimination par `purpose` requis — un token expiré est expiré quel que soit le purpose).
   - [x] UPDATE `lib/validation/sanitize.ts` (cluster 2.7 NEW) : extraire `STRIP_CONTROL_AND_BIDI` de `lib/sms/templates/consent.fr.ts` + `lib/validation/artisan.ts` (cluster review 2.4/P3 + 2.5/P23) en helper réutilisable `sanitizeUserText(raw, { maxLen, fallback })`. Réutilisé par le webhook respond.
@@ -530,3 +530,17 @@ claude-opus-4-8[1m] (Claude Opus 4.8, 1M context) — bmad-dev-story, 2026-06-19
 | ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-06-19 | 0.1     | Création story 2.8 (context engine). 4 décisions structurantes : (1) nouvelle table `artisan_responses` dédiée FR22 (pas overload `ratings` — target_kind listing/rating, response_text 500 sanitizée), (2) extension `artisan_consent_tokens.purpose enum('consent','respond')` + RPC `process_artisan_response` SECURITY DEFINER distincte de `process_artisan_consent`, (3) page publique `/artisan/contact` HORS [locale] + RPC `request_artisan_contact_link` + AR38 indistinguabilité stricte (rate-limit IP+phone, timing equalize sleep 150ms, indistinguabilité UI), (4) rectification queue = persistance MVP + UI co-mod différée Epic 5 (table `artisan_rectification_requests` rows passives, `moderation_log` action posée immédiatement). 2 migrations (enum extensions + schema/RPCs/policy split). Server Actions + Route Handler webhook calqués 2.5. SW NetworkOnly + Cache-Control no-store + Sentry scrubber + proxy matcher étendus. Affichage `<ArtisanResponses>` sur fiche publique. i18n FR + AR réels (exception MVP FR-only, pattern 2.5). Tests RLS + RPC + lookup + action. Status → ready-for-dev. |
 | 2026-06-19 | 0.2     | Implémentation 2.8. 2 migrations (purpose enum + 2 tables + RLS + 2 RPCs SECURITY DEFINER + filtre purpose sur process_artisan_consent + moderation_log policy split). Pages publiques /artisan/contact + /respond/[token] + /respond/done + webhook (calque 2.5). SMS respond + e-mail contact link. Affichage ArtisanResponses sur fiche. Infra sécu étendue (proxy/next.config/sw/sentry). i18n FR+AR réels. Corrigé ambiguïté 42702. typecheck/lint verts ; test 334/56 ; gated RLS 40/40 + RPC respond 10/10 + consent 6/6 contre Postgres réel. Status → review.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+### Review Findings
+
+> Code review adversariale (3 couches : Blind Hunter / Edge Case Hunter / Acceptance Auditor) — 2026-06-20. Périmètre 2.8 isolé via File List (2.6/2.7 exclus du diff). 1 decision-needed, 4 patch, 4 defer, ~14 dismissed (per-spec, intentionnels FR33, hors-scope 2.7). Cœur sécurité **vérifié conforme** : RPC SECURITY DEFINER `set search_path=public` + revoke/grant service_role + gate atomique `used_at` + guards `state='published'/deleted_at`, cross-purpose `purpose='respond'` → not_found, AR38 indistinguabilité UI sur /artisan/contact, rectification queue passive `pending` + moderation_log, table dédiée `artisan_responses`, token raw jamais en DB/logs, PII jamais en payload log.
+
+- [x] [Review][Patch] Webhook `not_found` → 303 `/respond/done?status=invalid` (RÉSOLU decision 2026-06-20, option b) — Remplacer le `401` brut sur `not_found` par une redirection 303 vers `/respond/done?status=invalid` : meilleure UX sur POST natif, utilise la branche `invalid` déjà câblée (Task 8), indistinguable de expired/used (AR38 ≥ équivalent). Étendre le type de `doneRedirect` pour accepter `invalid`. [`app/api/webhook/artisan-respond/route.ts:144`]
+- [x] [Review][Patch] `target_id` non validé en UUID → token brûlé + 500 — Le webhook passe `target_id` brut (string) au RPC sans valider le format UUID ; le cast `(p_payload->>'target_id')::uuid` (migration l.238) s'exécute **après** la gate atomique `used_at` (l.222) → un POST forgé `target_kind=rating&target_id=garbage` lève `22P02` post-consommation → 500 + token non-rejouable. Fix : valider UUID dans le webhook (drop vers `listing` si invalide, cohérent avec la dégradation gracieuse prévue). [`app/api/webhook/artisan-respond/route.ts:87`]
+- [x] [Review][Patch] RPC ne filtre pas `deleted_at` sur le rating ciblé — La sous-requête de validation cible `where r.id=… and r.artisan_id=v.a_id` (migration l.236-238) **sans `and r.deleted_at is null`** ; une réponse s'attache à un rating soft-deleted, contredisant la spec §Cas limite (« la RPC dégrade silencieusement à target_id=null ») → badge « En réponse à une note » orphelin sur la fiche. Fix : ajouter `and r.deleted_at is null`. [`supabase/migrations/20260625090100_artisan_response.sql:238`]
+- [x] [Review][Patch] AC8(d) badge « En réponse à une note » n'est pas un lien-ancre — Le badge est un `<span>` plat (l.36-40), `targetId` n'est pas passé au composant, et `comments-list.tsx` ne pose aucun `id` ancre sur les `<li>`. La spec AC8(d) exige « lien ancre vers le rating ciblé dans la section commentaires ». Fix : passer `targetId`, rendre `<a href="#comment-${targetId}">`, ajouter `id={comment.id}` sur les items commentaires, garder le `<span>` plat si cible non visible (orphelin). [`app/[locale]/community/artisan/[slug]/_components/artisan-responses.tsx:36`]
+- [x] [Review][Patch] `sendTransactionalSms` sans try/catch dans l'action contact — L'appel SMS (l.115) gère `sms.ok===false` mais pas une **exception** (adapter Brevo prod peut throw sur fetch) → la Server Action propage l'erreur, brisant l'indistinguabilité AR38 (seule la branche `sent` appelle le SMS). La spec Task 3 exige « Si SMS échoue → log error, ne PAS révéler côté UI ». Fix : wrapper l'appel SMS en try/catch (échec bénin, log, return GENERIC). Latent (MVP `SMS_PROVIDER=log` ne throw pas). [`app/artisan/contact/actions.ts:115`]
+- [x] [Review][Defer] revoke/grant explicite sur `process_artisan_consent` re-créé — La migration re-crée la RPC via `CREATE OR REPLACE` (l.268-390) sans re-asserter `revoke … from public/anon/authenticated; grant … to service_role` (contrairement aux 2 nouvelles RPC). **Fonctionnellement sûr** : `CREATE OR REPLACE` préserve les privilèges posés par la migration antérieure. Hardening/cohérence : re-asserter le bloc pour robustesse contre tout env de création fraîche. [`supabase/migrations/20260625090100_artisan_response.sql:390`] — deferred, défense en profondeur
+- [x] [Review][Defer] `Referrer-Policy: no-referrer` absent sur `/respond/[token]` — Le token raw est dans l'URL ; le diff ajoute `Cache-Control: no-store` mais pas de `Referrer-Policy` dédié. Le global `strict-origin-when-cross-origin` (1.10a) bloque la fuite cross-origin du path mais pas same-origin. Hardening : ajouter `Referrer-Policy: no-referrer` sur `/respond/*`. [`next.config.ts`] — deferred, hardening
+- [x] [Review][Defer] Content-Length 4KB bypassable (chunked / header absent) — `Number(null ?? 0)=0` passe le check, puis `formData()` lit le corps sans cap dur (transfer-encoding chunked). Hérité du pattern 2.5. Borne DoS advisory uniquement. [`app/api/webhook/artisan-respond/route.ts:49`] — deferred, hérité 2.5
+- [x] [Review][Defer] `STRIP_CONTROL_AND_BIDI` non extrait de `consent.fr.ts` (Task 11) — `lib/validation/sanitize.ts` ajoute bien `sanitizeUserText` (utilisé par les nouveaux chemins), mais `lib/sms/templates/consent.fr.ts` garde sa regex locale dupliquée. Cleanup, aucun impact comportemental/sécu. [`lib/sms/templates/consent.fr.ts`] — deferred, cleanup

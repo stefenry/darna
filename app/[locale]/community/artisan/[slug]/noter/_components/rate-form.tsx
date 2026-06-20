@@ -8,6 +8,13 @@
 //
 // a11y : chaque axe = `<fieldset>`/`<legend>` ; étoiles = `role="radiogroup"` +
 // boutons `role="radio"` ; annonce ARIA live au tap ; cibles tactiles ≥ 48px (NFR36).
+//
+// Review (2026-06-20) :
+//   - P8 : surface `visibilityMemorizeFailed` côté UI (warning discret).
+//   - P9 : `RetractControls` reset `confirmRating` après échec + display error banner.
+//   - P10 : toggle « Réactiver » NA → hint « Choisissez une note ».
+//   - P12 : `naToggle` `aria-pressed` + `min-h-touch`.
+//   - Pass 1 P3 : CTA sticky bas (cluster 2.3 P5 / 2.4 W3).
 
 import { useActionState, useEffect, useId, useState } from 'react';
 import Link from 'next/link';
@@ -52,7 +59,6 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
     ) as Record<RatingAxis, number | null>;
 
   const [scores, setScores] = useState<Record<RatingAxis, number | null>>(initScores);
-  // NA explicite : à la première ouverture d'une note existante, un axe null = NA.
   const [na, setNa] = useState<Record<RatingAxis, boolean>>(
     () =>
       Object.fromEntries(
@@ -61,6 +67,12 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
           existingRating ? (existingRating[AXIS_FIELD[axis]] as number | null) == null : false,
         ]),
       ) as Record<RatingAxis, boolean>,
+  );
+  // P10 — axes qui ont été réactivés (NA→pas-NA) sans score choisi encore.
+  // Sert à afficher un hint « Choisissez une note ».
+  const [reactivatedPending, setReactivatedPending] = useState<Record<RatingAxis, boolean>>(
+    () =>
+      Object.fromEntries(RATING_AXES.map((axis) => [axis, false])) as Record<RatingAxis, boolean>,
   );
   const [commentLen, setCommentLen] = useState(existingRating?.comment_text?.length ?? 0);
   const [named, setNamed] = useState(defaultVisibility === 'named');
@@ -73,12 +85,20 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
   function setStar(axis: RatingAxis, value: number) {
     setScores((s) => ({ ...s, [axis]: value }));
     setNa((n) => ({ ...n, [axis]: false }));
+    setReactivatedPending((p) => ({ ...p, [axis]: false }));
     setAnnounce(t('axisStarLabel', { value: String(value), axis: tAxes(axis) }));
   }
   function toggleNa(axis: RatingAxis) {
     setNa((n) => {
       const next = !n[axis];
-      if (next) setScores((s) => ({ ...s, [axis]: null }));
+      if (next) {
+        // Activer NA → réinitialise score.
+        setScores((s) => ({ ...s, [axis]: null }));
+        setReactivatedPending((p) => ({ ...p, [axis]: false }));
+      } else if (scores[axis] == null) {
+        // Désactiver NA mais pas encore noté → hint.
+        setReactivatedPending((p) => ({ ...p, [axis]: true }));
+      }
       return { ...n, [axis]: next };
     });
   }
@@ -87,6 +107,11 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
     return (
       <div role="status" className="flex flex-col gap-3 rounded-[14px] bg-accent-50 p-5">
         <p className="text-base text-neutral-900">{t('success')}</p>
+        {state.visibilityMemorizeFailed && (
+          <p role="alert" className="rounded-[10px] bg-bg-soft px-3 py-2 text-sm text-warning">
+            {t('visibilityMemorizeFailedWarning')}
+          </p>
+        )}
         <Link
           href={`/${locale}/community/artisan/${slug}`}
           className="inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600"
@@ -101,7 +126,7 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
   const errorKey = error?.message_key?.replace(/^errors\./, '') ?? null;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 pb-24">
       <form action={formAction} noValidate className="flex flex-col gap-6" aria-busy={isPending}>
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="locale" value={locale} />
@@ -123,6 +148,7 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
         {RATING_AXES.map((axis) => {
           const isNa = na[axis];
           const current = scores[axis];
+          const needsRating = reactivatedPending[axis] && current == null && !isNa;
           return (
             <fieldset
               key={axis}
@@ -133,7 +159,8 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
                 <button
                   type="button"
                   onClick={() => toggleNa(axis)}
-                  className="rounded-full bg-bg-soft px-3 py-1 text-xs font-medium text-accent-600"
+                  aria-pressed={isNa}
+                  className="inline-flex min-h-touch items-center rounded-full bg-bg-soft px-3 text-xs font-medium text-accent-600"
                 >
                   {isNa ? t('naReactivate') : t('naToggle')}
                 </button>
@@ -161,6 +188,9 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
                   );
                 })}
               </div>
+              {needsRating && (
+                <p className="text-xs font-medium text-warning">{t('reactivatedHint')}</p>
+              )}
             </fieldset>
           );
         })}
@@ -196,13 +226,19 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className="inline-flex min-h-touch-lg items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+        {/* Pass 1 P3 — CTA sticky bas (mobile-first ; respecte safe-area). */}
+        <div
+          className="sticky bottom-0 z-10 -mx-4 mt-2 border-t border-neutral-200 bg-bg-card px-4 pt-3"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.75rem)' }}
         >
-          {isPending ? t('submitting') : existingRating ? t('submitUpdate') : t('submit')}
-        </button>
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="flex min-h-touch-lg w-full items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+          >
+            {isPending ? t('submitting') : existingRating ? t('submitUpdate') : t('submit')}
+          </button>
+        </div>
 
         <span aria-live="polite" className="sr-only">
           {announce}
@@ -222,6 +258,7 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
 
 // Story 2.7 — retrait de sa note (soft-delete) ou de son commentaire seul.
 // Confirmation 2-taps inline (pas de modal). Deux formulaires distincts.
+// Review P9 (2.6 pass 2) : reset `confirmRating` après échec + display error banner.
 function RetractControls({
   locale,
   slug,
@@ -234,6 +271,7 @@ function RetractControls({
   hasComment: boolean;
 }) {
   const t = useTranslations('community.artisanRate');
+  const tErr = useTranslations('errors');
   const router = useRouter();
   const [ratingState, retractRatingAction, ratingPending] = useActionState(
     retractOwnRating,
@@ -252,8 +290,20 @@ function RetractControls({
     if (commentState.ok) router.refresh();
   }, [commentState, router]);
 
+  // P9 — reset l'état confirmation si l'action échoue (sinon user bloqué).
+  const ratingError = 'error' in ratingState ? ratingState.error : null;
+  const commentError = 'error' in commentState ? commentState.error : null;
+  useEffect(() => {
+    if (ratingError) setConfirmRating(false);
+  }, [ratingError]);
+
   return (
     <section className="flex flex-col gap-3 border-t border-neutral-300 pt-5">
+      {(ratingError || commentError) && (
+        <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+          {tErr('rating.submit_failed')}
+        </div>
+      )}
       <form action={retractRatingAction} aria-busy={ratingPending} className="flex flex-col gap-2">
         <input type="hidden" name="slug" value={slug} />
         <input type="hidden" name="locale" value={locale} />

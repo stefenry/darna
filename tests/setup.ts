@@ -14,6 +14,7 @@ process.env.UPSTASH_REDIS_REST_URL ??= 'http://localhost:8079';
 process.env.UPSTASH_REDIS_REST_TOKEN ??= 'tok_stub';
 process.env.CRON_SECRET ??= 'a'.repeat(40);
 process.env.CONSENT_TOKEN_SECRET ??= 'c'.repeat(40);
+process.env.PSEUDONYM_SECRET ??= 'p'.repeat(40);
 process.env.LEGAL_CONTACT_EMAIL ??= 'legal@darna.local';
 process.env.INITIAL_COMOD_EMAILS ??= 'co1@darna.local,co2@darna.local';
 

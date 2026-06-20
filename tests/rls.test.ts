@@ -959,3 +959,226 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS artisans / ratings (AC8)', () => {
     expect(eveSees ?? []).toHaveLength(0);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Story 3.1 — RLS contenu durable (Epic 3) : guide_entries / useful_numbers /
+// pack_entries. RLS asymétrique : résident LECTURE SEULE, co_mod CRUD résidence.
+// Seeds : 1 résident + 1 co_mod (même résidence Darna), 1 co_mod (résidence 2),
+// 1 guide_entry seedée. Cas : résident read-only KO en écriture, co_mod CRUD OK,
+// cross-résidence KO, soft-delete masque la lecture résident.
+// ─────────────────────────────────────────────────────────────────────────────
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
+  let admin: DarnaClient;
+  let residentId: string;
+  let comodId: string;
+  let comodOtherId: string;
+  let residentClient: DarnaClient;
+  let comodClient: DarnaClient; // co_mod résidence Darna
+  let comodOtherClient: DarnaClient; // co_mod résidence 2
+  let seededEntryId: string;
+
+  async function makeUser(
+    localUrl: string,
+    publishableKey: string,
+    role: 'resident' | 'co_mod',
+    label: string,
+    residenceId: string,
+  ): Promise<{ id: string; client: DarnaClient }> {
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    const id = created.user.id;
+
+    await admin.auth.admin.updateUserById(id, {
+      app_metadata: { role, residence_id: residenceId },
+    });
+    const { error: updateErr } = await admin
+      .from('users')
+      .update({ role, residence_id: residenceId })
+      .eq('id', id);
+    if (updateErr) throw new Error(`${label} users update failed: ${updateErr.message}`);
+
+    const client = createClient<Database>(localUrl, publishableKey, {
+      auth: { storageKey: `rls-durable-${label}`, persistSession: false },
+    });
+    await establishSession(admin, client, email, label);
+    return { id, client };
+  }
+
+  beforeAll(async () => {
+    const localEnv = parseSupabaseLocalEnv();
+    admin = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+    );
+
+    await admin.from('residences').upsert({
+      id: RESIDENCE_2_ID,
+      name: 'Test Residence 2',
+      slug: `test2-durable-${Date.now()}`,
+      villa_count: 150,
+    });
+
+    const resident = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'resident',
+      'dres',
+      DARNA_RESIDENCE_ID,
+    );
+    residentId = resident.id;
+    residentClient = resident.client;
+
+    const comod = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'co_mod',
+      'dcomod',
+      DARNA_RESIDENCE_ID,
+    );
+    comodId = comod.id;
+    comodClient = comod.client;
+
+    const comodOther = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'co_mod',
+      'dcomod2',
+      RESIDENCE_2_ID,
+    );
+    comodOtherId = comodOther.id;
+    comodOtherClient = comodOther.client;
+
+    // Entrée Guide seedée (admin bypass RLS) dans la résidence Darna.
+    const ts = Date.now();
+    const { data: seeded, error: seedErr } = await admin
+      .from('guide_entries')
+      .insert({
+        slug: `codes-portails-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        theme_key: 'codes_portails',
+        title_fr: 'Codes des portails',
+        body_fr_markdown: 'Portail principal : **1234**.',
+        order_in_theme: 0,
+        created_by: comodId,
+      })
+      .select()
+      .single();
+    if (seedErr || !seeded) throw seedErr ?? new Error('seed guide_entry failed');
+    seededEntryId = seeded.id;
+  });
+
+  afterAll(async () => {
+    if (!admin) return;
+    await admin
+      .from('guide_entries')
+      .delete()
+      .eq('residence_id', DARNA_RESIDENCE_ID)
+      .eq('theme_key', 'codes_portails');
+    await admin.from('guide_entries').delete().eq('residence_id', RESIDENCE_2_ID);
+    for (const id of [residentId, comodId, comodOtherId]) {
+      if (id) await admin.auth.admin.deleteUser(id);
+    }
+    await admin.from('residences').delete().eq('id', RESIDENCE_2_ID);
+  });
+
+  it("(a) résident SELECT voit l'entrée non supprimée de sa résidence", async () => {
+    const { data, error } = await residentClient
+      .from('guide_entries')
+      .select('*')
+      .eq('id', seededEntryId);
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+  });
+
+  it('(b) résident INSERT guide_entries → 42501 (lecture seule, aucune policy écriture)', async () => {
+    const { error } = await residentClient.from('guide_entries').insert({
+      slug: `hack-${Date.now()}`,
+      residence_id: DARNA_RESIDENCE_ID,
+      theme_key: 'autre',
+      title_fr: 'Hack',
+      body_fr_markdown: 'x',
+      created_by: residentId,
+    });
+    expect(error).not.toBeNull();
+    expect(error?.code).toBe('42501');
+  });
+
+  it('(c) résident UPDATE deleted_at → no-op (aucune policy UPDATE résident, entrée intacte)', async () => {
+    const { data } = await residentClient
+      .from('guide_entries')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', seededEntryId)
+      .select();
+    // Aucune policy UPDATE pour le résident → 0 ligne mutée.
+    expect(data ?? []).toHaveLength(0);
+    // L'entrée reste visible (non soft-deletée).
+    const { data: still } = await residentClient
+      .from('guide_entries')
+      .select('id')
+      .eq('id', seededEntryId);
+    expect(still).toHaveLength(1);
+  });
+
+  it('(d) co_mod même résidence INSERT puis UPDATE OK', async () => {
+    const slug = `horaires-gardien-${Date.now()}`;
+    const { data: inserted, error: insErr } = await comodClient
+      .from('guide_entries')
+      .insert({
+        slug,
+        residence_id: DARNA_RESIDENCE_ID,
+        theme_key: 'horaires_gardien',
+        title_fr: 'Horaires du gardien',
+        body_fr_markdown: 'Présent 8h-20h.',
+        created_by: comodId,
+      })
+      .select()
+      .single();
+    expect(insErr).toBeNull();
+    expect(inserted?.id).toBeTruthy();
+
+    const { data: updated, error: updErr } = await comodClient
+      .from('guide_entries')
+      .update({ title_fr: 'Horaires du gardien (MAJ)' })
+      .eq('id', inserted!.id)
+      .select()
+      .single();
+    expect(updErr).toBeNull();
+    expect(updated?.title_fr).toBe('Horaires du gardien (MAJ)');
+  });
+
+  it('(e) co_mod autre résidence ne peut PAS UPDATE une entrée de Darna (cross-résidence → 0 ligne)', async () => {
+    const { data } = await comodOtherClient
+      .from('guide_entries')
+      .update({ title_fr: 'pirate' })
+      .eq('id', seededEntryId)
+      .select();
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it("(f) co_mod soft-delete → l'entrée disparaît de la lecture résident", async () => {
+    const { error: delErr } = await comodClient
+      .from('guide_entries')
+      .update({ deleted_at: new Date().toISOString(), deleted_by: comodId })
+      .eq('id', seededEntryId);
+    expect(delErr).toBeNull();
+
+    const { data: residentSees } = await residentClient
+      .from('guide_entries')
+      .select('id')
+      .eq('id', seededEntryId);
+    expect(residentSees ?? []).toHaveLength(0);
+
+    // Le co_mod, lui, voit toujours la ligne soft-deletée (restauration 3.5).
+    const { data: comodSees } = await comodClient
+      .from('guide_entries')
+      .select('id, deleted_at')
+      .eq('id', seededEntryId);
+    expect(comodSees).toHaveLength(1);
+    expect(comodSees?.[0]?.deleted_at).not.toBeNull();
+  });
+});

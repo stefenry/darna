@@ -19,6 +19,10 @@ const serverSchema = z
     // Story 2.4 — secret HMAC des tokens de consentement artisan (signe le token
     // magic-link SMS ; validé par le webhook 2.5). ≥32 char aléatoires.
     CONSENT_TOKEN_SECRET: z.string().min(32, 'CONSENT_TOKEN_SECRET must be ≥32 chars (random)'),
+    // Story 2.6 review D1 — secret HMAC pour le suffixe pseudonyme stable FR16.
+    // Empêche un co_mod (avec accès `users.id`) de rétro-calculer offline la map
+    // (user, artisan) → suffixe. ≥32 chars aléatoires, distinct de CONSENT_TOKEN_SECRET.
+    PSEUDONYM_SECRET: z.string().min(32, 'PSEUDONYM_SECRET must be ≥32 chars (random)'),
     // Story 2.4 — provider SMS. `log` (défaut MVP) = loggue le magic link sans
     // envoi réel (aucun compte requis). `brevo` = Brevo SMS (réutilise BREVO_API_KEY)
     // → nécessite BREVO_SMS_SENDER + couverture Maroc confirmée.

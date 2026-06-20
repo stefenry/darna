@@ -2,10 +2,17 @@
 // clés i18n `errors.rating.*` (le path Zod seul est lu, jamais le message natif —
 // AR17). Miroir applicatif des contraintes DB : `score_* between 1 and 5`,
 // `num_nonnulls(...) >= 1` (`ratings_at_least_one_score_check`), `comment ≤ 500`.
+//
+// Review P5/P11 (2026-06-20) : `comment` sanitize via `sanitizeName` (NFC + strip
+// bidi/control, cluster 2.4 P3 / 2.5 P23) — empêche injection visuelle dans le
+// rendu côté `comments-list.tsx`. `VISIBILITY` réutilisé depuis `artisan.ts`
+// (dedupe Task 1 directive).
 
 import { z } from 'zod';
+import { sanitizeName } from './sanitize';
+import { VISIBILITY } from './artisan';
 
-export const RATING_VISIBILITY = ['pseudonym', 'named'] as const;
+export { VISIBILITY as RATING_VISIBILITY };
 
 export const RATING_AXIS_FIELDS = [
   'score_depannage',
@@ -25,8 +32,12 @@ export const zRatingForm = z
     score_petits_travaux: zScore,
     score_travail_soigne: zScore,
     score_urgences: zScore,
-    comment: z.string().trim().max(500).optional().or(z.literal('')),
-    visibility: z.enum(RATING_VISIBILITY).default('pseudonym'),
+    // P5 — sanitize NFC + strip bidi/control sur le commentaire (anti spoofing).
+    comment: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() ? sanitizeName(v) : undefined),
+      z.string().max(500).optional(),
+    ),
+    visibility: z.enum(VISIBILITY).default('pseudonym'),
   })
   .refine(
     (v) => RATING_AXIS_FIELDS.map((f) => v[f]).filter((s): s is number => s != null).length >= 1,

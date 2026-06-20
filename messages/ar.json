@@ -89,7 +89,8 @@
       "comment_too_long": "",
       "visibility_invalid": "",
       "submit_failed": "",
-      "artisan_not_found": ""
+      "artisan_not_found": "",
+      "self_rating": ""
     },
     "artisanResponse": {
       "submit_failed": "تعذّر الحفظ. حاول مرة أخرى.",
@@ -334,7 +335,9 @@
       "back": "",
       "retractRating": "",
       "retractRatingConfirm": "",
-      "retractComment": ""
+      "retractComment": "",
+      "reactivatedHint": "",
+      "visibilityMemorizeFailedWarning": ""
     },
     "artisanEdit": {
       "title": "",

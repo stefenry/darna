@@ -420,6 +420,88 @@ export type Database = {
           },
         ];
       };
+      guide_entries: {
+        Row: {
+          body_ar_markdown: string | null;
+          body_fr_markdown: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          id: string;
+          order_in_theme: number;
+          residence_id: string;
+          search_ar_tsv: unknown;
+          search_fr_tsv: unknown;
+          slug: string;
+          theme_key: Database['public']['Enums']['guide_theme_key'];
+          title_ar: string | null;
+          title_fr: string;
+          updated_at: string;
+        };
+        Insert: {
+          body_ar_markdown?: string | null;
+          body_fr_markdown: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          order_in_theme?: number;
+          residence_id: string;
+          search_ar_tsv?: unknown;
+          search_fr_tsv?: unknown;
+          slug: string;
+          theme_key: Database['public']['Enums']['guide_theme_key'];
+          title_ar?: string | null;
+          title_fr: string;
+          updated_at?: string;
+        };
+        Update: {
+          body_ar_markdown?: string | null;
+          body_fr_markdown?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          order_in_theme?: number;
+          residence_id?: string;
+          search_ar_tsv?: unknown;
+          search_fr_tsv?: unknown;
+          slug?: string;
+          theme_key?: Database['public']['Enums']['guide_theme_key'];
+          title_ar?: string | null;
+          title_fr?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'guide_entries_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'guide_entries_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'guide_entries_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       moderation_log: {
         Row: {
           action: Database['public']['Enums']['moderation_action'];
@@ -525,6 +607,85 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: true;
             referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      pack_entries: {
+        Row: {
+          body_ar_markdown: string | null;
+          body_fr_markdown: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          id: string;
+          order_in_section: number;
+          residence_id: string;
+          search_ar_tsv: unknown;
+          search_fr_tsv: unknown;
+          section_key: string;
+          title_ar: string | null;
+          title_fr: string;
+          updated_at: string;
+        };
+        Insert: {
+          body_ar_markdown?: string | null;
+          body_fr_markdown: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          order_in_section?: number;
+          residence_id: string;
+          search_ar_tsv?: unknown;
+          search_fr_tsv?: unknown;
+          section_key: string;
+          title_ar?: string | null;
+          title_fr: string;
+          updated_at?: string;
+        };
+        Update: {
+          body_ar_markdown?: string | null;
+          body_fr_markdown?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          order_in_section?: number;
+          residence_id?: string;
+          search_ar_tsv?: unknown;
+          search_fr_tsv?: unknown;
+          section_key?: string;
+          title_ar?: string | null;
+          title_fr?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pack_entries_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pack_entries_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pack_entries_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
             referencedColumns: ['id'];
           },
         ];
@@ -750,6 +911,82 @@ export type Database = {
         };
         Relationships: [];
       };
+      useful_numbers: {
+        Row: {
+          category_key: Database['public']['Enums']['useful_number_category'];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          id: string;
+          label_ar: string | null;
+          label_fr: string;
+          notes_ar: string | null;
+          notes_fr: string | null;
+          order_in_category: number;
+          phone_e164: string;
+          residence_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          category_key: Database['public']['Enums']['useful_number_category'];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          label_ar?: string | null;
+          label_fr: string;
+          notes_ar?: string | null;
+          notes_fr?: string | null;
+          order_in_category?: number;
+          phone_e164: string;
+          residence_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          category_key?: Database['public']['Enums']['useful_number_category'];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          label_ar?: string | null;
+          label_fr?: string;
+          notes_ar?: string | null;
+          notes_fr?: string | null;
+          order_in_category?: number;
+          phone_e164?: string;
+          residence_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'useful_numbers_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'useful_numbers_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'useful_numbers_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       users: {
         Row: {
           created_at: string;
@@ -929,6 +1166,14 @@ export type Database = {
       artisan_response_target: 'listing' | 'rating';
       artisan_state: 'pending_consent' | 'published' | 'refused';
       consent_token_purpose: 'consent' | 'respond';
+      guide_theme_key:
+        | 'codes_portails'
+        | 'horaires_gardien'
+        | 'regles_jardin'
+        | 'dechets'
+        | 'traditions'
+        | 'securite'
+        | 'autre';
       moderation_action:
         | 'admission_accepted'
         | 'admission_rejected'
@@ -948,6 +1193,7 @@ export type Database = {
         | 'comment_self_retracted'
         | 'artisan_reconsent_accepted';
       rating_visibility: 'pseudonym' | 'named';
+      useful_number_category: 'securite' | 'syndic' | 'urgences' | 'sante' | 'autre';
       user_role: 'resident' | 'co_mod' | 'demandeur' | 'public';
     };
     CompositeTypes: {
@@ -1099,6 +1345,15 @@ export const Constants = {
       artisan_response_target: ['listing', 'rating'],
       artisan_state: ['pending_consent', 'published', 'refused'],
       consent_token_purpose: ['consent', 'respond'],
+      guide_theme_key: [
+        'codes_portails',
+        'horaires_gardien',
+        'regles_jardin',
+        'dechets',
+        'traditions',
+        'securite',
+        'autre',
+      ],
       moderation_action: [
         'admission_accepted',
         'admission_rejected',
@@ -1119,6 +1374,7 @@ export const Constants = {
         'artisan_reconsent_accepted',
       ],
       rating_visibility: ['pseudonym', 'named'],
+      useful_number_category: ['securite', 'syndic', 'urgences', 'sante', 'autre'],
       user_role: ['resident', 'co_mod', 'demandeur', 'public'],
     },
   },

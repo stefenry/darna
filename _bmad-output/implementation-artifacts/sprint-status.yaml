@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-23
-last_updated: 2026-06-19T23:15:00Z
+last_updated: 2026-06-20T12:10:00Z
 project: SmartResidence
 project_key: NOKEY
 tracking_system: file-system
@@ -67,9 +67,9 @@ development_status:
   2-3-fiche-artisan-detaillee-action-tel: done
   2-4-creation-fiche-artisan-workflow-consentement-sms-asynchrone: done
   2-5-page-magic-link-consentement-artisan-accept-refuse-1-tap-sans-compte: done
-  2-6-notation-typee-multi-axes-commentaire-pseudo-identite: review
+  2-6-notation-typee-multi-axes-commentaire-pseudo-identite: done
   2-7-edition-retrait-de-ses-propres-contributions: done
-  2-8-droit-de-reponse-artisan: review
+  2-8-droit-de-reponse-artisan: done
   epic-2-retrospective: optional
 
   # Epic 3: Contenu durable — Guide résident, Numéros utiles, Pack accueil

@@ -112,21 +112,29 @@ export async function requestArtisanContactLink(
     | undefined;
 
   if (row?.status === 'sent' && row.sms_target_phone) {
-    const sms = await sendTransactionalSms({
-      template: 'artisan-respond',
-      to: row.sms_target_phone,
-      vars: {
-        artisanName: row.sms_artisan_name ?? '',
-        link: `${siteOrigin()}/respond/${raw}`,
-      },
-    });
+    // AR38 : un échec SMS (return {ok:false} OU throw du provider Brevo en prod) ne doit
+    // JAMAIS révéler côté UI que le phone existe → on absorbe l'exception et on log.
+    let smsOk = false;
+    try {
+      const sms = await sendTransactionalSms({
+        template: 'artisan-respond',
+        to: row.sms_target_phone,
+        vars: {
+          artisanName: row.sms_artisan_name ?? '',
+          link: `${siteOrigin()}/respond/${raw}`,
+        },
+      });
+      smsOk = sms.ok;
+    } catch {
+      smsOk = false;
+    }
     log({
-      level: sms.ok ? 'info' : 'error',
+      level: smsOk ? 'info' : 'error',
       event: 'artisan.contact_link_requested',
       user_id: null,
       residence_id: null,
       request_id: null,
-      payload: { rate_limit_hit: false, status: 'sent', smsOk: sms.ok },
+      payload: { rate_limit_hit: false, status: 'sent', smsOk },
     });
   } else {
     // Phone inexistant : égalise approximativement le timing avec la branche SMS.

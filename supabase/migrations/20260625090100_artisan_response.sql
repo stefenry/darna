@@ -230,12 +230,15 @@ begin
   if p_kind = 'response' then
     v_target_id := null;
     if v_target_kind = 'rating' and (p_payload->>'target_id') is not null then
-      -- Le rating ciblé doit appartenir à cet artisan ; sinon dégrade en 'listing'
-      -- (un rating supprimé entre-temps ne plante pas la publication — FR22).
+      -- Le rating ciblé doit appartenir à cet artisan ET être vivant ; sinon dégrade
+      -- en 'listing' (un rating supprimé entre-temps ne plante pas la publication — FR22,
+      -- §Cas limite « dégrade silencieusement à target_id=null »).
       -- Alias `r` : `artisan_id` non-qualifié serait ambigu avec le param OUT (42702).
       select r.id into v_target_id
         from public.ratings r
-       where r.id = (p_payload->>'target_id')::uuid and r.artisan_id = v.a_id;
+       where r.id = (p_payload->>'target_id')::uuid
+         and r.artisan_id = v.a_id
+         and r.deleted_at is null;
       if v_target_id is null then
         v_target_kind := 'listing';
       end if;

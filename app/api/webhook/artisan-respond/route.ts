@@ -3,7 +3,8 @@
 // Content-Length max 4KB, rate-limit IP + token_hash, try/catch formData → 400,
 // sanitize NFC+bidi, RPC `process_artisan_response` (SECURITY DEFINER), PRG sans token.
 //
-// Sécurité : `not_found` → 401 (AR38) ; idempotent (`already_used` → redirect used).
+// Sécurité : `not_found` → 303 /respond/done?status=invalid (AR38, indistinguable de
+// expired/used) ; idempotent (`already_used` → redirect used).
 
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -16,6 +17,7 @@ import { log } from '@/lib/logger';
 export const dynamic = 'force-dynamic';
 
 const MAX_BODY_BYTES = 4096;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FIELD_TARGETS = new Set([
   'display_name_fr',
   'display_name_ar',
@@ -30,7 +32,7 @@ function siteOrigin(): string {
 }
 
 function doneRedirect(
-  status: 'published' | 'rectification_pending' | 'expired' | 'used',
+  status: 'published' | 'rectification_pending' | 'expired' | 'used' | 'invalid',
 ): NextResponse {
   return NextResponse.redirect(`${siteOrigin()}/respond/done?status=${status}`, { status: 303 });
 }
@@ -86,10 +88,14 @@ export async function POST(request: Request) {
     if (targetKind !== 'listing' && targetKind !== 'rating') targetKind = 'listing';
     const targetId = String(form.get('target_id') ?? '').trim();
     if (responseText.length < 1) return new NextResponse('Bad Request', { status: 400 });
+    // `target_id` doit être un UUID bien formé : sinon on l'omet (le RPC dégrade vers
+    // 'listing'). Évite que `(p_payload->>'target_id')::uuid` lève `22P02` APRÈS la
+    // gate atomique used_at → 500 + token brûlé sur un POST forgé.
+    const targetIdValid = targetKind === 'rating' && UUID_RE.test(targetId);
     payload = {
       response_text: responseText,
       target_kind: targetKind,
-      ...(targetKind === 'rating' && targetId ? { target_id: targetId } : {}),
+      ...(targetIdValid ? { target_id: targetId } : {}),
     };
   } else {
     const fieldTarget = String(form.get('field_target') ?? '');
@@ -140,8 +146,10 @@ export async function POST(request: Request) {
     payload: { kind, status },
   });
 
-  // AR38 : token inexistant/cross-purpose/artisan retiré → 401 sans rien révéler.
-  if (status === 'not_found') return new NextResponse('Unauthorized', { status: 401 });
+  // AR38 : token inexistant/cross-purpose/artisan retiré → écran générique « invalide »
+  // (303 vers /respond/done, indistinguable de expired/used ; POST natif n'aboutit pas
+  // sur une page d'erreur navigateur brute).
+  if (status === 'not_found') return doneRedirect('invalid');
   if (status === 'published') return doneRedirect('published');
   if (status === 'rectification_pending') return doneRedirect('rectification_pending');
   if (status === 'expired') return doneRedirect('expired');

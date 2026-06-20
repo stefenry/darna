@@ -12,6 +12,13 @@
 //   - `unique(artisan_id, user_id)` → 1 note/voisin/artisan ; re-vote = UPDATE.
 //   - Visibilité mémorisée sur `profiles.identity_mode` (FR16, cohérent 2.4 D1).
 //   - Axe « Non applicable » = `NULL` explicite (pas 0) ; ≥ 1 axe validé Zod + DB.
+//
+// Hardening review (2026-06-20) :
+//   - P1 pass1 — catch `23505` race → fallback UPDATE atomique (race double-submit).
+//   - P6 — gate self-rating : `artisan.created_by === userId → forbidden`.
+//   - P7 — rate-limit par (userId, artisanId) en plus du global.
+//   - P8 — surface l'échec `profiles.identity_mode` côté résultat (`visibilityMemorizeFailed`).
+//   - P11 — `mapVisibilityToIdentityMode` réutilisé depuis `lib/artisans/visibility`.
 
 import { revalidatePath } from 'next/cache';
 import {
@@ -20,16 +27,18 @@ import {
   type RatingFieldKey,
   type RatingFieldErrorKey,
 } from '@/lib/validation/rating';
+import { mapVisibilityToIdentityMode } from '@/lib/artisans/visibility';
 import { createClient } from '@/lib/supabase/server';
 import { requireResident } from '@/lib/auth/require-resident';
 import { checkLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
 
-const RATE_LIMIT = 10;
+const RATE_LIMIT_GLOBAL = 10;
+const RATE_LIMIT_PER_ARTISAN = 3;
 const RATE_WINDOW_SECONDS = 600;
 
 export type RatingResult =
-  | { ok: true }
+  | { ok: true; visibilityMemorizeFailed?: boolean }
   | {
       ok: false;
       error:
@@ -37,6 +46,7 @@ export type RatingResult =
         | { code: 'rate_limited'; message_key: 'errors.rate_limit.exceeded' }
         | { code: 'unauthenticated'; message_key: 'errors.forbidden' }
         | { code: 'forbidden'; message_key: 'errors.forbidden' }
+        | { code: 'self_rating'; message_key: 'errors.rating.self_rating' }
         | { code: 'artisan_not_found'; message_key: 'errors.rating.artisan_not_found' }
         | { code: 'submit_failed'; message_key: 'errors.rating.submit_failed' };
     };
@@ -45,10 +55,6 @@ export type RatingResult =
 export type RatingState = RatingResult | { ok: false; idle: true };
 
 export const RATING_INITIAL: RatingState = { ok: false, idle: true };
-
-function mapVisibilityToIdentityMode(v: 'pseudonym' | 'named'): 'pseudo' | 'identified' {
-  return v === 'named' ? 'identified' : 'pseudo';
-}
 
 /** Lit un score : string "1".."5" si noté, undefined si « Non applicable » (champ absent/vide). */
 function scoreRaw(formData: FormData, key: string): string | undefined {
@@ -75,7 +81,7 @@ export async function submitRating(_prev: RatingState, formData: FormData): Prom
   }
   const userId = guard.user.id;
 
-  const rl = await checkLimit(`rating-submit:${userId}`, RATE_LIMIT, RATE_WINDOW_SECONDS);
+  const rl = await checkLimit(`rating-submit:${userId}`, RATE_LIMIT_GLOBAL, RATE_WINDOW_SECONDS);
   if (!rl.success) {
     return {
       ok: false,
@@ -97,12 +103,12 @@ export async function submitRating(_prev: RatingState, formData: FormData): Prom
 
   // Rôle + résidence (review P7 — `requireResident` ne gate pas le rôle).
   // `residence_id` vient de la table users, jamais du form.
-  const { data: me } = await supabase
+  const { data: me, error: meErr } = await supabase
     .from('users')
     .select('residence_id, role')
     .eq('id', userId)
     .maybeSingle();
-  if (!me?.residence_id || (me.role !== 'resident' && me.role !== 'co_mod')) {
+  if (meErr || !me?.residence_id || (me.role !== 'resident' && me.role !== 'co_mod')) {
     return { ok: false, error: { code: 'forbidden', message_key: 'errors.forbidden' } };
   }
   const residenceId = me.residence_id;
@@ -111,7 +117,7 @@ export async function submitRating(_prev: RatingState, formData: FormData): Prom
   // ne renvoie que les publiés de la résidence ; un pending/refused → not_found).
   const { data: artisan } = await supabase
     .from('artisans')
-    .select('id, state')
+    .select('id, state, created_by')
     .eq('slug', slug)
     .eq('state', 'published')
     .maybeSingle();
@@ -119,6 +125,24 @@ export async function submitRating(_prev: RatingState, formData: FormData): Prom
     return {
       ok: false,
       error: { code: 'artisan_not_found', message_key: 'errors.rating.artisan_not_found' },
+    };
+  }
+
+  // P6 — gate self-rating : le créateur ne peut PAS noter sa propre fiche.
+  if (artisan.created_by === userId) {
+    return { ok: false, error: { code: 'self_rating', message_key: 'errors.rating.self_rating' } };
+  }
+
+  // P7 — rate-limit secondaire par (userId, artisanId) : anti-spam re-vote.
+  const rlArtisan = await checkLimit(
+    `rating-artisan:${userId}:${artisan.id}`,
+    RATE_LIMIT_PER_ARTISAN,
+    RATE_WINDOW_SECONDS,
+  );
+  if (!rlArtisan.success) {
+    return {
+      ok: false,
+      error: { code: 'rate_limited', message_key: 'errors.rate_limit.exceeded' },
     };
   }
 
@@ -132,21 +156,55 @@ export async function submitRating(_prev: RatingState, formData: FormData): Prom
   const writable = { ...scores, comment_text: commentText, visibility: form.visibility };
 
   // Select-then-branch : 1 note/(artisan,user). Re-vote = UPDATE de sa ligne.
-  const { data: existing } = await supabase
+  // P1 pass1 — capture l'erreur SELECT explicitement + race 23505 → fallback UPDATE.
+  const { data: existing, error: selErr } = await supabase
     .from('ratings')
     .select('id')
     .eq('artisan_id', artisan.id)
     .eq('user_id', userId)
     .maybeSingle();
+  if (selErr) {
+    log({
+      level: 'error',
+      event: 'rating.lookup_failed',
+      user_id: userId,
+      residence_id: residenceId,
+      request_id: null,
+      payload: { errorCode: selErr.code ?? 'unknown' },
+    });
+    return {
+      ok: false,
+      error: { code: 'submit_failed', message_key: 'errors.rating.submit_failed' },
+    };
+  }
 
-  const { error: writeErr } = existing
-    ? await supabase.from('ratings').update(writable).eq('id', existing.id)
-    : await supabase.from('ratings').insert({
-        artisan_id: artisan.id,
-        user_id: userId,
-        residence_id: residenceId,
-        ...writable,
-      });
+  let writeErr: { code?: string; message?: string } | null = null;
+  if (existing) {
+    const r = await supabase.from('ratings').update(writable).eq('id', existing.id);
+    writeErr = r.error;
+  } else {
+    const r = await supabase.from('ratings').insert({
+      artisan_id: artisan.id,
+      user_id: userId,
+      residence_id: residenceId,
+      ...writable,
+    });
+    writeErr = r.error;
+    // Race condition : 2 INSERTs concurrents passent le SELECT vide → 23505 sur
+    // le 2e. Mapper en fallback UPDATE de la ligne existante (idempotent).
+    if (writeErr?.code === '23505') {
+      const { data: raceExisting } = await supabase
+        .from('ratings')
+        .select('id')
+        .eq('artisan_id', artisan.id)
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (raceExisting) {
+        const r2 = await supabase.from('ratings').update(writable).eq('id', raceExisting.id);
+        writeErr = r2.error;
+      }
+    }
+  }
 
   if (writeErr) {
     log({
@@ -163,12 +221,15 @@ export async function submitRating(_prev: RatingState, formData: FormData): Prom
     };
   }
 
-  // FR16 — mémoriser la visibilité choisie sur le profil (bénin si échec).
+  // FR16 — mémoriser la visibilité choisie sur le profil.
+  // P8 — surface l'échec côté UI (warning discret, pas blocage).
+  let visibilityMemorizeFailed = false;
   const { error: profileErr } = await supabase
     .from('profiles')
     .update({ identity_mode: mapVisibilityToIdentityMode(form.visibility) })
     .eq('user_id', userId);
   if (profileErr) {
+    visibilityMemorizeFailed = true;
     log({
       level: 'warn',
       event: 'rating.profile_update_failed',
@@ -181,7 +242,7 @@ export async function submitRating(_prev: RatingState, formData: FormData): Prom
 
   // Re-lecture des agrégats + commentaires sur la fiche au retour.
   revalidatePath(`/${locale}/community/artisan/${slug}`);
-  return { ok: true };
+  return visibilityMemorizeFailed ? { ok: true, visibilityMemorizeFailed: true } : { ok: true };
 }
 
 // ── Story 2.7 — retrait de sa note / de son commentaire (RPC SECURITY DEFINER) ──

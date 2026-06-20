@@ -32,6 +32,7 @@ import { resolveUniqueSlug } from '@/lib/slug/resolve';
 import { generateConsentToken } from '@/lib/consent/token';
 import { sendTransactionalSms } from '@/lib/sms/send';
 import { checkLimit } from '@/lib/rate-limit';
+import { mapVisibilityToIdentityMode } from '@/lib/artisans/visibility';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
 
@@ -78,9 +79,7 @@ function siteOrigin(): string {
   return env.client.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '');
 }
 
-function mapVisibilityToIdentityMode(v: 'pseudonym' | 'named'): 'pseudo' | 'identified' {
-  return v === 'named' ? 'identified' : 'pseudo';
-}
+// Review 2.6 P11 — helper extrait dans `lib/artisans/visibility.ts` (dedupe).
 
 async function findSlugByPhone(
   admin: ReturnType<typeof createAdminClient>,

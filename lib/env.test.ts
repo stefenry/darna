@@ -13,6 +13,7 @@ const VALID = {
   UPSTASH_REDIS_REST_TOKEN: 'tok_abc',
   CRON_SECRET: 'a'.repeat(40),
   CONSENT_TOKEN_SECRET: 'c'.repeat(40),
+  PSEUDONYM_SECRET: 'p'.repeat(40),
   LEGAL_CONTACT_EMAIL: 'legal@darna.org',
   INITIAL_COMOD_EMAILS: 'co1@darna.org,co2@darna.org',
 } as const;

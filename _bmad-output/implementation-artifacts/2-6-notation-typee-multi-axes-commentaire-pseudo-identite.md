@@ -1,6 +1,6 @@
 # Story 2.6: Notation typée multi-axes + commentaire pseudo/identité
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -203,8 +203,51 @@ claude-opus-4-8[1m] (Claude Opus 4.8, 1M context) — bmad-dev-story, 2026-06-19
 > Code review adversariale (3 couches : Blind Hunter / Edge Case Hunter / Acceptance Auditor) — 2026-06-19. 1 decision-needed, 3 patch, 2 defer, 13 dismissed (faux positifs / déjà gérés / décisions documentées). Cœur sécurité/intent (upsert select-then-branch, user_id jamais sérialisé, byline display_name seul, NA→NULL, ≥1 axe client+serveur, AR17, role/residence depuis users) **vérifié conforme**.
 
 - [x] [Review][Decision] Entropie du suffixe pseudonyme (4 hex → collisions) — **RÉSOLU (2026-06-19) : garder 4 hex**, compromis spec accepté (risque collision ~1 % à 40 noteurs/artisan, négligeable pour 150 villas). Revisiter en V1.5 si l'échelle grandit. `pseudonymSuffix` tronque SHA-256 à 4 hex (65 536 valeurs) ; la spec mandate explicitement 4 car. (§Task 2). [`lib/artisans/pseudonym.ts:14`]
-- [ ] [Review][Patch] Robustesse upsert select-then-branch — l'erreur du SELECT existant n'est pas capturée (`const { data: existing }` sans `error`) → un SELECT en échec prend la branche INSERT sur une ligne existante = `23505` surfacé en `submit_failed` générique ; et un double-submit concurrent (race) n'est pas mappé en update. Capturer l'erreur SELECT + traiter `23505` comme fallback UPDATE. [`app/[locale]/community/artisan/[slug]/noter/actions.ts:135-149`]
-- [ ] [Review][Patch] Helper `mapVisibilityToIdentityMode` dupliqué — défini à l'identique dans `noter/actions.ts:49` ET `nouveau/actions.ts:81`. Task 3 demandait de **réutiliser** le helper 2.4. Extraire dans un module partagé (ex. `lib/validation/artisan.ts` ou `lib/artisans/`) et importer aux deux endroits. [`app/[locale]/community/artisan/[slug]/noter/actions.ts:49`]
-- [ ] [Review][Patch] CTA notation non-sticky — Task 5 spécifiait un CTA sticky bas (`StickyBottomBar` + `env(safe-area-inset-bottom)`). Le bouton « Publier ma note » est en flux (aucun `sticky`/safe-area dans `rate-form.tsx`). Sur form long (4 axes + commentaire + toggle) le CTA n'est pas épinglé. Aligner sur le pattern sticky existant (`CallButton` fiche). Touch targets ≥48px OK. [`app/[locale]/community/artisan/[slug]/noter/_components/rate-form.tsx:197`]
+- [x] [Review][Patch] Robustesse upsert select-then-branch — l'erreur du SELECT existant n'est pas capturée (`const { data: existing }` sans `error`) → un SELECT en échec prend la branche INSERT sur une ligne existante = `23505` surfacé en `submit_failed` générique ; et un double-submit concurrent (race) n'est pas mappé en update. Capturer l'erreur SELECT + traiter `23505` comme fallback UPDATE. [`app/[locale]/community/artisan/[slug]/noter/actions.ts:135-149`]
+- [x] [Review][Patch] Helper `mapVisibilityToIdentityMode` dupliqué — défini à l'identique dans `noter/actions.ts:49` ET `nouveau/actions.ts:81`. Task 3 demandait de **réutiliser** le helper 2.4. Extraire dans un module partagé (ex. `lib/validation/artisan.ts` ou `lib/artisans/`) et importer aux deux endroits. [`app/[locale]/community/artisan/[slug]/noter/actions.ts:49`]
+- [x] [Review][Patch] CTA notation non-sticky — Task 5 spécifiait un CTA sticky bas (`StickyBottomBar` + `env(safe-area-inset-bottom)`). Le bouton « Publier ma note » est en flux (aucun `sticky`/safe-area dans `rate-form.tsx`). Sur form long (4 axes + commentaire + toggle) le CTA n'est pas épinglé. Aligner sur le pattern sticky existant (`CallButton` fiche). Touch targets ≥48px OK. [`app/[locale]/community/artisan/[slug]/noter/_components/rate-form.tsx:197`]
 - [x] [Review][Defer] Scope bleed Story 2.7 dans le diff 2.6 — `actions.ts` contient `retractOwnRating`/`retractOwnComment` (RPC `retract_own_rating`/`retract_own_comment`, migration `20260624090100_artisan_self_actions.sql` présente) alors que 2.7 est `ready-for-dev`. Non appelé par l'UI 2.6 (inoffensif), mais le working tree 2.6 est contaminé. Confirmer que le split 2.6/2.7 est intentionnel avant de commiter. [`app/[locale]/community/artisan/[slug]/noter/actions.ts:187-249`] — deferred
 - [x] [Review][Defer] Pas de CHECK DB sur longueur `comment_text` — la colonne est `text` nu ; la borne ≤500 vit uniquement dans Zod (UTF-16 units) + `maxLength` client. Aucun garde-fou défense-en-profondeur DB. Nécessite une migration → hors scope 2.6 (no-migration). [`supabase/migrations/20260619090000_artisans_schema.sql`] — deferred, nécessite migration
+
+### Review Findings (pass 2 — 2026-06-20)
+
+> Code review 2026-06-20 (3 couches adverses : Blind / Edge Case / Acceptance) — ~48 findings bruts → 19 post-triage : **1 décision**, **9 patches**, **4 différés**, **5 noise écartés**. Confirme les findings pass 1 (race upsert, helper dupliqué, CTA non-sticky) + ajoute 7 nouveaux trouvés en croisant les 3 angles + leçons reviews 2.4-2.5-2.7.
+
+#### Décision (à trancher)
+
+- [x] [Review][Decision] **D1 — Pseudonyme `createHash('sha256')` vs `createHmac` avec secret** [`lib/artisans/pseudonym.ts:11-21`] — Spec §Task 2 mandate « HMAC-SHA256 », implémentation livre `createHash('sha256')` sans secret. Conséquence : un co_mod (ou service-role ops) qui a accès aux `users.id` peut **rétro-calculer offline** le suffixe de chaque (user, artisan) en quelques secondes → mapper chaque commentaire pseudonyme à son auteur. FR16 littéral cassé dans le modèle de menace co_mod. Options : (a) **HMAC avec secret env** `PSEUDONYM_SECRET` (≥32 chars random, défense en profondeur ; le co_mod garde l'accès via service-role mais le secret n'est pas trivialement énumérable hors prod) ; (b) **HMAC avec `CONSENT_TOKEN_SECRET` réutilisé** (zéro nouvelle env, mais conceptuellement mélange deux purposes) ; (c) **Accept-as-is + documenter** (le co_mod a déjà accès au mapping via la DB directement — le secret n'apporte que défense contre fuites partielles de hash).
+
+#### Patches (nouveaux — au-delà du pass 1)
+
+- [x] [Review][Patch] **P5 — `comment` non sanitizé (bidi/control chars, leçon 2.4 P3 / 2.5 P23)** [`lib/validation/rating.ts:28`] — `z.string().trim().max(500)` ne strip pas U+202E (RTL override), U+200E/U+200F, zero-width, control ASCII. Un commentaire malveillant peut afficher visuellement un faux byline (inversion) ou cacher du contenu. Fix : appliquer `sanitizeName`-like transform via `lib/validation/sanitize.ts` (helper extrait 2.5 P23) au champ `comment`.
+
+- [x] [Review][Patch] **P6 — Self-rating possible (créateur note sa propre fiche)** [`app/[locale]/community/artisan/[slug]/noter/actions.ts`, `app/[locale]/community/artisan/[slug]/page.tsx:60-66`] — Un user qui a créé un artisan peut noter sa propre fiche (RLS `ratings_resident_insert` ne filtre pas `created_by != user_id`). Biaise les agrégats résidence (NFR confiance/intégrité). Fix : (a) gate `artisan.created_by === userId → forbidden` côté `submitRating` action ; (b) hide le CTA "Noter cet artisan" sur la fiche quand `artisan.isOwner` ; (c) optionnel : policy RLS DB `ratings_resident_insert with check user_id != (select created_by from artisans where id = artisan_id)`.
+
+- [x] [Review][Patch] **P7 — Rate-limit pas par-artisan** [`actions.ts:30-31`] — `checkLimit('rating-submit:${userId}', 10, 600)` cape 10 ratings/10min globalement. Mais un user peut spam-update sa note sur LA MÊME fiche (révise oui-non-oui-non) → pollution `updated_at` flap + pression sur la vue agrégats. Fix : ajouter `checkLimit('rating-update:${userId}:${artisanId}', 3, 600)` après lookup artisan.
+
+- [x] [Review][Patch] **P8 — `profile.update` (identity_mode) fail swallowed silencieusement** [`actions.ts:167-180`] — Si `profiles.identity_mode` update échoue (race, RLS edge), `profileErr` logué en warn et `ok: true` retourné. La mémorisation FR16 est silencieusement cassée : au prochain re-vote, `fetchMyDefaultVisibility` retombe sur le défaut. UX casse sans signal. Fix : (a) surface l'échec via `result.profileMemorizeFailed: boolean` côté UI (affiche un avertissement discret) ; (b) ou retry inline une fois ; (c) accepter mais ajouter télémétrie alerte si récurrent.
+
+- [x] [Review][Patch] **P9 — `RetractControls` state `confirmRating` pas reset + erreur invisible après échec** [`_components/rate-form.tsx:225-296`] — RPC échoue (réseau, RLS edge) → `ratingState.ok=false` mais `confirmRating` reste `true`. Aucun affichage de l'erreur (pas de bloc `{error && ...}` dans `RetractControls`). User re-clique sans savoir. Fix : `useEffect(() => { if (state.error) setConfirmRating(false) }, [state.error])` + render `{state.error && <ErrorBanner/>}` dans le composant.
+
+- [x] [Review][Patch] **P10 — Toggle NA UX : réactiver sans pré-fill scores** [`_components/rate-form.tsx:113-118, 343-349`] — User réactive un axe NA → étoiles cliquables mais `scores[axis]=null`, aucune étoile cochée. `canSubmit` reste true si ≥1 autre axe noté → user peut soumettre sans préciser l'axe réactivé (qui reste NA en DB). Fix : (a) au réactiver, soit pré-fill `scores[axis]=3` (médian) avec hint UI ; (b) afficher un message « ✋ Précisez votre note » jusqu'à click étoile ; (c) le retirer du payload final si pas noté (équivaut à pas avoir cliqué Réactiver — UX minimum surprise).
+
+- [x] [Review][Patch] **P11 — `VISIBILITY` const dupliqué (Task 1 directive)** [`lib/validation/rating.ts:7` + `lib/validation/artisan.ts:10`] — Task 1 mandate « Réutiliser/relocaliser le const VISIBILITY de `lib/validation/artisan.ts:9` ». 2.6 a redéfini un alias parallèle (`RATING_VISIBILITY = ['pseudonym', 'named'] as const`). Fix : importer `VISIBILITY` de `artisan.ts`, supprimer la duplication.
+
+- [x] [Review][Patch] **P12 — Toggle "Non applicable" sans `aria-pressed` + sous `min-h-touch`** [`_components/rate-form.tsx:133-139`] — `<button>` sans `aria-pressed` (SR ne sait pas l'état) ; touch cible ~28px (px-3 py-1 text-xs) — NFR36 mandate ≥48px. Fix : `aria-pressed={isNa}` + `min-h-touch` class.
+
+- [x] [Review][Patch] **P13 — `errors.rating.*` i18n keys présence non vérifiée** [`lib/validation/rating.ts:53-58`] — Codes utilisés : `at_least_one_axis`, `score_invalid`, `comment_too_long`, `visibility_invalid`, `submit_failed`, `artisan_not_found`. Vérifier que `messages/fr.json` et `ar.json` les contiennent (stubs AR comme convention). Si manquant : next-intl 4 lève en strict.
+
+#### Différés
+
+- [x] [Review][Defer] **Bidi inversion sur `#A3F2` suffixe latin en mode AR (Intl.DateTimeFormat chiffres arabes)** [`comments-list.tsx:14-23`] — En locale AR, le rendu mixte (chiffres arabes ٠١٢ + suffix `#A3F2` ASCII + commentaire AR) peut s'inverser sans `<bdi>` wrapper. Cluster V1.5 AR-aware (déjà différé reviews 2.3/2.4).
+- [x] [Review][Defer] **`commentLen` UTF-16 vs visual chars** [`rate-form.tsx:177-182`] — Compteur affiche code units (emoji famille = 11) au lieu de graphèmes. Cohérent avec Zod (même base) mais affichage trompeur. Fix demanderait `Intl.Segmenter`. Bénin MVP.
+- [x] [Review][Defer] **Slug non-validé côté Server Action** [`actions.ts:60`] — `slug?.trim()` seul, pas de regex `/^[a-z0-9-]+$/`. RLS exact match protège, mais `revalidatePath` peut louper la cible si slug Unicode différent. Cluster défense en profondeur, non bloquant.
+- [x] [Review][Defer] **`rating_id` hidden input bypassable côté DOM** [`rate-form.tsx:260`, `actions.ts:208-225`] — RPC `retract_own_rating` SECURITY DEFINER vérifie `user_id = auth.uid()` (confirmé `20260626090000_review_2_7_hardening.sql`). Bypass DOM inoffensif côté DB.
+
+#### Dismissed
+
+- `fetchMyRating` cache key sans userId : `cache()` React = per-request, RSC = one-user-per-request → bénin.
+- `fetchArtisanResponses` no cache : Story 2.8 (hors scope 2.6).
+- `requireResident` redondant avec re-check role : pattern leçon 2.4 P7 documenté ; le helper sera refactor.
+- `score_invalid` mappé génériquement par axe : trade-off conscient (4 axes, message commun).
+- `setAnnounce` overwrite SR queue : comportement standard `aria-live="polite"`, pas un finding.

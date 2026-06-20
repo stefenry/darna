@@ -40,7 +40,8 @@ export function CommentsList({ locale, comments }: { locale: string; comments: A
             return (
               <li
                 key={comment.id}
-                className="flex flex-col gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs"
+                id={`rating-${comment.id}`}
+                className="flex flex-col gap-2 scroll-mt-4 rounded-[14px] bg-bg-card p-4 shadow-xs"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-neutral-900">
