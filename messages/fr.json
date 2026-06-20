@@ -30,7 +30,50 @@
   },
   "transparency": {
     "title": "Transparence",
-    "stub": "Cette page présentera les compteurs publics et le journal de modération. En construction."
+    "stub": "Cette page présentera les compteurs publics et le journal de modération. En construction.",
+    "journal": {
+      "intro": "Toutes les actions de modération de Darna, en clair et dans l’ordre chronologique. La gouvernance est horizontale et auditable par tous.",
+      "empty": "Aucune action de modération pour ces critères.",
+      "loadMore": "Charger plus",
+      "loading": "Chargement…",
+      "byActor": "par {name}",
+      "filterLabel": "Type d’événement",
+      "fromLabel": "Depuis le",
+      "toLabel": "Jusqu’au",
+      "applyFilter": "Filtrer",
+      "filters": {
+        "all": "Tous les événements",
+        "removals": "Retraits de contenu",
+        "kept": "Contenus conservés",
+        "escalations": "Escalades juridiques",
+        "admissions": "Décisions d’admission",
+        "accounts": "Suppressions de compte"
+      },
+      "events": {
+        "content_removed": "Contenu retiré",
+        "rating_removed": "Avis retiré",
+        "comment_removed": "Commentaire retiré",
+        "content_kept": "Contenu conservé après signalement",
+        "escalation_triggered": "Escalade vers le contact juridique",
+        "user_deleted": "Suppression d’un compte utilisateur",
+        "admission_accepted": "Demande d’admission acceptée",
+        "admission_rejected": "Demande d’admission refusée",
+        "purge_completed": "Purge automatique de contenu expiré"
+      },
+      "targets": {
+        "artisan": "fiche artisan",
+        "rating": "avis",
+        "alert": "alerte",
+        "alert_comment": "commentaire d’alerte",
+        "tip": "bon plan",
+        "guide_entry": "entrée du guide",
+        "useful_number": "numéro utile"
+      }
+    },
+    "dataProtection": {
+      "title": "Comment vos données sont protégées",
+      "body": "Darna applique une minimisation stricte des données et un journal de modération sans information personnelle identifiable. Le détail complet de la protection de vos données sera publié ici prochainement."
+    }
   },
   "legal": {
     "mentions": {
