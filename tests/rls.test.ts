@@ -1496,3 +1496,264 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
     expect(error?.message).toContain('not_co_mod');
   });
 });
+
+// Story 4.1 (AC additionnel) — RLS contenu éphémère : auteur résident (INSERT/
+// UPDATE/retrait de ses propres alertes/bons plans), lecture active non expirée,
+// expiration filtrée, isolation cross-résidence, audit moderation_log par trigger,
+// RPC retract_own_ephemeral (garde created_by). alice = auteur, dora = autre
+// résident même résidence, eve = co_mod résidence 2.
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu éphémère (Epic 4)', () => {
+  let admin: DarnaClient;
+  let aliceId: string;
+  let aliceClient: DarnaClient; // résident auteur (Darna)
+  let doraClient: DarnaClient; // autre résident (Darna), non-auteur
+  let eveClient: DarnaClient; // co_mod résidence 2
+  let activeAlertId: string;
+  let aliceTipId: string;
+
+  async function makeUser(
+    localUrl: string,
+    publishableKey: string,
+    role: 'resident' | 'co_mod',
+    label: string,
+    residenceId: string,
+  ): Promise<{ id: string; client: DarnaClient }> {
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    const id = created.user.id;
+    await admin.auth.admin.updateUserById(id, {
+      app_metadata: { role, residence_id: residenceId },
+    });
+    const { error: updErr } = await admin
+      .from('users')
+      .update({ role, residence_id: residenceId })
+      .eq('id', id);
+    if (updErr) throw new Error(`${label} users update failed: ${updErr.message}`);
+    const client = createClient<Database>(localUrl, publishableKey, {
+      auth: { storageKey: `rls-eph-${label}`, persistSession: false },
+    });
+    await establishSession(admin, client, email, label);
+    return { id, client };
+  }
+
+  beforeAll(async () => {
+    const localEnv = parseSupabaseLocalEnv();
+    admin = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+    );
+
+    await admin.from('residences').upsert({
+      id: RESIDENCE_2_ID,
+      name: 'Test Residence 2',
+      slug: `test2-eph-${Date.now()}`,
+      villa_count: 150,
+    });
+
+    const alice = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'resident',
+      'ephalice',
+      DARNA_RESIDENCE_ID,
+    );
+    aliceId = alice.id;
+    aliceClient = alice.client;
+
+    const dora = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'resident',
+      'ephdora',
+      DARNA_RESIDENCE_ID,
+    );
+    doraClient = dora.client;
+
+    const eve = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'co_mod',
+      'epheve',
+      RESIDENCE_2_ID,
+    );
+    eveClient = eve.client;
+
+    const ts = Date.now();
+    // Alerte ACTIVE (Darna), créée par alice.
+    const { data: active, error: aErr } = await admin
+      .from('alerts')
+      .insert({
+        slug: `coupure-eau-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        title_fr: "Coupure d'eau",
+        body_fr: 'Demain matin.',
+        expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+        created_by: aliceId,
+      })
+      .select()
+      .single();
+    if (aErr || !active) throw aErr ?? new Error('seed active alert failed');
+    activeAlertId = active.id;
+
+    // Alerte EXPIRÉE (créée 2j avant, TTL 1j → expirée mais expires_at > created_at).
+    const { error: eErr } = await admin.from('alerts').insert({
+      slug: `vieille-alerte-${ts}`,
+      residence_id: DARNA_RESIDENCE_ID,
+      title_fr: 'Vieille alerte',
+      body_fr: 'Périmée.',
+      created_at: new Date(Date.now() - 2 * 86_400_000).toISOString(),
+      expires_at: new Date(Date.now() - 86_400_000).toISOString(),
+      created_by: aliceId,
+    });
+    if (eErr) throw eErr;
+
+    // Bon plan d'alice (Darna), pour le retrait via RPC.
+    const { data: tip, error: tErr } = await admin
+      .from('tips')
+      .insert({
+        slug: `perceuse-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        category_key: 'pret_objet',
+        title_fr: 'Perceuse à prêter',
+        body_fr: 'Le week-end.',
+        expires_at: new Date(Date.now() + 5 * 86_400_000).toISOString(),
+        created_by: aliceId,
+      })
+      .select()
+      .single();
+    if (tErr || !tip) throw tErr ?? new Error('seed tip failed');
+    aliceTipId = tip.id;
+  });
+
+  afterAll(async () => {
+    if (admin) {
+      await admin
+        .from('alerts')
+        .delete()
+        .eq('residence_id', DARNA_RESIDENCE_ID)
+        .eq('created_by', aliceId);
+      await admin
+        .from('tips')
+        .delete()
+        .eq('residence_id', DARNA_RESIDENCE_ID)
+        .eq('created_by', aliceId);
+    }
+  });
+
+  it('(a) résident voit une alerte active de sa résidence', async () => {
+    const { data, error } = await doraClient.from('alerts').select('id').eq('id', activeAlertId);
+    expect(error).toBeNull();
+    expect(data).toHaveLength(1);
+  });
+
+  it('(b) résident NE voit PAS une alerte expirée (expires_at < now, feed filtré)', async () => {
+    const { data } = await doraClient
+      .from('alerts')
+      .select('id, expires_at')
+      .lt('expires_at', new Date().toISOString());
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it('(c) résident AUTEUR insère sa propre alerte (created_by = self au défaut)', async () => {
+    const { data, error } = await aliceClient
+      .from('alerts')
+      .insert({
+        slug: `mon-alerte-${Date.now()}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        title_fr: 'Mon alerte',
+        body_fr: 'Contenu.',
+        expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+      })
+      .select('id, created_by')
+      .single();
+    expect(error).toBeNull();
+    expect(data?.created_by).toBe(aliceId);
+  });
+
+  it('(d) résident NE peut PAS insérer dans une autre résidence (RLS with check)', async () => {
+    const { error } = await aliceClient.from('alerts').insert({
+      slug: `cross-${Date.now()}`,
+      residence_id: RESIDENCE_2_ID,
+      title_fr: 'X',
+      body_fr: 'Y',
+      expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+    });
+    expect(error).not.toBeNull();
+  });
+
+  it('(e) co_mod résidence 2 ne voit PAS les alertes de la résidence 1 (isolation)', async () => {
+    const { data } = await eveClient.from('alerts').select('id').eq('id', activeAlertId);
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it('(f) CHECK expiration : refuse expires_at > 31j (tips) → 23514', async () => {
+    const { error } = await aliceClient.from('tips').insert({
+      slug: `trop-loin-${Date.now()}`,
+      residence_id: DARNA_RESIDENCE_ID,
+      category_key: 'autre',
+      title_fr: 'Trop loin',
+      body_fr: 'X',
+      expires_at: new Date(Date.now() + 60 * 86_400_000).toISOString(),
+    });
+    expect(error?.code).toBe('23514');
+  });
+
+  it('(g) trigger log_ephemeral_created → moderation_log alert_created', async () => {
+    const { data } = await admin
+      .from('moderation_log')
+      .select('action, actor_id')
+      .eq('target_id', activeAlertId)
+      .eq('action', 'alert_created');
+    expect((data ?? []).length).toBeGreaterThanOrEqual(1);
+    expect(data?.[0]?.actor_id).toBe(aliceId);
+  });
+
+  it('(h) RPC retract_own_ephemeral : l’auteur retire son bon plan', async () => {
+    const { error } = await aliceClient.rpc('retract_own_ephemeral', {
+      p_kind: 'tip',
+      p_id: aliceTipId,
+      p_reason: 'plus disponible',
+    });
+    expect(error).toBeNull();
+    const { data } = await admin
+      .from('tips')
+      .select('deleted_at, deleted_by')
+      .eq('id', aliceTipId)
+      .single();
+    expect(data?.deleted_at).not.toBeNull();
+    expect(data?.deleted_by).toBe(aliceId);
+    const { data: ml } = await admin
+      .from('moderation_log')
+      .select('action')
+      .eq('target_id', aliceTipId)
+      .eq('action', 'tip_self_retracted');
+    expect((ml ?? []).length).toBe(1);
+  });
+
+  it('(i) RPC retract_own_ephemeral : un non-auteur → exception forbidden', async () => {
+    const { error } = await doraClient.rpc('retract_own_ephemeral', {
+      p_kind: 'alert',
+      p_id: activeAlertId,
+      p_reason: 'x',
+    });
+    expect(error).not.toBeNull();
+    expect(error?.message).toContain('forbidden');
+  });
+
+  it('(j) alert_templates : résident SELECT OK, INSERT refusé (42501)', async () => {
+    const { data, error } = await aliceClient.from('alert_templates').select('template_key');
+    expect(error).toBeNull();
+    expect((data ?? []).length).toBeGreaterThanOrEqual(7);
+    const { error: insErr } = await aliceClient.from('alert_templates').insert({
+      template_key: `forge_${Date.now()}`,
+      icon: 'X',
+      label_fr: 'Forge',
+    });
+    expect(insErr?.code).toBe('42501');
+  });
+});

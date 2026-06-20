@@ -6,6 +6,8 @@ const queryMock = vi.fn();
 const insertMock = vi.fn();
 const deleteUserMock = vi.fn();
 const tokenDeleteMock = vi.fn();
+const alertsExpireMock = vi.fn();
+const tipsExpireMock = vi.fn();
 const logMock = vi.fn();
 
 vi.mock('@/lib/env', () => ({
@@ -26,6 +28,15 @@ vi.mock('@/lib/supabase/admin', () => ({
         return {
           delete: () => ({
             is: () => ({ lt: () => tokenDeleteMock() }),
+          }),
+        };
+      }
+      // Story 4.5 — soft-delete expiration : update().is().lt().select().
+      if (table === 'alerts' || table === 'tips') {
+        const m = table === 'alerts' ? alertsExpireMock : tipsExpireMock;
+        return {
+          update: () => ({
+            is: () => ({ lt: () => ({ select: () => m() }) }),
           }),
         };
       }
@@ -52,6 +63,10 @@ describe('GET /api/cron/purge-expired', () => {
     deleteUserMock.mockReset();
     tokenDeleteMock.mockReset();
     tokenDeleteMock.mockResolvedValue({ count: 0, error: null });
+    alertsExpireMock.mockReset();
+    tipsExpireMock.mockReset();
+    alertsExpireMock.mockResolvedValue({ data: [], error: null });
+    tipsExpireMock.mockResolvedValue({ data: [], error: null });
     logMock.mockReset();
     insertMock.mockResolvedValue({ error: null });
     deleteUserMock.mockResolvedValue({ error: null });
@@ -110,5 +125,52 @@ describe('GET /api/cron/purge-expired', () => {
     const body = await res.json();
     expect(body.data.purged).toBe(1);
     expect(deleteUserMock).toHaveBeenCalledTimes(2);
+  });
+
+  // ── Story 4.5 — auto-expiration alertes & bons plans ──────────────────────────
+  it('soft-deletes expired alerts + tips and reports counts', async () => {
+    queryMock.mockResolvedValue({ data: [], error: null }); // pas de users à purger
+    alertsExpireMock.mockResolvedValue({
+      data: [
+        { id: 'a1', residence_id: 'r1' },
+        { id: 'a2', residence_id: 'r1' },
+      ],
+      error: null,
+    });
+    tipsExpireMock.mockResolvedValue({ data: [{ id: 't1', residence_id: 'r1' }], error: null });
+
+    const res = await GET(req('Bearer test-cron-secret'));
+    const body = await res.json();
+    expect(body.data.alertsExpired).toBe(2);
+    expect(body.data.tipsExpired).toBe(1);
+
+    // moderation_log content_expired écrit par batch (acteur système : actor_id null).
+    const inserted = insertMock.mock.calls.map((c) => c[0]) as unknown[][];
+    const alertLog = inserted.find(
+      (rows) =>
+        Array.isArray(rows) &&
+        rows[0] &&
+        (rows[0] as Record<string, unknown>).target_kind === 'alert',
+    );
+    expect(alertLog).toBeDefined();
+    expect((alertLog as Record<string, unknown>[])[0]).toMatchObject({
+      action: 'content_expired',
+      actor_id: null,
+      reason_text_anonymized: 'auto_expiration',
+    });
+
+    const expiredEvents = logMock.mock.calls
+      .map((c) => c[0] as { event?: string })
+      .filter((e) => e.event === 'alerts.auto_expired' || e.event === 'tips.auto_expired');
+    expect(expiredEvents).toHaveLength(2);
+  });
+
+  it('expiration: no moderation_log when nothing expired', async () => {
+    queryMock.mockResolvedValue({ data: [], error: null });
+    const res = await GET(req('Bearer test-cron-secret'));
+    const body = await res.json();
+    expect(body.data.alertsExpired).toBe(0);
+    expect(body.data.tipsExpired).toBe(0);
+    expect(insertMock).not.toHaveBeenCalled();
   });
 });

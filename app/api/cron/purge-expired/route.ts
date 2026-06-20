@@ -9,7 +9,79 @@ import { log } from '@/lib/logger';
 // users/profiles/admission_requests/notifications_prefs + SET NULL sur
 // moderation_log.actor_id (la trace user_deleted ET purge_completed deviennent
 // anonymes). NFR18 (purge dure J+7) / NFR55 (logs).
+//
+// Story 4.5 (FR28) — étend ce cron : soft-delete des alertes & bons plans expirés
+// (expires_at < now, deleted_at IS NULL). deleted_by reste NULL (acteur système :
+// pas de JWT → auth.uid() NULL dans le trigger enforce_deleted_by_actor),
+// deletion_reason='auto_expiration'. Trace moderation_log `content_expired` par
+// item (visible en audit, masqué du feed). NFR55 (logs structurés avec compteurs).
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+
+type Admin = ReturnType<typeof createAdminClient>;
+
+// Soft-delete atomique des items expirés d'une table éphémère + trace d'audit.
+// L'UPDATE ... WHERE deleted_at IS NULL ... RETURNING évite la race SELECT→UPDATE
+// et ne loggue QUE les lignes réellement transitionnées (pas d'orphelins log).
+async function expireEphemeral(
+  admin: Admin,
+  table: 'alerts' | 'tips',
+  targetKind: 'alert' | 'tip',
+  logEvent: 'alerts.auto_expired' | 'tips.auto_expired',
+): Promise<number> {
+  const nowIso = new Date().toISOString();
+  const { data: deleted, error } = await admin
+    .from(table)
+    .update({ deleted_at: nowIso, deletion_reason: 'auto_expiration' })
+    .is('deleted_at', null)
+    .lt('expires_at', nowIso)
+    .select('id, residence_id');
+
+  if (error) {
+    log({
+      level: 'error',
+      event: 'cron.expire_update_failed',
+      user_id: null,
+      residence_id: null,
+      request_id: null,
+      payload: { table, errorCode: error.code ?? 'unknown' },
+    });
+    return 0;
+  }
+
+  const rows = deleted ?? [];
+  if (rows.length > 0) {
+    const { error: logErr } = await admin.from('moderation_log').insert(
+      rows.map((r) => ({
+        residence_id: r.residence_id,
+        actor_id: null,
+        action: 'content_expired' as const,
+        target_kind: targetKind,
+        target_id: r.id,
+        reason_text_anonymized: 'auto_expiration',
+      })),
+    );
+    if (logErr) {
+      log({
+        level: 'error',
+        event: 'cron.expire_log_failed',
+        user_id: null,
+        residence_id: null,
+        request_id: null,
+        payload: { table, count: rows.length, errorCode: logErr.code ?? 'unknown' },
+      });
+    }
+  }
+
+  log({
+    level: 'info',
+    event: logEvent,
+    user_id: null,
+    residence_id: null,
+    request_id: null,
+    payload: { count: rows.length },
+  });
+  return rows.length;
+}
 
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
@@ -113,14 +185,20 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  // Story 4.5 — auto-expiration des alertes & bons plans (FR28).
+  const alertsExpired = await expireEphemeral(admin, 'alerts', 'alert', 'alerts.auto_expired');
+  const tipsExpired = await expireEphemeral(admin, 'tips', 'tip', 'tips.auto_expired');
+
   log({
     level: 'info',
     event: 'cron.purge_completed',
     user_id: null,
     residence_id: null,
     request_id: null,
-    payload: { purged, tokensPurged: tokensPurged ?? 0 },
+    payload: { purged, tokensPurged: tokensPurged ?? 0, alertsExpired, tipsExpired },
   });
 
-  return Response.json({ data: { purged, tokensPurged: tokensPurged ?? 0 } });
+  return Response.json({
+    data: { purged, tokensPurged: tokensPurged ?? 0, alertsExpired, tipsExpired },
+  });
 }

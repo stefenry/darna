@@ -118,6 +118,25 @@
       "expired": "انتهت صلاحية الرابط.",
       "used": "تمت المعالجة.",
       "invalid": "رابط غير صالح."
+    },
+    "alertes": {
+      "fetch_failed": "تعذّر تحميل القائمة حاليًا."
+    },
+    "alert": {
+      "fr_required": "العنوان والرسالة مطلوبان.",
+      "too_long": "المحتوى طويل جدًا.",
+      "template_invalid": "نموذج تنبيه غير صالح.",
+      "duration_invalid": "مدة غير صالحة (24 ساعة، 72 ساعة أو 7 أيام).",
+      "rate_limited": "منشورات كثيرة. أعد المحاولة لاحقًا.",
+      "submit_failed": "فشل النشر. أعد المحاولة."
+    },
+    "tip": {
+      "fr_required": "العنوان والوصف مطلوبان.",
+      "too_long": "المحتوى طويل جدًا.",
+      "category_invalid": "فئة غير صالحة.",
+      "invalid_expiration": "تاريخ انتهاء غير صالح (بين الغد و30 يومًا).",
+      "rate_limited": "منشورات كثيرة. أعد المحاولة لاحقًا.",
+      "submit_failed": "فشل النشر. أعد المحاولة."
     }
   },
   "auth": {
@@ -276,7 +295,8 @@
       "tiles": {
         "annuaire": "",
         "guide": "",
-        "numeros": ""
+        "numeros": "",
+        "alertes": "تنبيهات وعروض جيدة"
       }
     },
     "nav": {
@@ -495,6 +515,85 @@
       "confirmPhrase": "RETIRER",
       "retract": "",
       "retracting": ""
+    },
+    "alertes": {
+      "title": "تنبيهات وعروض جيدة",
+      "intro": "ما يجري الآن في الإقامة.",
+      "publishAlert": "نشر تنبيه",
+      "publishTip": "نشر عرض جيد",
+      "empty": "لا يوجد تنبيه نشط. ما رأيك أن تنشر الأول؟",
+      "emptyCta": "نشر تنبيه",
+      "badge": {
+        "alert": "تنبيه",
+        "tip": "عرض جيد"
+      },
+      "notTranslatedBadge": "غير مترجم",
+      "remaining": {
+        "days": "ينتهي خلال {value} يوم",
+        "hours": "ينتهي خلال {value} ساعة",
+        "soon": "ينتهي قريبًا",
+        "expired": "منتهٍ"
+      },
+      "detail": {
+        "back": "العودة إلى التنبيهات",
+        "author": "نُشر من طرف جار"
+      },
+      "retire": {
+        "action": "سحب",
+        "confirm": "سحب هذا المنشور؟ سيختفي من القائمة.",
+        "cancel": "إلغاء",
+        "error": {
+          "forbidden": "لا يمكنك سحب سوى منشوراتك.",
+          "not_found": "هذا المنشور لم يعد موجودًا.",
+          "submit_failed": "فشل السحب. أعد المحاولة."
+        }
+      },
+      "new": {
+        "title": "تنبيه جديد",
+        "intro": "اختر نموذجًا، عدّله إن لزم، ثم انشر.",
+        "back": "رجوع",
+        "pickTemplate": "ما نوع التنبيه؟",
+        "changeTemplate": "← تغيير النموذج",
+        "titleLabel": "العنوان",
+        "titleLabelAr": "العنوان (بالعربية)",
+        "bodyLabel": "الرسالة",
+        "bodyLabelAr": "الرسالة (بالعربية)",
+        "bodyPlaceholder": "أضف تفصيلًا مفيدًا (اختياري)…",
+        "durationLabel": "مدة العرض",
+        "duration": {
+          "24": "24 ساعة",
+          "72": "72 ساعة",
+          "168": "7 أيام"
+        },
+        "addArabic": "إضافة النسخة العربية (اختياري)",
+        "publish": "نشر",
+        "publishing": "جارٍ النشر…"
+      }
+    },
+    "bonsPlans": {
+      "categories": {
+        "offre_voisin": "عرض من جار",
+        "pret_objet": "إعارة غرض",
+        "evenement": "حدث",
+        "autre": "أخرى"
+      },
+      "new": {
+        "title": "عرض جيد جديد",
+        "intro": "شارك فرصة، مع تاريخ انتهاء.",
+        "back": "رجوع",
+        "categoryLabel": "الفئة",
+        "titleLabel": "العنوان",
+        "titleLabelAr": "العنوان (بالعربية)",
+        "titlePlaceholder": "مثال: مثقاب للإعارة",
+        "bodyLabel": "الوصف",
+        "bodyLabelAr": "الوصف (بالعربية)",
+        "bodyPlaceholder": "صف عرضك الجيد…",
+        "expiresLabel": "ينتهي في",
+        "expiresHint": "في أجل أقصاه 30 يومًا.",
+        "addArabic": "إضافة النسخة العربية (اختياري)",
+        "publish": "نشر",
+        "publishing": "جارٍ النشر…"
+      }
     }
   },
   "profil": {

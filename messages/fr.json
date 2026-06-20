@@ -148,6 +148,25 @@
       "expired": "Lien expiré.",
       "used": "Déjà traité.",
       "invalid": "Lien invalide."
+    },
+    "alertes": {
+      "fetch_failed": "Impossible de charger le feed pour le moment."
+    },
+    "alert": {
+      "fr_required": "Le titre et le message sont requis.",
+      "too_long": "Le contenu est trop long.",
+      "template_invalid": "Modèle d'alerte invalide.",
+      "duration_invalid": "Durée invalide (24 h, 72 h ou 7 jours).",
+      "rate_limited": "Trop de publications. Réessayez plus tard.",
+      "submit_failed": "La publication a échoué. Réessayez."
+    },
+    "tip": {
+      "fr_required": "Le titre et la description sont requis.",
+      "too_long": "Le contenu est trop long.",
+      "category_invalid": "Catégorie invalide.",
+      "invalid_expiration": "Date d'expiration invalide (entre demain et 30 jours).",
+      "rate_limited": "Trop de publications. Réessayez plus tard.",
+      "submit_failed": "La publication a échoué. Réessayez."
     }
   },
   "auth": {
@@ -306,7 +325,8 @@
       "tiles": {
         "annuaire": "Annuaire des artisans",
         "guide": "Guide de la résidence",
-        "numeros": "Numéros utiles"
+        "numeros": "Numéros utiles",
+        "alertes": "Alertes & bons plans"
       }
     },
     "nav": {
@@ -525,6 +545,85 @@
       "confirmPhrase": "RETIRER",
       "retract": "Retirer ma fiche définitivement",
       "retracting": "Retrait…"
+    },
+    "alertes": {
+      "title": "Alertes & bons plans",
+      "intro": "Ce qui se passe en ce moment dans la résidence.",
+      "publishAlert": "Publier une alerte",
+      "publishTip": "Publier un bon plan",
+      "empty": "Aucune alerte active. Et si vous publiiez la première ?",
+      "emptyCta": "Publier une alerte",
+      "badge": {
+        "alert": "Alerte",
+        "tip": "Bon plan"
+      },
+      "notTranslatedBadge": "Non traduit",
+      "remaining": {
+        "days": "expire dans {value} j",
+        "hours": "expire dans {value} h",
+        "soon": "expire bientôt",
+        "expired": "expirée"
+      },
+      "detail": {
+        "back": "Retour aux alertes",
+        "author": "Publié par un voisin"
+      },
+      "retire": {
+        "action": "Retirer",
+        "confirm": "Retirer cette publication ? Elle disparaîtra du feed.",
+        "cancel": "Annuler",
+        "error": {
+          "forbidden": "Vous ne pouvez retirer que vos propres publications.",
+          "not_found": "Cette publication n'existe plus.",
+          "submit_failed": "Le retrait a échoué. Réessayez."
+        }
+      },
+      "new": {
+        "title": "Nouvelle alerte",
+        "intro": "Choisissez un modèle, ajustez si besoin, publiez.",
+        "back": "Retour",
+        "pickTemplate": "Quel type d'alerte ?",
+        "changeTemplate": "← Changer de modèle",
+        "titleLabel": "Titre",
+        "titleLabelAr": "Titre (arabe)",
+        "bodyLabel": "Message",
+        "bodyLabelAr": "Message (arabe)",
+        "bodyPlaceholder": "Ajoutez un détail utile (optionnel)…",
+        "durationLabel": "Durée d'affichage",
+        "duration": {
+          "24": "24 h",
+          "72": "72 h",
+          "168": "7 jours"
+        },
+        "addArabic": "Ajouter la version arabe (optionnel)",
+        "publish": "Publier",
+        "publishing": "Publication…"
+      }
+    },
+    "bonsPlans": {
+      "categories": {
+        "offre_voisin": "Offre voisin",
+        "pret_objet": "Prêt d'objet",
+        "evenement": "Événement",
+        "autre": "Autre"
+      },
+      "new": {
+        "title": "Nouveau bon plan",
+        "intro": "Partagez une opportunité, avec une date de fin.",
+        "back": "Retour",
+        "categoryLabel": "Catégorie",
+        "titleLabel": "Titre",
+        "titleLabelAr": "Titre (arabe)",
+        "titlePlaceholder": "Ex. Perceuse à prêter",
+        "bodyLabel": "Description",
+        "bodyLabelAr": "Description (arabe)",
+        "bodyPlaceholder": "Décrivez votre bon plan…",
+        "expiresLabel": "Expire le",
+        "expiresHint": "Au plus tard dans 30 jours.",
+        "addArabic": "Ajouter la version arabe (optionnel)",
+        "publish": "Publier",
+        "publishing": "Publication…"
+      }
     }
   },
   "profil": {

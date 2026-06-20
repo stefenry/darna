@@ -297,7 +297,7 @@ async function callRetractRpc(
 }
 
 /** AC6 — retire la note (soft-delete via RPC). */
-export function retractOwnRating(
+export async function retractOwnRating(
   _prev: RetractRatingState,
   formData: FormData,
 ): Promise<RetractRatingState> {
@@ -305,7 +305,7 @@ export function retractOwnRating(
 }
 
 /** AC7 — retire le commentaire seul (la note est conservée). */
-export function retractOwnComment(
+export async function retractOwnComment(
   _prev: RetractRatingState,
   formData: FormData,
 ): Promise<RetractRatingState> {

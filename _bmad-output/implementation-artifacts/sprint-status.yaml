@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-23
-last_updated: 2026-06-20T13:40:00Z
+last_updated: 2026-06-20T14:35:00Z
 project: SmartResidence
 project_key: NOKEY
 tracking_system: file-system
@@ -82,12 +82,12 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4: Contenu éphémère — Alertes & Bons plans
-  epic-4: backlog
-  4-1-schema-contenu-ephemere-alerts-tips-templates: backlog
-  4-2-publication-alerte-1-tap-depuis-modele-pre-redige: backlog
-  4-3-publication-bon-plan-type-expirable: backlog
-  4-4-feed-alertes-bons-plans-tri-fraicheur: backlog
-  4-5-cron-auto-expiration-alertes-bons-plans: backlog
+  epic-4: in-progress
+  4-1-schema-contenu-ephemere-alerts-tips-templates: review
+  4-2-publication-alerte-1-tap-depuis-modele-pre-redige: review
+  4-3-publication-bon-plan-type-expirable: review
+  4-4-feed-alertes-bons-plans-tri-fraicheur: review
+  4-5-cron-auto-expiration-alertes-bons-plans: review
   epic-4-retrospective: optional
 
   # Epic 5: Modération réactive & Transparence radicale

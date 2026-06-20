@@ -1,6 +1,34 @@
+// AUTO-GENERATED par `pnpm gen:types` — DO NOT EDIT.
+// Régénérer après chaque migration. Versionné dans git (AR8).
+
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       admission_requests: {
@@ -88,6 +116,128 @@ export type Database = {
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      alert_templates: {
+        Row: {
+          created_at: string;
+          default_body_ar: string | null;
+          default_body_fr: string | null;
+          default_duration_hours: number;
+          icon: string;
+          id: string;
+          label_ar: string | null;
+          label_fr: string;
+          sort_order: number;
+          template_key: string;
+        };
+        Insert: {
+          created_at?: string;
+          default_body_ar?: string | null;
+          default_body_fr?: string | null;
+          default_duration_hours?: number;
+          icon: string;
+          id?: string;
+          label_ar?: string | null;
+          label_fr: string;
+          sort_order?: number;
+          template_key: string;
+        };
+        Update: {
+          created_at?: string;
+          default_body_ar?: string | null;
+          default_body_fr?: string | null;
+          default_duration_hours?: number;
+          icon?: string;
+          id?: string;
+          label_ar?: string | null;
+          label_fr?: string;
+          sort_order?: number;
+          template_key?: string;
+        };
+        Relationships: [];
+      };
+      alerts: {
+        Row: {
+          body_ar: string | null;
+          body_fr: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          expires_at: string;
+          id: string;
+          residence_id: string;
+          slug: string;
+          template_id: string | null;
+          title_ar: string | null;
+          title_fr: string;
+          updated_at: string;
+        };
+        Insert: {
+          body_ar?: string | null;
+          body_fr: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          expires_at: string;
+          id?: string;
+          residence_id: string;
+          slug: string;
+          template_id?: string | null;
+          title_ar?: string | null;
+          title_fr: string;
+          updated_at?: string;
+        };
+        Update: {
+          body_ar?: string | null;
+          body_fr?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          expires_at?: string;
+          id?: string;
+          residence_id?: string;
+          slug?: string;
+          template_id?: string | null;
+          title_ar?: string | null;
+          title_fr?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'alerts_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'alerts_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'alerts_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'alerts_template_id_fkey';
+            columns: ['template_id'];
+            isOneToOne: false;
+            referencedRelation: 'alert_templates';
             referencedColumns: ['id'];
           },
         ];
@@ -886,6 +1036,82 @@ export type Database = {
         };
         Relationships: [];
       };
+      tips: {
+        Row: {
+          body_ar: string | null;
+          body_fr: string;
+          category_key: Database['public']['Enums']['tip_category'];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          expires_at: string;
+          id: string;
+          residence_id: string;
+          slug: string;
+          title_ar: string | null;
+          title_fr: string;
+          updated_at: string;
+        };
+        Insert: {
+          body_ar?: string | null;
+          body_fr: string;
+          category_key: Database['public']['Enums']['tip_category'];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          expires_at: string;
+          id?: string;
+          residence_id: string;
+          slug: string;
+          title_ar?: string | null;
+          title_fr: string;
+          updated_at?: string;
+        };
+        Update: {
+          body_ar?: string | null;
+          body_fr?: string;
+          category_key?: Database['public']['Enums']['tip_category'];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          expires_at?: string;
+          id?: string;
+          residence_id?: string;
+          slug?: string;
+          title_ar?: string | null;
+          title_fr?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'tips_created_by_fkey';
+            columns: ['created_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tips_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'tips_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       useful_numbers: {
         Row: {
           category_key: Database['public']['Enums']['useful_number_category'];
@@ -1120,6 +1346,10 @@ export type Database = {
       };
       retract_artisan: { Args: { p_artisan_id: string }; Returns: undefined };
       retract_own_comment: { Args: { p_rating_id: string }; Returns: undefined };
+      retract_own_ephemeral: {
+        Args: { p_id: string; p_kind: string; p_reason: string };
+        Returns: undefined;
+      };
       retract_own_rating: { Args: { p_rating_id: string }; Returns: undefined };
       search_guide_entries: {
         Args: { p_locale: string; p_query: string };
@@ -1180,8 +1410,14 @@ export type Database = {
         | 'artisan_rectification_requested'
         | 'rating_self_retracted'
         | 'comment_self_retracted'
-        | 'artisan_reconsent_accepted';
+        | 'artisan_reconsent_accepted'
+        | 'alert_created'
+        | 'tip_created'
+        | 'alert_self_retracted'
+        | 'tip_self_retracted'
+        | 'content_expired';
       rating_visibility: 'pseudonym' | 'named';
+      tip_category: 'offre_voisin' | 'pret_objet' | 'evenement' | 'autre';
       useful_number_category: 'securite' | 'syndic' | 'urgences' | 'sante' | 'autre';
       user_role: 'resident' | 'co_mod' | 'demandeur' | 'public';
     };
@@ -1307,6 +1543,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       admission_contact_channel: ['email', 'sms'],
@@ -1358,8 +1597,14 @@ export const Constants = {
         'rating_self_retracted',
         'comment_self_retracted',
         'artisan_reconsent_accepted',
+        'alert_created',
+        'tip_created',
+        'alert_self_retracted',
+        'tip_self_retracted',
+        'content_expired',
       ],
       rating_visibility: ['pseudonym', 'named'],
+      tip_category: ['offre_voisin', 'pret_objet', 'evenement', 'autre'],
       useful_number_category: ['securite', 'syndic', 'urgences', 'sante', 'autre'],
       user_role: ['resident', 'co_mod', 'demandeur', 'public'],
     },
