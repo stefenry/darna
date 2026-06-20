@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
+import { canonicalMetadata } from '@/lib/share/metadata';
 import {
   fetchArtisanBySlug,
   fetchArtisanComments,
@@ -34,7 +35,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isValidLocale(locale) || !slug?.trim()) return {};
   const result = await fetchArtisanBySlug(locale, slug);
-  return result.kind === 'found' ? { title: result.artisan.displayName } : {};
+  if (result.kind !== 'found') return { robots: { index: false, follow: false } };
+  const desc = result.artisan.tags.map((t) => t.label).join(' · ') || undefined;
+  return canonicalMetadata('artisan', slug, {
+    title: result.artisan.displayName,
+    description: desc,
+  });
 }
 
 export default async function ArtisanPage({ params }: Props) {

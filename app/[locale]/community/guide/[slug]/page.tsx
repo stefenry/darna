@@ -11,6 +11,7 @@ import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
 import { MarkdownRender } from '@/components/content/markdown-render';
 import { ReportButton } from '@/components/content/report-button';
+import { canonicalMetadata } from '@/lib/share/metadata';
 import { fetchGuideEntryBySlug } from './data';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isValidLocale(locale) || !SLUG_RE.test(slug ?? '')) return {};
   const result = await fetchGuideEntryBySlug(locale, slug);
-  return result.kind === 'found' ? { title: result.entry.title } : {};
+  if (result.kind !== 'found') return { robots: { index: false, follow: false } };
+  return canonicalMetadata('guide_entry', slug, { title: result.entry.title });
 }
 
 export default async function GuideEntryPage({ params }: Props) {

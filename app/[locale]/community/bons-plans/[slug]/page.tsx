@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
 import { timeRemaining } from '@/lib/content/ephemeral';
+import { canonicalMetadata } from '@/lib/share/metadata';
 import { fetchTipBySlug } from '../data';
 import { RetireOwnButton } from '../../alertes/_components/retire-own-button';
 import { ReportButton } from '@/components/content/report-button';
@@ -24,7 +25,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
   if (!isLocale(locale) || !SLUG_RE.test(slug ?? '')) return {};
   const res = await fetchTipBySlug(locale, slug);
-  return res.kind === 'found' ? { title: res.entry.title } : {};
+  if (res.kind !== 'found') return { robots: { index: false, follow: false } };
+  return canonicalMetadata('tip', slug, { title: res.entry.title });
 }
 
 function remainingLabel(
