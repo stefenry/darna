@@ -1,6 +1,6 @@
 # Story 4.3: Publication bon plan typé expirable
 
-Status: review
+Status: done
 
 > ⚠️ **2 points structurants** : (1) expiration explicite (picker date) validée serveur → `invalid_expiration` si passée ou >30j ; (2) retrait auteur via RPC `retract_own_ephemeral` (4.1), bouton sur la page détail.
 

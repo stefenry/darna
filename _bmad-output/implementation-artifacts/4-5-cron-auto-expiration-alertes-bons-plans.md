@@ -1,6 +1,6 @@
 # Story 4.5: Cron auto-expiration alertes & bons plans
 
-Status: review
+Status: done
 
 > ⚠️ **2 points structurants** : (1) **étend** le cron existant `purge-expired` (1.9) déjà déclaré dans `vercel.json` (`0 3 * * *`) + protégé Bearer ; (2) soft-delete atomique `UPDATE … WHERE deleted_at IS NULL … RETURNING` → `deleted_by` reste NULL (acteur système, pas de JWT) + `moderation_log content_expired` par item.
 

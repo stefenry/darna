@@ -1,6 +1,6 @@
 # Story 4.1: Schéma contenu éphémère — alerts + tips + templates
 
-Status: review
+Status: done
 
 > ⚠️ **3 points structurants** (détaillés en Dev Notes) : (1) RLS **inversée** vs Epic 3 — le résident est AUTEUR (INSERT/UPDATE/retrait de SES items), pas seulement lecteur ; (2) audit publication garanti par **trigger AFTER INSERT** `log_ephemeral_created` (le résident n'a aucun grant sur `moderation_log`) ; (3) `expires_at` borné par CHECK (backstop) — la valeur métier exacte (24/72/168h, ≤30j) est calculée côté Server Action / RPC (4.2/4.3).
 

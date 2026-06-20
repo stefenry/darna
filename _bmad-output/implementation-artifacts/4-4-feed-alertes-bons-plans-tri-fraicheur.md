@@ -1,6 +1,6 @@
 # Story 4.4: Feed alertes & bons plans — tri fraîcheur
 
-Status: review
+Status: done
 
 > ⚠️ **2 points structurants** : (1) feed = fusion `alerts`+`tips` actifs, filtre `deleted_at IS NULL AND expires_at > now()` **explicite** côté serveur (la policy `author_select_own` laisserait sinon fuiter les items expirés de l'auteur) ; (2) détails sur routes distinctes (`/alertes/[slug]`, `/bons-plans/[slug]`), retrait auteur intégré.
 

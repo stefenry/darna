@@ -1,6 +1,6 @@
 # Story 4.2: Publication alerte 1-tap depuis modèle pré-rédigé
 
-Status: review
+Status: done
 
 > ⚠️ **2 points structurants** : (1) flux 2 étapes dans un seul client component (grille modèles ≥56×56 → formulaire pré-rempli) ; (2) `expires_at = now() + duration` calculé **côté serveur** ; audit `alert_created` par trigger (4.1), pas dans l'action.
 
