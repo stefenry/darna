@@ -1139,9 +1139,23 @@ export type Database = {
           status: string;
         }[];
       };
+      retire_durable_entry: {
+        Args: { p_id: string; p_kind: string; p_reason: string };
+        Returns: undefined;
+      };
       retract_artisan: { Args: { p_artisan_id: string }; Returns: undefined };
       retract_own_comment: { Args: { p_rating_id: string }; Returns: undefined };
       retract_own_rating: { Args: { p_rating_id: string }; Returns: undefined };
+      search_guide_entries: {
+        Args: { p_locale: string; p_query: string };
+        Returns: {
+          rank: number;
+          slug: string;
+          snippet: string;
+          theme_key: Database['public']['Enums']['guide_theme_key'];
+          title: string;
+        }[];
+      };
       show_limit: { Args: never; Returns: number };
       show_trgm: { Args: { '': string }; Returns: string[] };
     };

@@ -943,7 +943,11 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS artisans / ratings (AC8)', () => {
     expect(r2.error).not.toBeNull();
   });
 
-  it('moderation_log : action artisan_response_published non lisible cross-résidence', async () => {
+  it('moderation_log : action artisan_response_published lisible cross-résidence (FR33 transparence)', async () => {
+    // Le review 2.7 hardening (20260626090000) a retiré artisan_response_published
+    // de la liste restreinte de moderation_log_public_select : c'est une action
+    // de modération publique (FR33 transparence radicale), comme l'admission.
+    // Le test 2.8 initial l'avait classée privée par erreur — corrigé ici.
     await admin.from('moderation_log').insert({
       residence_id: DARNA_RESIDENCE_ID,
       actor_id: null,
@@ -951,12 +955,13 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS artisans / ratings (AC8)', () => {
       target_kind: 'artisan',
       target_id: publishedArtisanId,
     });
-    const { data: eveSees } = await eveClient
+    const { data: eveSees, error } = await eveClient
       .from('moderation_log')
       .select('id')
       .eq('target_id', publishedArtisanId)
       .eq('action', 'artisan_response_published');
-    expect(eveSees ?? []).toHaveLength(0);
+    expect(error).toBeNull();
+    expect(eveSees?.length ?? 0).toBeGreaterThan(0);
   });
 });
 
@@ -976,6 +981,8 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
   let comodClient: DarnaClient; // co_mod résidence Darna
   let comodOtherClient: DarnaClient; // co_mod résidence 2
   let seededEntryId: string;
+  let seededNumberId: string;
+  let seededPackEntryId: string;
 
   async function makeUser(
     localUrl: string,
@@ -1070,6 +1077,38 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
       .single();
     if (seedErr || !seeded) throw seedErr ?? new Error('seed guide_entry failed');
     seededEntryId = seeded.id;
+
+    // Numéro utile seedé (Story 3.3) dans la résidence Darna.
+    const { data: num, error: numErr } = await admin
+      .from('useful_numbers')
+      .insert({
+        residence_id: DARNA_RESIDENCE_ID,
+        category_key: 'securite',
+        label_fr: 'Poste de garde',
+        phone_e164: '+212600000010',
+        order_in_category: 0,
+        created_by: comodId,
+      })
+      .select()
+      .single();
+    if (numErr || !num) throw numErr ?? new Error('seed useful_number failed');
+    seededNumberId = num.id;
+
+    // Entrée Pack accueil seedée (Story 3.4) dans la résidence Darna.
+    const { data: pack, error: packErr } = await admin
+      .from('pack_entries')
+      .insert({
+        residence_id: DARNA_RESIDENCE_ID,
+        section_key: 'cles_telecommandes',
+        title_fr: 'Clés & télécommandes',
+        body_fr_markdown: 'Retirez vos clés au poste de garde.',
+        order_in_section: 0,
+        created_by: comodId,
+      })
+      .select()
+      .single();
+    if (packErr || !pack) throw packErr ?? new Error('seed pack_entry failed');
+    seededPackEntryId = pack.id;
   });
 
   afterAll(async () => {
@@ -1079,7 +1118,16 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
       .delete()
       .eq('residence_id', DARNA_RESIDENCE_ID)
       .eq('theme_key', 'codes_portails');
+    await admin
+      .from('guide_entries')
+      .delete()
+      .eq('residence_id', DARNA_RESIDENCE_ID)
+      .eq('theme_key', 'horaires_gardien');
     await admin.from('guide_entries').delete().eq('residence_id', RESIDENCE_2_ID);
+    await admin.from('useful_numbers').delete().eq('residence_id', DARNA_RESIDENCE_ID);
+    await admin.from('useful_numbers').delete().eq('residence_id', RESIDENCE_2_ID);
+    await admin.from('pack_entries').delete().eq('residence_id', DARNA_RESIDENCE_ID);
+    await admin.from('pack_entries').delete().eq('residence_id', RESIDENCE_2_ID);
     for (const id of [residentId, comodId, comodOtherId]) {
       if (id) await admin.auth.admin.deleteUser(id);
     }
@@ -1126,6 +1174,8 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
 
   it('(d) co_mod même résidence INSERT puis UPDATE OK', async () => {
     const slug = `horaires-gardien-${Date.now()}`;
+    // P10 (review 3.1) : `created_by` non grantable côté client, posé via DEFAULT
+    // auth.uid(). On ne le passe plus à l'INSERT.
     const { data: inserted, error: insErr } = await comodClient
       .from('guide_entries')
       .insert({
@@ -1134,12 +1184,12 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
         theme_key: 'horaires_gardien',
         title_fr: 'Horaires du gardien',
         body_fr_markdown: 'Présent 8h-20h.',
-        created_by: comodId,
       })
       .select()
       .single();
     expect(insErr).toBeNull();
     expect(inserted?.id).toBeTruthy();
+    expect(inserted?.created_by).toBe(comodId);
 
     const { data: updated, error: updErr } = await comodClient
       .from('guide_entries')
@@ -1158,6 +1208,24 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
       .eq('id', seededEntryId)
       .select();
     expect(data ?? []).toHaveLength(0);
+  });
+
+  it("(g) RPC search_guide_entries (résident) trouve l'entrée de sa résidence", async () => {
+    const { data, error } = await residentClient.rpc('search_guide_entries', {
+      p_query: 'portail',
+      p_locale: 'fr',
+    });
+    expect(error).toBeNull();
+    expect((data ?? []).some((r) => r.slug.startsWith('codes-portails-'))).toBe(true);
+  });
+
+  it("(h) RPC search_guide_entries (autre résidence) ne fuit PAS l'entrée (security invoker)", async () => {
+    const { data, error } = await comodOtherClient.rpc('search_guide_entries', {
+      p_query: 'portail',
+      p_locale: 'fr',
+    });
+    expect(error).toBeNull();
+    expect((data ?? []).some((r) => r.slug.startsWith('codes-portails-'))).toBe(false);
   });
 
   it("(f) co_mod soft-delete → l'entrée disparaît de la lecture résident", async () => {
@@ -1180,5 +1248,167 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
       .eq('id', seededEntryId);
     expect(comodSees).toHaveLength(1);
     expect(comodSees?.[0]?.deleted_at).not.toBeNull();
+  });
+
+  it('(i) useful_numbers : résident voit sa résidence, autre résidence ne fuit pas (3.3)', async () => {
+    const { data: residentSees, error } = await residentClient
+      .from('useful_numbers')
+      .select('id, phone_e164')
+      .eq('id', seededNumberId);
+    expect(error).toBeNull();
+    expect(residentSees).toHaveLength(1);
+
+    const { data: otherSees } = await comodOtherClient
+      .from('useful_numbers')
+      .select('id')
+      .eq('id', seededNumberId);
+    expect(otherSees ?? []).toHaveLength(0);
+  });
+
+  it('(j) onboarding : résident pose first_login_at sur SA ligne, pas sur autrui (3.4)', async () => {
+    const now = new Date().toISOString();
+    // Sur sa propre ligne : OK (grant self + users_resident_update_self).
+    const { data: self, error: selfErr } = await residentClient
+      .from('users')
+      .update({ first_login_at: now })
+      .eq('id', residentId)
+      .select('id');
+    expect(selfErr).toBeNull();
+    expect(self).toHaveLength(1);
+
+    // Sur la ligne d'autrui (le co_mod) : 0 ligne (RLS id=auth.uid()).
+    const { data: other } = await residentClient
+      .from('users')
+      .update({ first_login_at: now })
+      .eq('id', comodId)
+      .select('id');
+    expect(other ?? []).toHaveLength(0);
+  });
+
+  // ── Story 3.1 review (P6) — pack_entries : symétrie guide_entries ────────────
+  it('(k) pack_entries : résident voit sa résidence ; co_mod autre résidence ne voit pas', async () => {
+    const { data: residentSees, error } = await residentClient
+      .from('pack_entries')
+      .select('id')
+      .eq('id', seededPackEntryId);
+    expect(error).toBeNull();
+    expect(residentSees).toHaveLength(1);
+
+    const { data: otherSees } = await comodOtherClient
+      .from('pack_entries')
+      .select('id')
+      .eq('id', seededPackEntryId);
+    expect(otherSees ?? []).toHaveLength(0);
+  });
+
+  it('(l) résident INSERT pack_entries → 42501 (aucune policy écriture)', async () => {
+    const { error } = await residentClient.from('pack_entries').insert({
+      residence_id: DARNA_RESIDENCE_ID,
+      section_key: 'hack',
+      title_fr: 'Hack',
+      body_fr_markdown: 'x',
+    });
+    expect(error).not.toBeNull();
+    expect(error?.code).toBe('42501');
+  });
+
+  it('(m) co_mod même résidence INSERT puis UPDATE pack_entries OK (P10 created_by default)', async () => {
+    const ts = Date.now();
+    const { data: inserted, error: insErr } = await comodClient
+      .from('pack_entries')
+      .insert({
+        residence_id: DARNA_RESIDENCE_ID,
+        section_key: `wifi-${ts}`,
+        title_fr: 'Wifi',
+        body_fr_markdown: 'SSID : Darna',
+        order_in_section: 1,
+      })
+      .select('id, created_by')
+      .single();
+    expect(insErr).toBeNull();
+    // P10 : `created_by` posé automatiquement par le DEFAULT auth.uid().
+    expect(inserted?.created_by).toBe(comodId);
+
+    const { data: updated, error: updErr } = await comodClient
+      .from('pack_entries')
+      .update({ title_fr: 'Wifi (MAJ)' })
+      .eq('id', inserted!.id)
+      .select('title_fr')
+      .single();
+    expect(updErr).toBeNull();
+    expect(updated?.title_fr).toBe('Wifi (MAJ)');
+  });
+
+  // ── Story 3.1 review (P7) — cross-résidence INSERT par co_mod ────────────────
+  it('(n) co_mod résidence 2 ne peut PAS INSERT useful_numbers dans la résidence 1 (P7)', async () => {
+    const { error } = await comodOtherClient.from('useful_numbers').insert({
+      residence_id: DARNA_RESIDENCE_ID,
+      category_key: 'securite',
+      label_fr: 'Spoof',
+      phone_e164: '+212600000099',
+      order_in_category: 9,
+    });
+    expect(error).not.toBeNull();
+    expect(error?.code).toBe('42501');
+  });
+
+  // ── Story 3.1 review (P2) — CHECK phone_e164 format E.164 ────────────────────
+  it('(o) useful_numbers refuse phone_e164 non-E.164 (CHECK violation 23514)', async () => {
+    const { error } = await comodClient.from('useful_numbers').insert({
+      residence_id: DARNA_RESIDENCE_ID,
+      category_key: 'securite',
+      label_fr: 'Bad phone',
+      phone_e164: '0600000000', // pas de + prefix → CHECK fail
+      order_in_category: 2,
+    });
+    expect(error).not.toBeNull();
+    expect(error?.code).toBe('23514');
+  });
+
+  // ── Story 3.1 review (P9) — UNIQUE partial (residence_id, phone_e164) ────────
+  it('(p) useful_numbers refuse doublon (residence_id, phone_e164) actif (P9 unique 23505)', async () => {
+    const { error } = await comodClient.from('useful_numbers').insert({
+      residence_id: DARNA_RESIDENCE_ID,
+      category_key: 'securite',
+      label_fr: 'Doublon poste de garde',
+      phone_e164: '+212600000010', // = seededNumberId
+      order_in_category: 3,
+    });
+    expect(error).not.toBeNull();
+    expect(error?.code).toBe('23505');
+  });
+
+  // ── Story 3.1 review (P1) — trigger force deleted_by = auth.uid() ────────────
+  it('(q) trigger enforce_deleted_by_actor force deleted_by = auth.uid() (audit non-falsifiable)', async () => {
+    const ts = Date.now();
+    // Crée un useful_number éphémère via le co_mod Darna.
+    const { data: tmp, error: insErr } = await comodClient
+      .from('useful_numbers')
+      .insert({
+        residence_id: DARNA_RESIDENCE_ID,
+        category_key: 'autre',
+        label_fr: 'Éphémère',
+        phone_e164: `+21260000${String(ts).slice(-4)}`,
+        order_in_category: 5,
+      })
+      .select('id')
+      .single();
+    expect(insErr).toBeNull();
+
+    // Le co_mod soft-delete en essayant d'attribuer à autrui (residentId) :
+    // le trigger doit réécrire deleted_by = comodId (auth.uid()).
+    const { error: delErr } = await comodClient
+      .from('useful_numbers')
+      .update({ deleted_at: new Date().toISOString(), deleted_by: residentId })
+      .eq('id', tmp!.id);
+    expect(delErr).toBeNull();
+
+    const { data: after } = await admin
+      .from('useful_numbers')
+      .select('deleted_by, deleted_at')
+      .eq('id', tmp!.id)
+      .single();
+    expect(after?.deleted_at).not.toBeNull();
+    expect(after?.deleted_by).toBe(comodId); // trigger a écrasé residentId
   });
 });
