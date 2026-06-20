@@ -2,15 +2,28 @@
 // co_mod 3.5). RSC-compatible (pas de 'use client' — fonctionne aussi côté client
 // pour la preview live de l'éditeur 3.5).
 //
-// SÉCURITÉ (AR17) : aucun HTML brut rendu. `skipHtml` ignore tout nœud HTML d'un
-// `body_*_markdown` (pas de `rehype-raw`) → `<script>` / `<img onerror=…>` sont
-// inertes, jamais injectés dans le DOM. `urlTransform` (défaut react-markdown)
-// neutralise les URLs dangereuses (`javascript:` …). Liens externes en
-// `rel="noopener noreferrer"`.
+// SÉCURITÉ (AR17 + review 3.2 P2/P3) :
+//   1. `skipHtml` ignore tout HTML brut (`<script>`, `<img onerror=…>` inertes).
+//   2. `disallowedElements={['img']}` — bloque la syntaxe markdown `![](url)`
+//      (anti-leak Referer + tracking pixel ; un co_mod hostile ne peut pas
+//      poser un mouchard 1×1 sur tous les lecteurs).
+//   3. `urlTransform` strict — whitelist `https?://` + chemins relatifs `/xxx`
+//      (rejette `mailto:`, `xmpp:`, `javascript:`, protocol-relative `//evil`
+//      qui sinon traverserait sans target=_blank).
 
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { Components } from 'react-markdown';
+
+// Whitelist URL stricte : http(s) absolu OU chemin relatif (`/community/…`).
+// Tout autre schéma (`mailto:`, `javascript:`, `data:`, `//evil`) → href vidé.
+function safeUrlTransform(url: string): string {
+  if (!url) return '';
+  if (/^https?:\/\//i.test(url)) return url;
+  // Chemin relatif interne (doit commencer par `/`, pas `//`).
+  if (url.startsWith('/') && !url.startsWith('//')) return url;
+  return '';
+}
 
 // Tokens borderless v2 : prose sobre, liens accent, pas de dépendance au plugin
 // `prose` Tailwind (non installé) → classes utilitaires explicites.
@@ -51,7 +64,7 @@ const components: Components = {
     </code>
   ),
   a: ({ href, children }) => {
-    const isExternal = typeof href === 'string' && /^https?:\/\//.test(href);
+    const isExternal = typeof href === 'string' && /^https?:\/\//i.test(href);
     return (
       <a
         href={href}
@@ -67,7 +80,13 @@ const components: Components = {
 export function MarkdownRender({ source }: { source: string }) {
   return (
     <div className="break-words">
-      <Markdown remarkPlugins={[remarkGfm]} skipHtml components={components}>
+      <Markdown
+        remarkPlugins={[remarkGfm]}
+        skipHtml
+        components={components}
+        disallowedElements={['img']}
+        urlTransform={safeUrlTransform}
+      >
         {source}
       </Markdown>
     </div>

@@ -16,13 +16,18 @@ export const dynamic = 'force-dynamic';
 
 type Props = { params: Promise<{ locale: string; slug: string }> };
 
+// Aligné sur le CHECK DB `guide_entries_slug_format` (review 3.1 P4).
+// Court-circuit avant le fetch Supabase pour éviter un round-trip sur slugs
+// malformés (anti-DoS / Unicode soup / path traversal `..`).
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
+
 function isValidLocale(locale: string): locale is Locale {
   return (routing.locales as readonly string[]).includes(locale);
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale, slug } = await params;
-  if (!isValidLocale(locale) || !slug?.trim()) return {};
+  if (!isValidLocale(locale) || !SLUG_RE.test(slug ?? '')) return {};
   const result = await fetchGuideEntryBySlug(locale, slug);
   return result.kind === 'found' ? { title: result.entry.title } : {};
 }
@@ -30,7 +35,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function GuideEntryPage({ params }: Props) {
   const { locale, slug } = await params;
   if (!isValidLocale(locale)) notFound();
-  if (!slug?.trim()) notFound();
+  if (!SLUG_RE.test(slug ?? '')) notFound();
   setRequestLocale(locale);
 
   const result = await fetchGuideEntryBySlug(locale, slug);

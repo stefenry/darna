@@ -75,4 +75,27 @@ describe('GuideSearchResults', () => {
     wrap(<GuideSearchResults locale="fr" hits={[]} />);
     expect(screen.getByText('Aucun résultat. Essaie un autre mot-clé.')).toBeDefined();
   });
+
+  // Review 3.2 P1 — preuve que le snippet est rendu via split JS (pas
+  // `dangerouslySetInnerHTML`). Un body contenant `<img onerror>` ressort
+  // intact de `ts_headline` (Postgres n'échappe pas) → le rendu React doit
+  // l'afficher comme texte brut, jamais comme balise DOM.
+  it('XSS — snippet contenant <img onerror> est inerte (rendu texte, pas DOM)', () => {
+    const evilHit: GuideSearchHit = {
+      slug: 'evil-entry',
+      themeKey: 'codes_portails',
+      title: 'Evil entry',
+      snippet: 'avant <img src=x onerror="alert(1)"> <mark>match</mark> après',
+      rank: 0.5,
+    };
+    const { container } = wrap(<GuideSearchResults locale="fr" hits={[evilHit]} />);
+    // Aucune balise <img> injectée dans le DOM.
+    expect(container.querySelector('img')).toBeNull();
+    // Aucune balise <script> non plus, même avec un payload différent.
+    expect(container.querySelector('script')).toBeNull();
+    // Le texte brut du tag traverse comme contenu textuel (inerte).
+    expect(container.textContent).toContain('<img src=x onerror=');
+    // Le <mark> légitime (nos délimiteurs) est rendu correctement.
+    expect(container.querySelector('mark')?.textContent).toBe('match');
+  });
 });

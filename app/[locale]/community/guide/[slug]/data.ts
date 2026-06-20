@@ -52,7 +52,10 @@ async function _fetchGuideEntryBySlug(
   const isAr = locale === 'ar';
   const title = isAr && row.title_ar?.trim() ? row.title_ar : row.title_fr;
   const body = isAr && row.body_ar_markdown?.trim() ? row.body_ar_markdown : row.body_fr_markdown;
-  const untranslated = isAr && !row.body_ar_markdown?.trim();
+  // FR48 cohérent list ↔ detail (review 3.2 P4) : badge ssi locale AR ET
+  // localisation AR partielle (titre OU corps manquant). Aligné sur la colonne
+  // générée `ar_complete` utilisée côté liste.
+  const untranslated = isAr && (!row.title_ar?.trim() || !row.body_ar_markdown?.trim());
 
   return {
     kind: 'found',

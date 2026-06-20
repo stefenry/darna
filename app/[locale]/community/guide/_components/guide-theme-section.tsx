@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ChevronDown } from 'lucide-react';
+import type { Locale } from '@/lib/i18n/config';
 import type { GuideThemeGroup } from '../data';
 
 export function GuideThemeSection({
@@ -12,7 +13,7 @@ export function GuideThemeSection({
   group,
   defaultOpen = false,
 }: {
-  locale: string;
+  locale: Locale;
   group: GuideThemeGroup;
   defaultOpen?: boolean;
 }) {

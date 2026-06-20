@@ -73,6 +73,12 @@ export async function POST(request: NextRequest) {
       response.cookies.set(cookie.name, '', { maxAge: 0, path: '/' });
     }
   }
+  // Review 3.2 P5 — purge tous les caches navigateur (Cache API + service worker)
+  // côté client. Empêche un appareil partagé de servir le HTML/RSC scopé à l'ancien
+  // user (`durable-content` SWR, RSC payloads) après login d'un autre résident.
+  // Scope `"cache"` cible Cache API + HTTP cache ; `"storage"` est trop large
+  // (purge IndexedDB → casse PWA install state). Pas de `"cookies"` (déjà gérés).
+  response.headers.set('Clear-Site-Data', '"cache"');
   return response;
 }
 

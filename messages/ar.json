@@ -299,7 +299,7 @@
         "securite": "",
         "autre": ""
       },
-      "count": "",
+      "count": "{n, plural, =0 {0} one {#} other {#}}",
       "notTranslatedBadge": "",
       "breadcrumb": "",
       "searchResults": {

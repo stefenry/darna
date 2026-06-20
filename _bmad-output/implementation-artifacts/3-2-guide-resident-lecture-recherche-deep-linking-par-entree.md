@@ -1,6 +1,6 @@
 # Story 3.2: Guide résident — lecture + recherche + deep linking par entrée
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -159,15 +159,71 @@ claude-opus-4-8 (dev autonome Epic 3, 2026-06-20).
 ### File List
 
 - **NEW** `supabase/migrations/20260627100000_guide_search_rpc.sql`
+- **NEW** `supabase/migrations/20260629090000_review_3_2_rpc_hardening.sql` (review 2026-06-20 — D1 + 17 patches : RPC PLPGSQL 2 branches, CTE post-limit, residence_id explicit, p_locale whitelist, generated col `ar_complete`)
 - **NEW** `components/content/markdown-render.tsx` (+ `.test.tsx`)
 - **NEW** `lib/content/guide.ts` (`GUIDE_THEME_ORDER`)
 - **NEW** `app/[locale]/community/guide/{page,data,loading,error}.tsx` + `_components/{guide-search,guide-theme-section,guide-search-results}.tsx`
 - **NEW** `app/[locale]/community/guide/[slug]/{page,data,loading}.tsx`
 - **NEW** `tests/guide/guide-list.test.tsx`
-- **UPDATE** `sw/index.ts` (durable-content cache), `app/[locale]/community/page.tsx` (tuiles), `messages/{fr,ar}.json` (`community.guide`, `errors.guide`, tuiles), `lib/supabase/types.generated.ts` (RPC), `tests/rls.test.ts` (g/h), `package.json`/`pnpm-lock.yaml` (react-markdown, remark-gfm)
+- **UPDATE** `app/auth/signout/route.ts` (review P5 — `Clear-Site-Data: "cache"` au logout)
+- **UPDATE** `sw/index.ts` (durable-content cache — review P5 maxAge 24h → 5min), `app/[locale]/community/page.tsx` (tuiles), `messages/{fr,ar}.json` (`community.guide`, `errors.guide`, tuiles, AR ICU plural fix), `lib/supabase/types.generated.ts` (RPC + `ar_complete`), `tests/rls.test.ts` (g/h/h1/h2 + cas review)
+- **UPDATE** `components/content/markdown-render.tsx` (review P2/P3 — `disallowedElements=['img']` + `urlTransform` strict)
+- **UPDATE** `app/[locale]/community/guide/_components/guide-search-results.tsx` (review P1 — split JS sans `dangerouslySetInnerHTML`, P11 strict typing)
+- **UPDATE** `app/[locale]/community/guide/_components/guide-search.tsx` (review P7 — `searchParamsRef` au tick)
+- **UPDATE** `app/[locale]/community/guide/_components/guide-theme-section.tsx` (review P11 — strict `Locale`)
+- **UPDATE** `app/[locale]/community/guide/data.ts` + `[slug]/data.ts` (review P4 — FR48 cohérent via `ar_complete`)
+- **UPDATE** `app/[locale]/community/guide/[slug]/page.tsx` (review P10 — slug regex validation)
 
 ### Change Log
 
-| Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                 |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-06-19 | 0.1     | Création story 3.2 (context engine). Lecture Guide sur schéma 3.1 : liste groupée par thème (`<details>`), recherche FTS classée + snippet (`ts_headline` via RPC security-invoker), deep link `/guide/[slug]`, fallback FR + badge « Non traduit » (FR48), renderer Markdown partagé XSS-safe (react-markdown sans HTML brut), cache offline Serwist, i18n, tests. Status → ready-for-dev. |
+| Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-06-19 | 0.1     | Création story 3.2 (context engine). Lecture Guide sur schéma 3.1 : liste groupée par thème (`<details>`), recherche FTS classée + snippet (`ts_headline` via RPC security-invoker), deep link `/guide/[slug]`, fallback FR + badge « Non traduit » (FR48), renderer Markdown partagé XSS-safe (react-markdown sans HTML brut), cache offline Serwist, i18n, tests. Status → ready-for-dev.                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| 2026-06-20 | 0.2     | Code review adversariale (Blind Hunter + Edge Case + Acceptance Auditor) : XSS critique confirmée empiriquement sur `ts_headline` (Postgres N'HTML-ÉCHAPPE PAS — un `<img onerror>` dans `body_fr_markdown` traversait le snippet via `dangerouslySetInnerHTML`). 1 décision (D1 split JS) + 17 patches appliqués : RPC PLPGSQL 2 branches (P13 index GIN), CTE post-limit (P8), residence_id explicite (P6), p_locale whitelist (P15), generated col `ar_complete` (P17 FR48 cohérent), MarkdownRender `disallowedElements=['img']` + `urlTransform` whitelist (P2/P3), slug regex côté page (P10), GuideSearch ref pour searchParams (P7), SW maxAge 24h→5min + `Clear-Site-Data` au signout (P5), `Locale` strict typing (P11), AR `count` ICU plural template (P9), tests régression XSS/markdown/RPC. Status → done. |
+
+### Review Findings
+
+> Code review 2026-06-20 — Blind Hunter + Edge Case Hunter + Acceptance Auditor (3 couches adverses parallèles). ~55 findings bruts → 18 post-triage : **1 décision**, **17 patches**, **10 différés**, **3 dismissed**. **1 finding CRITICAL confirmé empiriquement**.
+
+#### Décision
+
+- [x] [Review][Decision] **D1 — Comment corriger la faille XSS du snippet de recherche ?** [`guide-search-results.tsx:36-40`] — `ts_headline` ne HTML-échappe PAS le texte source (vérifié SQL local : `select ts_headline('french', 'Bonjour <img src=x onerror=alert(1)> code portail', websearch_to_tsquery('french','portail'), 'StartSel=<mark>,StopSel=</mark>')` retourne le tag `<img onerror>` LITTÉRAL). Le commentaire D3 spec et le commentaire code étaient factuellement faux. **Résolution** : **(a) split JS sans `dangerouslySetInnerHTML`** — `snippet.split(/(<\/?mark>)/g)` + render React (échappement par défaut). RPC inchangé sur les délimiteurs. XSS éliminé.
+
+#### Patches
+
+- [x] [Review][Patch] **P1 [CRITICAL] — XSS stocké via `ts_headline` snippet** [`guide-search-results.tsx:36-40`] — Résolu par D1. Test (`guide-list.test.tsx`) : un snippet contenant `<img onerror>` est rendu comme texte brut, aucune balise `<img>`/`<script>` injectée dans le DOM ; le `<mark>` légitime traverse correctement.
+- [x] [Review][Patch] **P2 [HIGH] — `MarkdownRender` permet `![alt](url)` (privacy + tracking)** [`markdown-render.tsx`] — `disallowedElements={['img']}` ajouté. Un body markdown `![tracker](https://attacker.example/pixel.gif)` ne rend AUCUN `<img>`. Test ajouté.
+- [x] [Review][Patch] **P3 [HIGH] — `MarkdownRender` accepte `mailto:`/`xmpp:`/`//evil`/`javascript:`** [`markdown-render.tsx`] — `urlTransform` strict : whitelist `https?://` + relatif `/xxx` (pas `//xxx`). `mailto:`, `javascript:`, `data:`, protocol-relative → `href=""`. 4 tests régression.
+- [x] [Review][Patch] **P4 [HIGH] — FR48 incohérent list vs detail** [`data.ts:68` + `[slug]/data.ts:55`] — list check `!title_ar`, detail check `!body_ar_markdown` → un titre AR sans body AR : list dit « traduit », detail dit « Non traduit ». **Résolution** : generated col `ar_complete boolean` (P17) sur `guide_entries`, list utilise la colonne, detail check `(!title_ar || !body_ar)`. Sémantique unifiée « complet AR ssi titre+corps non-vides ». Test (h2) confirme `ar_complete=false` sur seed FR-only.
+- [x] [Review][Patch] **P5 [HIGH] — SW cache leak multi-user + soft-delete invalidation absente** [`sw/index.ts:55` + `auth/signout/route.ts`] — (a) `maxAgeSeconds` 24h → 5min sur `durableContentCache` (limite fenêtre leak + invalidation soft-delete co_mod) ; (b) header `Clear-Site-Data: "cache"` posé sur la réponse 303 de `/auth/signout` (purge Cache API du device au logout, anti-leak appareil partagé). Trade-off documenté : AC5 (< 100ms offline) reste satisfait dans la fenêtre 5min.
+- [x] [Review][Patch] **P6 [MEDIUM] — RPC defense-in-depth `residence_id` absent** [`20260629090000_review_3_2_rpc_hardening.sql`] — Ajout `and g.residence_id = public.auth_residence_id()` au WHERE du RPC (en plus de la RLS). Court-circuit explicite si une régression future relâche la policy.
+- [x] [Review][Patch] **P7 [MEDIUM] — `GuideSearch` self-loop + stale searchParams** [`guide-search.tsx:50`] — `searchParamsRef` lecture au tick (pas à l'armement). Retire `searchParams` des deps de l'effet 2 (évite self-loop sur chaque `router.replace`, et capture la dernière valeur si un autre param URL change pendant le debounce).
+- [x] [Review][Patch] **P8 [MEDIUM] — `ts_headline` calculé pré-limit (perf)** [`20260629090000_review_3_2_rpc_hardening.sql`] — RPC structuré en CTE `matched` (rank + limit 30) puis `ts_headline` post-limit. 30 calls de `ts_headline` au lieu de N matched. À MVP <100 entrées cosmétique, à 3.5+ multi-résidence ça mord.
+- [x] [Review][Patch] **P9 [LOW] — AR `community.guide.count` ICU plural template vide** [`messages/ar.json`] — `count: "{n, plural, =0 {0} one {#} other {#}}"` (template ICU valide). next-intl ne plantera plus si un user visite `/ar/community/guide`.
+- [x] [Review][Patch] **P10 [MEDIUM] — Slug validation côté page absente** [`[slug]/page.tsx`] — Regex `^[a-z0-9][a-z0-9-]{0,79}$` (alignée sur le CHECK DB 3.1 P4). Court-circuit avant le fetch Supabase → anti-DoS (slugs absurdes) + anti path traversal.
+- [x] [Review][Patch] **P11 [LOW] — Locale typing laxiste** [`guide-search-results.tsx`, `guide-theme-section.tsx`] — `locale: string` → `locale: Locale` strict (import `lib/i18n/config`).
+- [x] [Review][Patch] **P12 [LOW] — Commentaire D3 factuellement faux** [`guide-search-results.tsx:7-9,38`] — Remplacé par un commentaire correct : `ts_headline` N'HTML-ÉCHAPPE PAS, on split JS, React échappe par défaut.
+- [x] [Review][Patch] **P13 [MEDIUM] — `WHERE (CASE…) @@ tsq` empêche l'index GIN** [`20260629090000_review_3_2_rpc_hardening.sql`] — RPC réécrit en PLPGSQL avec 2 branches `if p_locale='ar' then … else … end`. Chaque branche WHERE explicit sur la bonne colonne (`search_fr_tsv` / `search_ar_tsv`) → Postgres utilise l'index GIN partial correspondant.
+- [x] [Review][Patch] **P14 [LOW] — Doc snippet markdown brut surligné** — Documenté dans l'en-tête de `guide-search-results.tsx` (le snippet contient le markdown brut `**`/`#` non-rendu, par design — strip nécessiterait un parser SQL).
+- [x] [Review][Patch] **P15 [MEDIUM] — RPC accepte locale invalide** [`20260629090000_review_3_2_rpc_hardening.sql`] — `if p_locale is null or p_locale not in ('fr','ar') then raise exception 'invalid_locale'`. Test (h1) prouve le rejet.
+- [x] [Review][Patch] **P16 [HIGH] — Tests régression XSS / image markdown / FR48** — Ajoutés : (1) snippet `<img onerror>` inerte ; (2) `![alt](url)` désactivé ; (3) `mailto:`/`javascript:`/`//evil`/`data:` urlTransform ; (4) RPC reject locale invalide ; (5) `ar_complete=false` sur seed FR-only.
+- [x] [Review][Patch] **P17 [MEDIUM] — Generated col `ar_complete`** [`20260629090000_review_3_2_rpc_hardening.sql`] — Colonne `ar_complete boolean generated always as (title_ar non-vide AND body_ar_markdown non-vide) stored`. Permet à la liste de calculer FR48 sans bandwidth body (50KB max × N entrées sur 3G).
+
+#### Différés
+
+- [x] [Review][Defer] **EC-01 — Empty state injuste sur query 100% stopwords FR** — UX dégradée acceptée MVP (impossible de distinguer côté client sans appel SQL).
+- [x] [Review][Defer] **EC-03 — Timing channel cross-tenant via @@ tsq évaluation** — P6 court-circuit `residence_id` mitigerait partiellement ; mesure formelle de variance différée.
+- [x] [Review][Defer] **EC-10 — Test axe-core automatisé** — Pattern projet (`@axe-core/playwright` E2E), instrumentation broader scope.
+- [x] [Review][Defer] **EC-16 — RTL fallback content visual** — Locale AR + body FR fallback affichage RTL → UX cleanup epic 7.x ou V1.5 AR-aware.
+- [x] [Review][Defer] **F15 — `revoke from public, anon` redundance** — Nit cosmétique.
+- [x] [Review][Defer] **F16 — `captured` Set module-scope** — Pattern projet (cf. `annuaire/error.tsx`), nit.
+- [x] [Review][Defer] **F17 — Rank coercion NaN edge** — Mort code (rank tri serveur uniquement).
+- [x] [Review][Defer] **F19 — Error log non-instanceof guard** — Bénin (catch swallows).
+- [x] [Review][Defer] **EC-15 — cache() React deduplication edge** — Comportement défensif attendu.
+- [x] [Review][Defer] **EC-20 — Perf logging `guide_entries > 200`** — Volume MVP négligeable.
+
+#### Dismissed
+
+- EC-12 — `rank` coercion innocent (tri serveur).
+- EC-14 — Slug Unicode (defensive design OK).
+- EC-09 — Markdown brut `**`/`#` dans le snippet (UX cosmétique acceptée MVP).

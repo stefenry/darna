@@ -39,6 +39,8 @@ type ListRow = {
   title_fr: string;
   title_ar: string | null;
   order_in_theme: number;
+  /** Colonne générée (review 3.2 P17) : true ssi titre ET corps AR présents et non-vides. */
+  ar_complete: boolean;
 };
 
 /**
@@ -51,7 +53,7 @@ async function _fetchGuideEntries(locale: Locale): Promise<GuideThemeGroup[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('guide_entries')
-    .select('slug, theme_key, title_fr, title_ar, order_in_theme')
+    .select('slug, theme_key, title_fr, title_ar, ar_complete, order_in_theme')
     .is('deleted_at', null)
     .order('theme_key', { ascending: true })
     .order('order_in_theme', { ascending: true });
@@ -61,11 +63,14 @@ async function _fetchGuideEntries(locale: Locale): Promise<GuideThemeGroup[]> {
   for (const row of (data ?? []) as ListRow[]) {
     const isAr = locale === 'ar';
     const title = isAr && row.title_ar?.trim() ? row.title_ar : row.title_fr;
+    // FR48 cohérent list ↔ detail (review 3.2 P4) : badge ssi locale AR ET
+    // localisation AR incomplète (titre OU corps manquant/vide), via la colonne
+    // générée `ar_complete` — pas de bandwidth body sur la liste.
     const entry: GuideListEntry = {
       slug: row.slug,
       themeKey: row.theme_key,
       title,
-      untranslated: isAr && !row.title_ar?.trim(),
+      untranslated: isAr && !row.ar_complete,
     };
     const list = byTheme.get(row.theme_key);
     if (list) list.push(entry);

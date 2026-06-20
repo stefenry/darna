@@ -1228,6 +1228,27 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
     expect((data ?? []).some((r) => r.slug.startsWith('codes-portails-'))).toBe(false);
   });
 
+  // Review 3.2 P15 — RPC rejette une locale invalide (whitelist `fr`/`ar`).
+  it('(h1) RPC search_guide_entries refuse p_locale invalide (invalid_locale)', async () => {
+    const { error } = await residentClient.rpc('search_guide_entries', {
+      p_query: 'portail',
+      p_locale: 'zz',
+    });
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/invalid_locale/);
+  });
+
+  // Review 3.2 P17 — colonne générée `ar_complete` cohérente avec FR48 :
+  // un seed FR-only doit ressortir avec ar_complete=false.
+  it('(h2) guide_entries.ar_complete = false sur seed FR-only (FR48)', async () => {
+    const { data } = await residentClient
+      .from('guide_entries')
+      .select('ar_complete')
+      .eq('id', seededEntryId)
+      .single();
+    expect(data?.ar_complete).toBe(false);
+  });
+
   it("(f) co_mod soft-delete → l'entrée disparaît de la lecture résident", async () => {
     const { error: delErr } = await comodClient
       .from('guide_entries')

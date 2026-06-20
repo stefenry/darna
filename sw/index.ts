@@ -47,12 +47,21 @@ const annuaireCache: RuntimeCaching = {
 // NOTE multi-tenant : le contenu est résidence-scopé (RLS). Au MVP mono-résidence
 // (Darna), pas de partitionnement par résidence ; à généraliser (cookie/locale)
 // si plusieurs résidences partagent un appareil (cf. story 3.2 Task 7).
+//
+// Review 3.2 P5/P6 — fenêtre de stale réduite à 5 min (au lieu de 24h) :
+//   1. Soft-delete co_mod (retract d'une info compromise, ex. code portail) est
+//      visible à tous les résidents en ≤ 5 min, même hors-ligne ;
+//   2. Logout-puis-login d'un autre user sur appareil partagé limite la fenêtre
+//      de leak du HTML cached ; complété par `Clear-Site-Data: "cache"` posé
+//      par `app/auth/signout/route.ts`.
+// Trade-off accepté : un offline > 5 min revient en revalidation réseau, mais
+// l'AC5 (< 100 ms offline) reste satisfait sur le hit cached pendant la fenêtre.
 const durableContentCache: RuntimeCaching = {
   matcher: ({ url, sameOrigin }) =>
     sameOrigin && /\/community\/(guide|numeros-utiles)(\/|$|\?)/.test(url.pathname + url.search),
   handler: new StaleWhileRevalidate({
     cacheName: 'durable-content',
-    plugins: [new ExpirationPlugin({ maxAgeSeconds: 24 * 60 * 60, maxEntries: 64 })],
+    plugins: [new ExpirationPlugin({ maxAgeSeconds: 5 * 60, maxEntries: 64 })],
   }),
 };
 

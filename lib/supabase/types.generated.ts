@@ -1,34 +1,6 @@
-// AUTO-GENERATED par `pnpm gen:types` — DO NOT EDIT.
-// Régénérer après chaque migration. Versionné dans git (AR8).
-
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never;
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json;
-          operationName?: string;
-          query?: string;
-          variables?: Json;
-        };
-        Returns: Json;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
-  };
   public: {
     Tables: {
       admission_requests: {
@@ -422,6 +394,7 @@ export type Database = {
       };
       guide_entries: {
         Row: {
+          ar_complete: boolean | null;
           body_ar_markdown: string | null;
           body_fr_markdown: string;
           created_at: string;
@@ -441,6 +414,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          ar_complete?: boolean | null;
           body_ar_markdown?: string | null;
           body_fr_markdown: string;
           created_at?: string;
@@ -460,6 +434,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          ar_complete?: boolean | null;
           body_ar_markdown?: string | null;
           body_fr_markdown?: string;
           created_at?: string;
@@ -1332,9 +1307,6 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       admission_contact_channel: ['email', 'sms'],

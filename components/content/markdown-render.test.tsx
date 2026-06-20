@@ -43,4 +43,38 @@ describe('MarkdownRender', () => {
     const { container } = render(<MarkdownRender source={'<img src=x onerror="alert(1)">'} />);
     expect(container.querySelector('img')).toBeNull();
   });
+
+  // Review 3.2 P2 — syntaxe markdown `![](url)` doit aussi être inerte
+  // (anti-leak Referer + tracking pixel).
+  it('syntaxe markdown image ![alt](url) est désactivée (disallowedElements)', () => {
+    const { container } = render(
+      <MarkdownRender source={'![tracker](https://attacker.example/pixel.gif)'} />,
+    );
+    expect(container.querySelector('img')).toBeNull();
+  });
+
+  // Review 3.2 P3 — urlTransform strict : seuls http(s) absolu ET relatifs
+  // commençant par `/xxx` (pas `//xxx`) sont autorisés.
+  it("lien javascript: est neutralisé (href='')", () => {
+    const { container } = render(<MarkdownRender source={'[evil](javascript:alert(1))'} />);
+    const link = container.querySelector('a');
+    expect(link?.getAttribute('href') ?? '').toBe('');
+  });
+
+  it('lien mailto: est neutralisé (urlTransform whitelist)', () => {
+    const { container } = render(<MarkdownRender source={'[mail](mailto:x@y.com)'} />);
+    expect(container.querySelector('a')?.getAttribute('href') ?? '').toBe('');
+  });
+
+  it('lien protocol-relative //evil.com est neutralisé', () => {
+    const { container } = render(<MarkdownRender source={'[evil](//attacker.example)'} />);
+    expect(container.querySelector('a')?.getAttribute('href') ?? '').toBe('');
+  });
+
+  it('lien data:text/html est neutralisé', () => {
+    const { container } = render(
+      <MarkdownRender source={'[evil](data:text/html,<script>alert(1)</script>)'} />,
+    );
+    expect(container.querySelector('a')?.getAttribute('href') ?? '').toBe('');
+  });
 });

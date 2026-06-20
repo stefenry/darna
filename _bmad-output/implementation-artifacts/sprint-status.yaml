@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-23
-last_updated: 2026-06-20T12:55:00Z
+last_updated: 2026-06-20T13:32:00Z
 project: SmartResidence
 project_key: NOKEY
 tracking_system: file-system
@@ -75,7 +75,7 @@ development_status:
   # Epic 3: Contenu durable — Guide résident, Numéros utiles, Pack accueil
   epic-3: in-progress
   3-1-schema-contenu-durable-guide-entries-useful-numbers-pack-entries: done
-  3-2-guide-resident-lecture-recherche-deep-linking-par-entree: review
+  3-2-guide-resident-lecture-recherche-deep-linking-par-entree: done
   3-3-numeros-utiles-acces-rapide-avec-action-tel: review
   3-4-pack-accueil-mis-en-avant-post-validation: review
   3-5-interface-crud-co-mod-sur-guide-numeros-utiles-pack-accueil: review

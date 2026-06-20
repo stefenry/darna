@@ -24,6 +24,14 @@ export function GuideSearch() {
   const skipFirst = useRef(true);
   const lastExternalQ = useRef(urlQ);
 
+  // Review 3.2 P7 — lire `searchParams` au tick du debounce, pas à l'armement.
+  // Sans cette ref, l'effet 2 dépend de `searchParams` → chaque `router.replace`
+  // change `searchParams` → l'effet re-tourne → self-loop bénin mais coûteux,
+  // ET le closure capture un searchParams stale si un autre paramètre change
+  // pendant les 300ms (futur : `?theme=x` 3.5).
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
+
   useEffect(() => {
     if (lastExternalQ.current !== urlQ) {
       lastExternalQ.current = urlQ;
@@ -39,7 +47,7 @@ export function GuideSearch() {
     }
     const handle = setTimeout(() => {
       const next = value.trim();
-      const params = new URLSearchParams(searchParams);
+      const params = new URLSearchParams(searchParamsRef.current);
       if (next) params.set('q', next);
       else params.delete('q');
       lastExternalQ.current = next;
@@ -47,7 +55,7 @@ export function GuideSearch() {
       startTransition(() => router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false }));
     }, DEBOUNCE_MS);
     return () => clearTimeout(handle);
-  }, [value, pathname, router, searchParams]);
+  }, [value, pathname, router]);
 
   return (
     <div role="search" className="flex flex-col gap-2">
