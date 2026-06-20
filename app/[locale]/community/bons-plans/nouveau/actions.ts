@@ -44,15 +44,19 @@ function field(formData: FormData, key: string): string {
 
 /**
  * Borne l'expiration : la date `YYYY-MM-DD` du picker est interprétée en fin de
- * journée locale (23:59:59) ; doit être dans le futur et ≤ 30j. Renvoie l'ISO ou
- * null (→ invalid_expiration).
+ * journée UTC (23:59:59) ; doit être dans le futur et ≤ 30j. Le plafond est lui
+ * aussi calculé en fin de journée calendaire (J+30) — sinon la date max proposée
+ * par le picker (`isoDate(30)`), qui est aussi sa valeur par défaut, serait
+ * rejetée (fin de journée > now+30j exact). Renvoie l'ISO ou null
+ * (→ invalid_expiration).
  */
 function resolveExpiresAt(expiresOn: string): string | null {
-  const end = new Date(`${expiresOn}T23:59:59`);
+  const end = new Date(`${expiresOn}T23:59:59Z`);
   if (Number.isNaN(end.getTime())) return null;
   const now = Date.now();
-  const max = now + TIP_MAX_EXPIRY_DAYS * 86_400_000;
-  if (end.getTime() <= now || end.getTime() > max) return null;
+  const maxDay = new Date(now + TIP_MAX_EXPIRY_DAYS * 86_400_000);
+  const maxEnd = new Date(`${maxDay.toISOString().slice(0, 10)}T23:59:59Z`);
+  if (end.getTime() <= now || end.getTime() > maxEnd.getTime()) return null;
   return end.toISOString();
 }
 

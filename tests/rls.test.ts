@@ -1756,6 +1756,48 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu éphémère (Epic 4)', () => 
     });
     expect(insErr?.code).toBe('42501');
   });
+
+  it("(k) review #2 : l'auteur ne peut NI restaurer NI éditer une alerte retirée par modération", async () => {
+    // Alerte d'alice retirée (deleted_at posé — simule moderate_remove_content 5.3).
+    const { data: seeded, error: seedErr } = await admin
+      .from('alerts')
+      .insert({
+        slug: `retiree-mod-${Date.now()}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        title_fr: 'Retirée par mod',
+        body_fr: 'X',
+        expires_at: new Date(Date.now() + 86_400_000).toISOString(),
+        created_by: aliceId,
+        deleted_at: new Date().toISOString(),
+        deletion_reason: 'moderation',
+      })
+      .select('id')
+      .single();
+    if (seedErr || !seeded) throw seedErr ?? new Error('seed removed alert failed');
+
+    // Restauration directe (deleted_at = null) → colonne non grantée à l'auteur.
+    const { error: restoreErr } = await aliceClient
+      .from('alerts')
+      .update({ deleted_at: null })
+      .eq('id', seeded.id);
+    expect(restoreErr?.code).toBe('42501');
+
+    // Édition d'une ligne retirée → 0 ligne (policy author_update USING deleted_at is null).
+    const { data: edited } = await aliceClient
+      .from('alerts')
+      .update({ title_fr: 'Hack' })
+      .eq('id', seeded.id)
+      .select('id');
+    expect(edited ?? []).toHaveLength(0);
+
+    // La ligne reste retirée.
+    const { data: after } = await admin
+      .from('alerts')
+      .select('deleted_at')
+      .eq('id', seeded.id)
+      .single();
+    expect(after?.deleted_at).not.toBeNull();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

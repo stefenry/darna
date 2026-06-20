@@ -165,6 +165,14 @@ describe('createTip', () => {
     expect(res).toMatchObject({ ok: false, error: { message_key: 'invalid_expiration' } });
   });
 
+  it('accepte la date max du picker (J+30, valeur par défaut du form)', async () => {
+    // Review #1 : la borne est calculée en fin de journée calendaire J+30, sinon
+    // la date max proposée (et pré-remplie) serait rejetée (23:59:59 > now+30j).
+    const res = await createTip(CREATE_TIP_INITIAL, tipForm({ expires_on: isoInDays(30) }));
+    expect(res.ok).toBe(true);
+    expect(insertSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('catégorie invalide → validation/category_invalid', async () => {
     const res = await createTip(CREATE_TIP_INITIAL, tipForm({ category_key: 'spam' }));
     expect(res).toMatchObject({
