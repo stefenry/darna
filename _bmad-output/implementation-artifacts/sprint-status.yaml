@@ -93,7 +93,7 @@ development_status:
   # Epic 5: Modération réactive & Transparence radicale
   epic-5: in-progress
   5-1-schema-reports-extension-moderation-log-rls-transparence: review
-  5-2-signalement-contenu-par-resident-raison-fermee: backlog
+  5-2-signalement-contenu-par-resident-raison-fermee: review
   5-3-interface-co-mod-queue-signalements-retrait-notification-auteur: backlog
   5-4-journal-public-sur-transparence: backlog
   5-5-workflow-escalade-juridique: backlog

@@ -20,6 +20,7 @@ import { CommentsList } from './_components/comments-list';
 import { ArtisanResponses } from './_components/artisan-responses';
 import { CallButton } from './_components/call-button';
 import { ContributorPanel } from './_components/contributor-panel';
+import { ReportButton } from '@/components/content/report-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,6 +72,11 @@ export default async function ArtisanPage({ params }: Props) {
       <CommentsList locale={locale} comments={comments} />
       <ArtisanResponses responses={responses} artisanName={artisan.displayName} locale={locale} />
       <CallButton name={artisan.displayName} phoneE164={artisan.phoneE164} />
+      {!artisan.isOwner && (
+        <div className="border-t border-neutral-100 pt-4">
+          <ReportButton targetType="artisan" targetId={artisan.id} />
+        </div>
+      )}
     </article>
   );
 }

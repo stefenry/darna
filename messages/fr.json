@@ -167,6 +167,16 @@
       "invalid_expiration": "Date d'expiration invalide (entre demain et 30 jours).",
       "rate_limited": "Trop de publications. Réessayez plus tard.",
       "submit_failed": "La publication a échoué. Réessayez."
+    },
+    "report": {
+      "generic": "Le signalement n’a pas pu être envoyé. Réessaie.",
+      "target_invalid": "Ce contenu ne peut pas être signalé.",
+      "reason_invalid": "Choisis un motif de signalement.",
+      "note_too_long": "La note est trop longue (200 caractères max).",
+      "unauthenticated": "Connecte-toi pour signaler un contenu.",
+      "duplicate": "Tu as déjà signalé ce contenu ; les co-modérateurs vont l’examiner.",
+      "rate_limited": "Trop de signalements en peu de temps. Réessaie dans un moment.",
+      "submit_failed": "Le signalement n’a pas pu être envoyé. Réessaie."
     }
   },
   "auth": {
@@ -624,6 +634,26 @@
         "publish": "Publier",
         "publishing": "Publication…"
       }
+    },
+    "report": {
+      "action": "Signaler",
+      "dialogTitle": "Signaler ce contenu",
+      "reasonLabel": "Motif",
+      "reasonPlaceholder": "Choisis un motif",
+      "reasons": {
+        "diffamation": "Diffamation",
+        "info_erronee": "Info erronée",
+        "harcelement": "Harcèlement",
+        "spam": "Spam",
+        "hors_charte": "Hors-charte",
+        "autre": "Autre"
+      },
+      "noteLabel": "Note (facultatif)",
+      "notePlaceholder": "Précise si besoin (200 caractères max)",
+      "submit": "Envoyer le signalement",
+      "submitting": "Envoi…",
+      "cancel": "Annuler",
+      "success": "Merci, ton signalement a été transmis aux co-modérateurs."
     }
   },
   "profil": {

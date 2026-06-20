@@ -11,6 +11,7 @@ import type { GuideThemeKey } from '@/lib/content/guide';
 import type { Locale } from '@/lib/i18n/config';
 
 export type GuideEntryDetail = {
+  id: string;
   slug: string;
   themeKey: GuideThemeKey;
   title: string;
@@ -24,6 +25,7 @@ export type FetchGuideEntryResult =
   | { kind: 'not-found' };
 
 type EntryRow = {
+  id: string;
   slug: string;
   theme_key: GuideThemeKey;
   title_fr: string;
@@ -41,7 +43,7 @@ async function _fetchGuideEntryBySlug(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('guide_entries')
-    .select('slug, theme_key, title_fr, title_ar, body_fr_markdown, body_ar_markdown')
+    .select('id, slug, theme_key, title_fr, title_ar, body_fr_markdown, body_ar_markdown')
     .eq('slug', slug)
     .is('deleted_at', null)
     .maybeSingle();
@@ -59,6 +61,6 @@ async function _fetchGuideEntryBySlug(
 
   return {
     kind: 'found',
-    entry: { slug: row.slug, themeKey: row.theme_key, title, body, untranslated },
+    entry: { id: row.id, slug: row.slug, themeKey: row.theme_key, title, body, untranslated },
   };
 }

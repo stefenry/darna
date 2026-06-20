@@ -4,6 +4,7 @@
 
 import { useTranslations } from 'next-intl';
 import type { ArtisanComment } from '../data';
+import { ReportButton } from '@/components/content/report-button';
 
 // FR16 — nommé → display_name ; pseudonyme → « Voisin anonyme #XXXX » stable ;
 // contributeur anonymisé (purge RGPD, suffixe null) → « Voisin supprimé ».
@@ -63,6 +64,7 @@ export function CommentsList({ locale, comments }: { locale: string; comments: A
                   </div>
                 )}
                 <p className="text-base text-neutral-700">{comment.commentText}</p>
+                <ReportButton targetType="rating" targetId={comment.id} />
               </li>
             );
           })}

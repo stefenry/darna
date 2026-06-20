@@ -18,6 +18,9 @@ import type { ArtisanConsentAcceptedVars } from './templates/artisan-consent-acc
 import { artisanConsentRefusedTemplate as consentRefusedFr } from './templates/artisan-consent-refused.fr';
 import { artisanConsentRefusedTemplate as consentRefusedAr } from './templates/artisan-consent-refused.ar';
 import type { ArtisanConsentRefusedVars } from './templates/artisan-consent-refused.fr';
+import { reportNotifyComodTemplate as reportNotifyComodFr } from './templates/report-notify-comod.fr';
+import { reportNotifyComodTemplate as reportNotifyComodAr } from './templates/report-notify-comod.ar';
+import type { ReportNotifyComodVars } from './templates/report-notify-comod.fr';
 
 // AR16 — Boundary unique pour tout envoi e-mail transactionnel applicatif.
 // Note : `scripts/budget-alert.ts` est un script CLI ops (pas runtime app)
@@ -59,6 +62,12 @@ export type SendArgs =
       to: string;
       locale: 'fr' | 'ar';
       vars: ArtisanConsentRefusedVars;
+    }
+  | {
+      template: 'report-notify-comod';
+      to: string;
+      locale: 'fr' | 'ar';
+      vars: ReportNotifyComodVars;
     };
 
 export type SendResult =
@@ -122,5 +131,7 @@ function renderTemplate(args: SendArgs) {
       return args.locale === 'ar' ? consentAcceptedAr(args.vars) : consentAcceptedFr(args.vars);
     case 'artisan-consent-refused':
       return args.locale === 'ar' ? consentRefusedAr(args.vars) : consentRefusedFr(args.vars);
+    case 'report-notify-comod':
+      return args.locale === 'ar' ? reportNotifyComodAr(args.vars) : reportNotifyComodFr(args.vars);
   }
 }

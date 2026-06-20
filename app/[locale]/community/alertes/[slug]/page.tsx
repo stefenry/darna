@@ -8,6 +8,7 @@ import type { Locale } from '@/lib/i18n/config';
 import { timeRemaining } from '@/lib/content/ephemeral';
 import { fetchAlertBySlug } from '../data';
 import { RetireOwnButton } from '../_components/retire-own-button';
+import { ReportButton } from '@/components/content/report-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,9 +87,13 @@ export default async function AlertDetailPage({ params }: Props) {
 
       <p className="whitespace-pre-wrap text-base leading-relaxed text-neutral-800">{entry.body}</p>
 
-      {entry.isOwn && (
+      {entry.isOwn ? (
         <div className="border-t border-neutral-200 pt-4">
           <RetireOwnButton kind="alert" id={entry.id} locale={locale} />
+        </div>
+      ) : (
+        <div className="border-t border-neutral-200 pt-4">
+          <ReportButton targetType="alert" targetId={entry.id} />
         </div>
       )}
     </article>

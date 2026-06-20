@@ -4,6 +4,7 @@
 
 import { useTranslations } from 'next-intl';
 import { CallButton } from '@/components/content/call-button';
+import { ReportButton } from '@/components/content/report-button';
 import type { UsefulNumber } from '../data';
 
 const MA_MOBILE = /^\+212(\d)(\d{2})(\d{2})(\d{2})(\d{2})$/;
@@ -17,21 +18,24 @@ function formatPhone(e164: string): string {
 export function NumberCard({ number }: { number: UsefulNumber }) {
   const t = useTranslations('community.numerosUtiles');
   return (
-    <div className="flex flex-col gap-3 rounded-[14px] bg-white p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-col gap-0.5">
-        <h3 className="text-base font-semibold text-neutral-900">{number.label}</h3>
-        <span dir="ltr" className="w-fit text-sm tabular-nums tracking-wide text-neutral-600">
-          {formatPhone(number.phoneE164)}
-        </span>
-        {number.notes && <span className="text-sm text-neutral-500">{number.notes}</span>}
+    <div className="flex flex-col gap-2 rounded-[14px] bg-white p-4 shadow-xs">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-0.5">
+          <h3 className="text-base font-semibold text-neutral-900">{number.label}</h3>
+          <span dir="ltr" className="w-fit text-sm tabular-nums tracking-wide text-neutral-600">
+            {formatPhone(number.phoneE164)}
+          </span>
+          {number.notes && <span className="text-sm text-neutral-500">{number.notes}</span>}
+        </div>
+        <CallButton
+          phoneE164={number.phoneE164}
+          label={t('callAction')}
+          ariaLabel={t('call', { label: number.label })}
+          unavailableLabel={t('unavailable')}
+          variant="inline"
+        />
       </div>
-      <CallButton
-        phoneE164={number.phoneE164}
-        label={t('callAction')}
-        ariaLabel={t('call', { label: number.label })}
-        unavailableLabel={t('unavailable')}
-        variant="inline"
-      />
+      <ReportButton targetType="useful_number" targetId={number.id} />
     </div>
   );
 }

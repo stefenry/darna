@@ -10,6 +10,7 @@ import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
 import { MarkdownRender } from '@/components/content/markdown-render';
+import { ReportButton } from '@/components/content/report-button';
 import { fetchGuideEntryBySlug } from './data';
 
 export const dynamic = 'force-dynamic';
@@ -77,6 +78,10 @@ export default async function GuideEntryPage({ params }: Props) {
       </header>
 
       <MarkdownRender source={entry.body} />
+
+      <div className="border-t border-neutral-100 pt-4">
+        <ReportButton targetType="guide_entry" targetId={entry.id} />
+      </div>
     </article>
   );
 }
