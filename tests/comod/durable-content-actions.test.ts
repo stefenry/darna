@@ -11,6 +11,7 @@ const updateEqSpy = vi.fn();
 const rpcSpy = vi.fn();
 let insertError: unknown = null;
 let updateError: unknown = null;
+let updateRows: { id: string }[] = [{ id: 'row-1' }];
 let rpcError: { message?: string } | null = null;
 
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
@@ -28,7 +29,10 @@ vi.mock('@/lib/supabase/server', () => ({
         return {
           eq: (c: string, v: string) => {
             updateEqSpy(c, v);
-            return Promise.resolve({ error: updateError });
+            // Chaînage réel : .update().eq().select('id') → { data, error }.
+            return {
+              select: () => Promise.resolve({ data: updateRows, error: updateError }),
+            };
           },
         };
       },
@@ -66,6 +70,7 @@ beforeEach(() => {
   rpcSpy.mockReset();
   insertError = null;
   updateError = null;
+  updateRows = [{ id: 'row-1' }];
   rpcError = null;
   requireComodMock.mockResolvedValue({ ok: true, user: COMOD });
 });
@@ -126,6 +131,16 @@ describe('saveDurableEntry (edit)', () => {
     expect(table).toBe('guide_entries');
     expect(payload).not.toHaveProperty('residence_id');
     expect(updateEqSpy).toHaveBeenCalledWith('id', 'g1');
+  });
+
+  it('édition filtrée par la RLS (0 ligne) → not_found, pas de faux succès', async () => {
+    updateRows = []; // RLS exclut la ligne (cross-résidence / retirée)
+    const res = await saveDurableEntry(
+      { kind: 'guide', id: 'g1' },
+      DURABLE_INITIAL,
+      guideForm({ title_ar: 'كود' }),
+    );
+    expect(res).toMatchObject({ ok: false, code: 'not_found' });
   });
 });
 

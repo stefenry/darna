@@ -1,6 +1,6 @@
 # Story 3.4: Pack accueil mis en avant post-validation
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -157,3 +157,14 @@ claude-opus-4-8 (dev autonome Epic 3, 2026-06-20).
 | Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | ---------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-06-19 | 0.1     | Création story 3.4 (context engine). Onboarding Pack accueil : bannière home conditionnée au lifecycle `users` (first_login_at / pack_accueil_dismissed_at, posés via Server Actions session idempotentes non bloquantes), page Pack route statique lisant `pack_entries` (sections dépliables + deep-links Guide + renderer markdown 3.2), cache offline, i18n, tests. Aucune migration (colonnes 1.3 réutilisées). Status → ready-for-dev. |
+
+### Review Findings
+
+> Code review adversariale (Blind / Edge / Acceptance) — 2026-06-20. 2 patch, 4 defer. Sécurité OK (écriture session client, idempotence guards, non-bloquant, RLS self-only testée ; markdown `skipHtml` = pas de XSS).
+
+- [x] [Review][Patch] Ordre des sections alphabétique au lieu de l'ordre d'apparition (D5) — `data.ts` trie `.order('section_key')` puis `order_in_section` → sections rendues par ordre alphabétique de `section_key` (texte libre). Spec D5/AC2 : « le tri/regroupement suit `order_in_section` et l'ordre d'apparition des `section_key` » (l'exemple AC2 n'est pas alphabétique). Fix : trier les sections par `min(order_in_section)` (requête ordonnée par order puis regroupement first-seen). [`app/[locale]/community/guide/pack-accueil/data.ts:40`]
+- [x] [Review][Patch] `completeOnboarding` se déclenche au mount même si la page Pack a échoué/est vide → l'onboarding est marqué complet (bannière disparue à jamais) sans que le résident ait vu le contenu. Fix : ne rendre `<MarkOnboardingComplete>` que si `sections.length > 0`. [`app/[locale]/community/guide/pack-accueil/_components/mark-onboarding-complete.tsx:14`]
+- [x] [Review][Defer] `completeOnboarding` écrase `pack_accueil_dismissed_at` (guard sur `first_login_at is null` seulement) → perd l'horodatage d'un dismiss antérieur. Bénin (déjà masquée). [`app/[locale]/community/_actions/onboarding.ts`] — deferred, sémantique timestamp
+- [x] [Review][Defer] `revalidatePath('/[locale]/community')` omis des 2 Server Actions (Task 4 explicite). Fonctionnellement OK (`fetchOnboardingState` force-dynamic re-lit à la navigation). [`app/[locale]/community/_actions/onboarding.ts`] — deferred, pattern-cohérent
+- [x] [Review][Defer] Deep-link Guide dans le markdown du pack non validé (slug supprimé/renommé → lien mort). [`pack-section.tsx` via MarkdownRender] — deferred, à câbler avec validation CRUD 3.5
+- [x] [Review][Defer] **Systémique (hors 3.4)** : un résident dont le JWT n'a pas encore les claims `residence_id`/`role` voit un Pack vide « en préparation » (RLS `auth_residence_id()` null → 0 rows). Affecte toutes les lectures RLS Epic 2/3, pas juste le pack. À vérifier que les claims sont bien posés au login (1.6). [`data.ts` + RLS] — deferred, escalade auth/claims

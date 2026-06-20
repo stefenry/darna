@@ -65,12 +65,16 @@ export function AdminList({
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Link
-                    href={`/${locale}/comod/admin/${route}/${item.id}`}
-                    className="inline-flex min-h-touch items-center justify-center rounded-[10px] px-3 text-sm font-medium text-accent-600 hover:bg-bg-soft"
-                  >
-                    {t('edit')}
-                  </Link>
+                  {/* Éditer une entrée retirée n'a aucun effet public (deleted_at
+                      inchangé) → on masque l'action tant qu'elle est retirée. */}
+                  {!item.retired && (
+                    <Link
+                      href={`/${locale}/comod/admin/${route}/${item.id}`}
+                      className="inline-flex min-h-touch items-center justify-center rounded-[10px] px-3 text-sm font-medium text-accent-600 hover:bg-bg-soft"
+                    >
+                      {t('edit')}
+                    </Link>
+                  )}
                   {!item.retired && <RetireConfirm kind={kind} id={item.id} />}
                 </div>
               </div>

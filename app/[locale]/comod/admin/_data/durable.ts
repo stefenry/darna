@@ -79,27 +79,30 @@ export async function fetchAdminEntry(
   const supabase = await createClient();
 
   if (kind === 'numeros') {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('useful_numbers')
       .select('category_key, label_fr, label_ar, phone_e164, notes_fr, notes_ar, order_in_category')
       .eq('id', id)
       .maybeSingle();
+    if (error) throw error; // erreur transitoire ≠ absence : ne pas dégrader en notFound()
     return data ?? null;
   }
   if (kind === 'guide') {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('guide_entries')
       .select(
         'slug, theme_key, title_fr, title_ar, body_fr_markdown, body_ar_markdown, order_in_theme',
       )
       .eq('id', id)
       .maybeSingle();
+    if (error) throw error;
     return data ?? null;
   }
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('pack_entries')
     .select('section_key, title_fr, title_ar, body_fr_markdown, body_ar_markdown, order_in_section')
     .eq('id', id)
     .maybeSingle();
+  if (error) throw error;
   return data ?? null;
 }

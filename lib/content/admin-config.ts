@@ -17,8 +17,11 @@ type DurableConfigEntry = {
   kind: DurableKind;
   dbKind: DurableDbKind;
   table: DurableTable;
-  /** Segment de route lecture résident (`/community/<route>`). */
+  /** Segment de route admin co_mod (`/comod/admin/<readRoute>`). */
   readRoute: string;
+  /** Segment de route lecture résident (`/community/<residentRoute>`). Diffère
+   *  de `readRoute` pour le pack (page sœur sous `guide/`). */
+  residentRoute: string;
   /** A un corps Markdown bilingue + preview (Guide/Pack) vs champs téléphone (Numéros). */
   hasMarkdown: boolean;
   hasPhone: boolean;
@@ -34,6 +37,7 @@ export const DURABLE_CONFIG: Record<DurableKind, DurableConfigEntry> = {
     dbKind: 'guide_entry',
     table: 'guide_entries',
     readRoute: 'guide',
+    residentRoute: 'guide',
     hasMarkdown: true,
     hasPhone: false,
     orderField: 'order_in_theme',
@@ -44,6 +48,7 @@ export const DURABLE_CONFIG: Record<DurableKind, DurableConfigEntry> = {
     dbKind: 'useful_number',
     table: 'useful_numbers',
     readRoute: 'numeros-utiles',
+    residentRoute: 'numeros-utiles',
     hasMarkdown: false,
     hasPhone: true,
     orderField: 'order_in_category',
@@ -54,6 +59,7 @@ export const DURABLE_CONFIG: Record<DurableKind, DurableConfigEntry> = {
     dbKind: 'pack_entry',
     table: 'pack_entries',
     readRoute: 'pack-accueil',
+    residentRoute: 'guide/pack-accueil',
     hasMarkdown: true,
     hasPhone: false,
     orderField: 'order_in_section',

@@ -37,12 +37,17 @@ async function _fetchPackEntries(locale: Locale): Promise<PackSection[]> {
     .from('pack_entries')
     .select('section_key, title_fr, title_ar, body_fr_markdown, body_ar_markdown, order_in_section')
     .is('deleted_at', null)
-    .order('section_key', { ascending: true })
-    .order('order_in_section', { ascending: true });
+    // D5 : ordre des sections = ordre d'apparition (min order_in_section), PAS
+    // alphabétique. On trie globalement par order_in_section, puis on regroupe
+    // first-seen → une section apparaît à la position de son entrée la plus basse.
+    // `section_key` en tie-break déterministe.
+    .order('order_in_section', { ascending: true })
+    .order('section_key', { ascending: true });
   if (error) throw error;
 
   const isAr = locale === 'ar';
-  // Map insertion-ordered (les lignes arrivent déjà triées section_key, order).
+  // Map insertion-ordered : la 1ʳᵉ apparition (order_in_section le plus bas) fixe
+  // l'ordre des sections ; les entrées d'une section restent triées par order.
   const bySection = new Map<string, PackEntry[]>();
   for (const row of (data ?? []) as Row[]) {
     const title = isAr && row.title_ar?.trim() ? row.title_ar : row.title_fr;

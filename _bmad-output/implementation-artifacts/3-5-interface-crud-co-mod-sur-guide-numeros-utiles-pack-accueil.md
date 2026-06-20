@@ -1,6 +1,6 @@
 # Story 3.5: Interface CRUD co-mod sur Guide, Numéros utiles, Pack accueil
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -182,3 +182,18 @@ claude-opus-4-8 (dev autonome Epic 3, 2026-06-20).
 | Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 2026-06-19 | 0.1     | Création story 3.5 (context engine). CRUD co_mod unifié sur Guide/Numéros/Pack : éditeur bilingue générique (markdown FR/AR côte à côte + preview), create/edit via client session co_mod (RLS+grants 3.1), retrait via RPC SECURITY DEFINER (soft-delete + moderation_log `content_removed` atomiques), validation Zod client+serveur, garde 403 héritée du layout, Server Actions exclusives, i18n, tests RLS+actions+rendu. Status → ready-for-dev. |
+
+### Review Findings
+
+> Code review adversariale (Blind / Edge / Acceptance) — 2026-06-20. 6 patch, 4 defer. Sécurité cœur conforme : retrait via RPC SECURITY DEFINER (`search_path=public`, revoke/grant, re-check rôle+résidence, soft-delete + moderation_log atomiques), create/edit via session client + grants 3.1, `residence_id`/`created_by` jamais du form, 403 layout + re-garde action, Zod client+serveur (AR17), markdown `skipHtml` (pas de XSS).
+
+- [x] [Review][Patch] Pack `revalidatePath` vise une route inexistante — `cfg.readRoute='pack-accueil'` → `revalidatePath('/[locale]/community/pack-accueil')`, mais la page résident est `/community/guide/pack-accueil` (3.4). Le cache du Pack n'est jamais invalidé après édition/retrait co_mod → contenu périmé. Fix : séparer la route résident (pack → `guide/pack-accueil`) de la route admin dans `admin-config.ts`. [`lib/content/admin-config.ts:56` + `app/[locale]/comod/admin/_actions/durable-content.ts:252,288`]
+- [x] [Review][Patch] Édition RLS-filtrée = faux succès silencieux — `update(...).eq('id', ctx.id)` sans `.select()`/contrôle de lignes ; si la RLS exclut la ligne (cross-résidence, retirée), 0 ligne modifiée + `error=null` → `{ok:true}` trompeur. Fix : `.select('id')` et vérifier qu'une ligne est revenue (sinon `not_found`/`wrong_residence`). [`app/[locale]/comod/admin/_actions/durable-content.ts:130-142,170-183,207-219`]
+- [x] [Review][Patch] `fetchAdminEntry` avale l'erreur → 404 parasite — `const { data } = await ...maybeSingle()` ignore `error` ; une erreur transitoire devient `notFound()` indistinguable d'absence/cross-résidence. Fix : capturer `error`, logguer, distinguer erreur vs absence. [`app/[locale]/comod/admin/_data/durable.ts`]
+- [x] [Review][Patch] Motif de retrait non borné — `reason` passé verbatim au RPC (stocké dans `deletion_reason` + `moderation_log.reason_text_anonymized`), sans cap de longueur ni Zod (l'input n'a pas de `maxLength`). Fix : valider/tronquer la longueur (ex. ≤500) avant le RPC. [`app/[locale]/comod/admin/_actions/durable-content.ts:272` + `retire-confirm.tsx`]
+- [x] [Review][Patch] Lien « Éditer » rendu sur une entrée retirée → édition silencieuse sans effet public — le `<Link>` Éditer est inconditionnel (seul `RetireConfirm` est gated `!item.retired`) ; éditer une entrée soft-deleted « réussit » (maj `updated_at`) mais reste invisible aux résidents, sans feedback. Fix : masquer/bloquer Éditer si `item.retired`. [`app/[locale]/comod/admin/_components/admin-list.tsx`]
+- [x] [Review][Patch] `residence_id: null` hardcodé dans tous les `log()` alors que `guard.user.app_metadata.residence_id` est dispo → audit dégradé sur une feature de modération. Fix : logguer la vraie résidence. [`app/[locale]/comod/admin/_actions/durable-content.ts:240,281`]
+- [x] [Review][Defer] `isUntranslated` n'inspecte que le corps (ignore `title_ar`/`notes_ar`) → signal AC3 grossier. [`durable-content.ts:82-85`] — deferred, signalement
+- [x] [Review][Defer] Édition concurrente = last-write-wins (pas de version/optimistic-lock). Faible probabilité (contenu curé co_mod). [`durable-content.ts`] — deferred
+- [x] [Review][Defer] `loading.tsx`/`error.tsx` des modules admin non livrés (Task 5). [`app/[locale]/comod/admin/`] — deferred, dette
+- [x] [Review][Defer] Slug recalculé à l'édition si le champ slug est vidé (le form le pré-remplit → préservé par défaut ; pas de tombstone si changé volontairement). [`durable-content.ts:133`] — deferred, action admin assumée

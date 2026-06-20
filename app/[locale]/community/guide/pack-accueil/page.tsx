@@ -53,7 +53,9 @@ export default async function PackAccueilPage({ params }: Props) {
 
   return (
     <article className="flex flex-col gap-5">
-      <MarkOnboardingComplete />
+      {/* Ne marquer l'onboarding complété que si le contenu a réellement chargé :
+          sinon une page vide/en erreur consommerait la bannière à jamais. */}
+      {sections.length > 0 && <MarkOnboardingComplete />}
 
       <Link
         href={`/${locale}/community`}

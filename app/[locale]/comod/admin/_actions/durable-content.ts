@@ -116,6 +116,10 @@ export async function saveDurableEntry(
 
   // Construit les payloads insert/update par kind (colonnes distinctes).
   let dbError: { code?: string; message?: string } | null = null;
+  // Édition : nombre de lignes effectivement modifiées. Si la RLS filtre la ligne
+  // (cross-résidence / retirée), l'UPDATE renvoie 0 ligne sans erreur → on évite
+  // un faux succès silencieux.
+  let editedRows: number | null = null;
   if (ctx.kind === 'guide') {
     const d = data as {
       slug?: string;
@@ -127,7 +131,7 @@ export async function saveDurableEntry(
       order_in_theme: number;
     };
     if (ctx.id) {
-      const { error } = await supabase
+      const { data: upd, error } = await supabase
         .from('guide_entries')
         .update({
           slug: resolveGuideSlug({ slug: d.slug, title_fr: d.title_fr }),
@@ -139,8 +143,10 @@ export async function saveDurableEntry(
           order_in_theme: d.order_in_theme,
           updated_at: now,
         })
-        .eq('id', ctx.id);
+        .eq('id', ctx.id)
+        .select('id');
       dbError = error;
+      editedRows = upd?.length ?? 0;
     } else {
       // `created_by` n'est plus granté à l'insert (review 3.1 P10) : colonne
       // `default auth.uid()`, posée par la DB. La policy `with check (created_by
@@ -168,7 +174,7 @@ export async function saveDurableEntry(
       order_in_category: number;
     };
     if (ctx.id) {
-      const { error } = await supabase
+      const { data: upd, error } = await supabase
         .from('useful_numbers')
         .update({
           category_key: d.category_key as never,
@@ -180,8 +186,10 @@ export async function saveDurableEntry(
           order_in_category: d.order_in_category,
           updated_at: now,
         })
-        .eq('id', ctx.id);
+        .eq('id', ctx.id)
+        .select('id');
       dbError = error;
+      editedRows = upd?.length ?? 0;
     } else {
       const { error } = await supabase.from('useful_numbers').insert({
         residence_id: residenceId!,
@@ -205,7 +213,7 @@ export async function saveDurableEntry(
       order_in_section: number;
     };
     if (ctx.id) {
-      const { error } = await supabase
+      const { data: upd, error } = await supabase
         .from('pack_entries')
         .update({
           section_key: d.section_key,
@@ -216,8 +224,10 @@ export async function saveDurableEntry(
           order_in_section: d.order_in_section,
           updated_at: now,
         })
-        .eq('id', ctx.id);
+        .eq('id', ctx.id)
+        .select('id');
       dbError = error;
+      editedRows = upd?.length ?? 0;
     } else {
       const { error } = await supabase.from('pack_entries').insert({
         residence_id: residenceId!,
@@ -237,7 +247,7 @@ export async function saveDurableEntry(
       level: 'error',
       event: 'comod.durable_save_failed',
       user_id: guard.user.id,
-      residence_id: null,
+      residence_id: residenceId ?? null,
       request_id: null,
       payload: {
         kind: ctx.kind,
@@ -248,8 +258,14 @@ export async function saveDurableEntry(
     return err('submit_failed', 'errors.comod.content.submit_failed');
   }
 
+  // Édition filtrée par la RLS (cross-résidence / entrée retirée) → 0 ligne, pas
+  // d'erreur : on remonte not_found plutôt qu'un faux succès.
+  if (ctx.id && editedRows === 0) {
+    return err('not_found', 'errors.comod.content.not_found');
+  }
+
   revalidatePath(`/[locale]/comod/admin/${cfg.readRoute}`, 'page');
-  revalidatePath(`/[locale]/community/${cfg.readRoute}`, 'page');
+  revalidatePath(`/[locale]/community/${cfg.residentRoute}`, 'page');
 
   return isUntranslated(ctx.kind, data) ? { ok: true, warning: 'untranslated' } : { ok: true };
 }
@@ -265,11 +281,14 @@ export async function retireDurableEntry(
   if (!isDurableKind(kind)) return err('invalid_input', 'errors.comod.content.submit_failed');
 
   const cfg = DURABLE_CONFIG[kind];
+  const residenceId = (guard.user.app_metadata?.residence_id as string | undefined) ?? null;
   const supabase = await createClient();
+  // Motif borné (≤500) : stocké verbatim dans moderation_log — pas de free-text illimité.
+  const cleanReason = reason?.trim() ? reason.trim().slice(0, 500) : '';
   const { error } = await supabase.rpc('retire_durable_entry', {
     p_kind: cfg.dbKind,
     p_id: id,
-    p_reason: reason?.trim() ? reason.trim() : '',
+    p_reason: cleanReason,
   });
 
   if (error) {
@@ -277,7 +296,7 @@ export async function retireDurableEntry(
       level: 'warn',
       event: 'comod.durable_retire_failed',
       user_id: guard.user.id,
-      residence_id: null,
+      residence_id: residenceId,
       request_id: null,
       payload: { kind, reason: error.message ?? 'unknown' },
     });
@@ -285,7 +304,7 @@ export async function retireDurableEntry(
   }
 
   revalidatePath(`/[locale]/comod/admin/${cfg.readRoute}`, 'page');
-  revalidatePath(`/[locale]/community/${cfg.readRoute}`, 'page');
+  revalidatePath(`/[locale]/community/${cfg.residentRoute}`, 'page');
   return { ok: true };
 }
 

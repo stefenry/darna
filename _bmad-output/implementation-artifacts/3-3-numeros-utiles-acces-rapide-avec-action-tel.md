@@ -1,6 +1,6 @@
 # Story 3.3: Numéros utiles — accès rapide avec action `tel:`
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -140,3 +140,11 @@ claude-opus-4-8 (dev autonome Epic 3, 2026-06-20).
 | Date       | Version | Description                                                                                                                                                                                                                                                                                                                                                             |
 | ---------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-06-19 | 0.1     | Création story 3.3 (context engine). Lecture Numéros utiles sur schéma 3.1 : liste groupée par catégorie, appel 1-tap `tel:` (réutilisation `<CallButton>` 2.3, ≥56px, pas de modal), notes contextuelles fallback FR, cache offline (matcher durable-content élargi), `dir=ltr` sur numéros en RTL, i18n, tuile home, tests. Aucune migration. Status → ready-for-dev. |
+
+### Review Findings
+
+> Code review adversariale (Blind / Edge / Acceptance) — 2026-06-20. Story quasi-propre : 0 decision, 0 patch bloquant, 3 defer. Sécurité OK (garde `tel:` E.164 stricte, RLS résidence-scopée, pas d'admin client, `dir=ltr` numéros, fallback FR notes).
+
+- [x] [Review][Defer] `formatPhone` ne formate que les mobiles `+212` 9 chiffres — landlines/urgences/numéros courts s'affichent en E.164 brut (lisible mais non groupé). Cosmétique ; le `tel:` href reste correct (non reformaté). [`app/[locale]/community/numeros-utiles/_components/number-card.tsx`] — deferred, cosmétique
+- [x] [Review][Defer] Tests Task 6 incomplets : pas de test rendu page groupée ni état vide (`groups=[]`), ni du fallback FR de note (logique au data layer non exercée). [`tests/numeros/numeros-list.test.tsx`] — deferred, dette de test (cluster E2E)
+- [x] [Review][Defer] Ordre intra-catégorie non déterministe si `order_in_category` à égalité (index non-unique, pas de tri secondaire `created_at`/`label`). [`app/[locale]/community/numeros-utiles/data.ts`] — deferred, jitter mineur

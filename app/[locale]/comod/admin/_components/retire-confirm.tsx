@@ -67,6 +67,7 @@ export function RetireConfirm({ kind, id }: { kind: DurableKind; id: string }) {
         <input
           value={reason}
           onChange={(e) => setReason(e.target.value)}
+          maxLength={500}
           className="min-h-touch rounded-[10px] bg-white px-3 text-sm text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
         />
       </label>
