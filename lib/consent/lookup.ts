@@ -20,6 +20,12 @@ type ArtisanState = Database['public']['Enums']['artisan_state'];
 type IdentityMode = 'pseudo' | 'identified';
 type EmbeddedTag = { key: string; label_fr: string; label_ar: string | null };
 
+/** Story 2.7 — diff PII proposée par le contributeur (re-consent sur fiche published). */
+export type ReconsentDiff = {
+  name: { from: string; to: string } | null;
+  phoneChanged: boolean;
+};
+
 export type ConsentLookup =
   | { status: 'invalid' }
   | { status: 'expired' }
@@ -29,10 +35,12 @@ export type ConsentLookup =
       displayName: string;
       tags: string[];
       contributorIdentityMode: IdentityMode;
+      reconsent: ReconsentDiff | null;
     };
 
 const RAW_MIN = 16;
 const RAW_MAX = 200;
+const PHONE_NORMALIZE = /[\s.\-()]+/g;
 
 function pickLocale(locale: Locale, fr: string, ar: string | null): string {
   return locale === 'ar' && ar?.trim() ? ar : fr;
@@ -48,7 +56,7 @@ export async function resolveConsentToken(raw: string, locale: Locale): Promise<
   const { data, error } = await admin
     .from('artisan_consent_tokens')
     .select(
-      'expires_at, used_at, artisans ( slug, display_name_fr, display_name_ar, state, deleted_at, created_by, artisan_tags ( tags ( key, label_fr, label_ar ) ) )',
+      'expires_at, used_at, artisans ( slug, display_name_fr, display_name_ar, phone_e164, pending_display_name_fr, pending_phone_e164, state, deleted_at, created_by, artisan_tags ( tags ( key, label_fr, label_ar ) ) )',
     )
     .eq('token_hash', tokenHash)
     .maybeSingle();
@@ -59,6 +67,9 @@ export async function resolveConsentToken(raw: string, locale: Locale): Promise<
     slug: string;
     display_name_fr: string;
     display_name_ar: string | null;
+    phone_e164: string;
+    pending_display_name_fr: string | null;
+    pending_phone_e164: string | null;
     state: ArtisanState;
     deleted_at: string | null;
     created_by: string | null;
@@ -99,5 +110,20 @@ export async function resolveConsentToken(raw: string, locale: Locale): Promise<
     }
   }
 
-  return { status: 'valid', displayName, tags, contributorIdentityMode };
+  // Story 2.7 — diff PII si un re-consent draft est en cours (fiche published).
+  const pendingName = artisan.pending_display_name_fr;
+  const pendingPhone = artisan.pending_phone_e164;
+  const nameChanged = pendingName != null && pendingName.trim() !== artisan.display_name_fr.trim();
+  const phoneChanged =
+    pendingPhone != null &&
+    pendingPhone.replace(PHONE_NORMALIZE, '') !== artisan.phone_e164.replace(PHONE_NORMALIZE, '');
+  const reconsent: ReconsentDiff | null =
+    nameChanged || phoneChanged
+      ? {
+          name: nameChanged ? { from: artisan.display_name_fr, to: pendingName! } : null,
+          phoneChanged,
+        }
+      : null;
+
+  return { status: 'valid', displayName, tags, contributorIdentityMode, reconsent };
 }

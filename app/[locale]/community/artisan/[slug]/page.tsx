@@ -3,14 +3,21 @@
 // distinction « gone » est différée à Story 6.1 (cf. review 2026-06-17 P21).
 
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { setRequestLocale } from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
-import { fetchArtisanBySlug, fetchArtisanComments } from './data';
+import {
+  fetchArtisanBySlug,
+  fetchArtisanComments,
+  fetchMyRating,
+  fetchArtisanResponses,
+} from './data';
 import { ArtisanHeader } from './_components/artisan-header';
 import { RatingGaugesFull } from './_components/rating-gauges-full';
 import { CommentsList } from './_components/comments-list';
+import { ArtisanResponses } from './_components/artisan-responses';
 import { CallButton } from './_components/call-button';
 import { ContributorPanel } from './_components/contributor-panel';
 
@@ -39,14 +46,26 @@ export default async function ArtisanPage({ params }: Props) {
   if (result.kind === 'not-found') notFound();
 
   const artisan = result.artisan;
-  const comments = await fetchArtisanComments(artisan.id);
+  const [comments, myRating, responses, tc] = await Promise.all([
+    fetchArtisanComments(artisan.id),
+    fetchMyRating(artisan.id),
+    fetchArtisanResponses(artisan.id),
+    getTranslations({ locale, namespace: 'community.artisan.comments' }),
+  ]);
 
   return (
     <article className="flex flex-col gap-6 pb-32">
       <ArtisanHeader locale={locale} artisan={artisan} />
-      {artisan.isOwner && <ContributorPanel />}
+      {artisan.isOwner && <ContributorPanel locale={locale} slug={slug} />}
       <RatingGaugesFull axes={artisan.axes} />
+      <Link
+        href={`/${locale}/community/artisan/${slug}/noter`}
+        className="inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-bg-soft px-5 text-sm font-semibold text-accent-600 hover:bg-neutral-300"
+      >
+        {myRating ? tc('rateUpdate') : tc('rate')}
+      </Link>
       <CommentsList locale={locale} comments={comments} />
+      <ArtisanResponses responses={responses} artisanName={artisan.displayName} locale={locale} />
       <CallButton name={artisan.displayName} phoneE164={artisan.phoneE164} />
     </article>
   );

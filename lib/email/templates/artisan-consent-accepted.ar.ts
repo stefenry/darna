@@ -6,10 +6,27 @@ export type { ArtisanConsentAcceptedVars, RenderedTemplate };
 
 // Story 2.5 — version AR (le contributeur peut avoir choisi l'arabe, V1.5).
 // Review P26/P27 : singleLine + escape centralisé.
+function originOf(url: string): string {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return '';
+  }
+}
+
 export function artisanConsentAcceptedTemplate(vars: ArtisanConsentAcceptedVars): RenderedTemplate {
   const name = singleLine(String(vars.artisanName ?? '')).slice(0, 120);
   const url = String(vars.ficheUrl ?? '');
   const subject = singleLine(`بطاقة ${name} أصبحت متاحة 🎉`);
+
+  // Story 2.8 — قناة اكتشاف حق الرد للحرفي.
+  const contactUrl = originOf(url) ? `${originOf(url)}/artisan/contact` : '';
+  const contactText = contactUrl
+    ? `\n\nهل أنت الحرفي؟ يمكنك الرد أو طلب تصحيح (بدون حساب): ${contactUrl}`
+    : '';
+  const contactHtml = contactUrl
+    ? `<p style="font-size:14px;color:#6b6b6b">هل أنت الحرفي؟ <a href="${escapeHtml(contactUrl)}" style="color:#5B9C66">رُدّ أو اطلب تصحيحًا</a>.</p>`
+    : '';
 
   const textContent = `خبر سار!
 
@@ -17,7 +34,7 @@ export function artisanConsentAcceptedTemplate(vars: ArtisanConsentAcceptedVars)
 
 ${url}
 
-شكرًا على مساهمتك.
+شكرًا على مساهمتك.${contactText}
 
 — فريق دارنا`;
 
@@ -26,6 +43,7 @@ ${url}
 <p>أكّد <strong>${escapeHtml(name)}</strong> بطاقته في دليل دارنا. أصبحت الآن مرئية لجيرانك.</p>
 <p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">عرض البطاقة</a></p>
 <p style="font-size:14px;color:#6b6b6b">شكرًا على مساهمتك.</p>
+${contactHtml}
 <p style="font-size:14px;color:#6b6b6b">— فريق دارنا</p>
 </body></html>`;
 

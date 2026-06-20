@@ -45,11 +45,16 @@ const annuaireCache: RuntimeCaching = {
 // l'annuaire (lecture publique anonyme) reste cachable. Le 410/cache strict
 // reviendra avec Story 6.1 (slugs canoniques + invalidation explicite).
 
-// Story 2.5 review P12 — `/consent/[token]` JAMAIS cacher (token raw dans URL).
-// Le matcher passe BEFORE defaultCache (NetworkFirst HTML same-origin) qui sinon
-// stockerait le HTML de la fiche localement (leak token + nom artisan).
-const consentBypass: RuntimeCaching = {
-  matcher: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith('/consent/'),
+// Story 2.5 review P12 + Story 2.8 — JAMAIS cacher les surfaces token-based
+// publiques (token raw dans l'URL + PII fiche dans le HTML) : `/consent/[token]`,
+// `/respond/[token]`, `/artisan/contact`. Passe BEFORE defaultCache (NetworkFirst
+// HTML same-origin) qui sinon stockerait le HTML localement (leak token + nom).
+const tokenSurfaceBypass: RuntimeCaching = {
+  matcher: ({ url, sameOrigin }) =>
+    sameOrigin &&
+    (url.pathname.startsWith('/consent/') ||
+      url.pathname.startsWith('/respond/') ||
+      url.pathname === '/artisan/contact'),
   handler: new NetworkOnly(),
 };
 
@@ -58,7 +63,7 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: supportsNavigationPreload,
-  runtimeCaching: [consentBypass, annuaireCache, ...defaultCache],
+  runtimeCaching: [tokenSurfaceBypass, annuaireCache, ...defaultCache],
 });
 
 serwist.addEventListeners();

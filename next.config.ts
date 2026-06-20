@@ -62,6 +62,16 @@ const nextConfig: NextConfig = {
         source: '/consent/:path*',
         headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
       },
+      {
+        // Story 2.8 — token raw + PII fiche dans /respond/[token].
+        source: '/respond/:path*',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
+      {
+        // Story 2.8 — formulaire phone (enumeration AR38) ; jamais cacher.
+        source: '/artisan/contact',
+        headers: [{ key: 'Cache-Control', value: 'private, no-store' }],
+      },
     ];
   },
 };

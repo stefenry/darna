@@ -64,15 +64,51 @@ export default async function ConsentPage({ params, searchParams }: Props) {
 
       {result.status === 'valid' && (
         <section className="flex flex-col gap-5">
+          {/* P14 (review 2.7) — différencier 1er consent vs re-consent. */}
           <header className="flex flex-col gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
-            <p className="text-base text-neutral-700">{t('intro', { name: result.displayName })}</p>
+            {result.reconsent ? (
+              <>
+                <span className="inline-flex w-fit items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                  {t('reconsentBadge')}
+                </span>
+                <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+                  {t('reconsentTitle')}
+                </h1>
+                <p className="text-base text-neutral-700">
+                  {t('reconsentLead', { name: result.displayName })}
+                </p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+                  {t('title')}
+                </h1>
+                <p className="text-base text-neutral-700">
+                  {t('intro', { name: result.displayName })}
+                </p>
+              </>
+            )}
             <p className="text-sm text-neutral-500">
               {result.contributorIdentityMode === 'identified'
                 ? t('visibilityNoteNamed')
                 : t('visibilityNotePseudo')}
             </p>
           </header>
+
+          {result.reconsent && (
+            <div className="flex flex-col gap-1 rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
+              <p className="font-medium text-neutral-900">{t('reconsentIntro')}</p>
+              {result.reconsent.name && (
+                <p>
+                  {t('reconsentNameChange', {
+                    from: result.reconsent.name.from,
+                    to: result.reconsent.name.to,
+                  })}
+                </p>
+              )}
+              {result.reconsent.phoneChanged && <p>{t('reconsentPhoneChange')}</p>}
+            </div>
+          )}
 
           {result.tags.length > 0 && (
             <div className="flex flex-col gap-2">

@@ -16,6 +16,12 @@ describe.skipIf(!RUN)('process_artisan_consent RPC (Story 2.5)', () => {
   let admin: DarnaClient;
   const artisanIds: string[] = [];
 
+  // Phone unique par seed (l'index `artisans_phone_e164_active_unique` interdit 2
+  // artisans actifs au même numéro — un phone hardcodé collisionnait dès le 2e seed).
+  function uniquePhone(ts: number): string {
+    return `+2126${String(ts).slice(-8)}`;
+  }
+
   async function seed(tokenHash: string, expiresAt: string): Promise<string> {
     const ts = Date.now() + Math.floor(Math.random() * 1e6);
     const { data: a, error } = await admin
@@ -24,7 +30,7 @@ describe.skipIf(!RUN)('process_artisan_consent RPC (Story 2.5)', () => {
         slug: `consent-test-${ts}`,
         residence_id: DARNA_RESIDENCE_ID,
         display_name_fr: 'Consent Test',
-        phone_e164: '+212600000099',
+        phone_e164: uniquePhone(ts),
         state: 'pending_consent',
       })
       .select('id')
@@ -36,6 +42,39 @@ describe.skipIf(!RUN)('process_artisan_consent RPC (Story 2.5)', () => {
       residence_id: DARNA_RESIDENCE_ID,
       token_hash: tokenHash,
       expires_at: expiresAt,
+    });
+    if (tErr) throw tErr;
+    return a.id;
+  }
+
+  // Story 2.7 — artisan PUBLISHED avec un draft PII en attente (re-consent).
+  async function seedReconsent(
+    tokenHash: string,
+    pendingName: string,
+    pendingPhone: string,
+  ): Promise<string> {
+    const ts = Date.now() + Math.floor(Math.random() * 1e6);
+    const { data: a, error } = await admin
+      .from('artisans')
+      .insert({
+        slug: `reconsent-test-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        display_name_fr: 'Ancien Nom',
+        phone_e164: uniquePhone(ts),
+        state: 'published',
+        published_at: new Date().toISOString(),
+        pending_display_name_fr: pendingName,
+        pending_phone_e164: pendingPhone,
+      })
+      .select('id')
+      .single();
+    if (error || !a) throw error ?? new Error('seed reconsent failed');
+    artisanIds.push(a.id);
+    const { error: tErr } = await admin.from('artisan_consent_tokens').insert({
+      artisan_id: a.id,
+      residence_id: DARNA_RESIDENCE_ID,
+      token_hash: tokenHash,
+      expires_at: future(),
     });
     if (tErr) throw tErr;
     return a.id;
@@ -120,5 +159,43 @@ describe.skipIf(!RUN)('process_artisan_consent RPC (Story 2.5)', () => {
       p_decision: 'accept',
     });
     expect(data?.[0]?.status).toBe('not_found');
+  });
+
+  // ── Story 2.7 — re-consent draft (extension Task 8) ──────────────────────────
+  it('re-consent accept → PII du draft promues, fiche reste publiée', async () => {
+    const id = await seedReconsent('hash-reconsent-accept', 'Nouveau Nom', '+212699999999');
+    const { data } = await admin.rpc('process_artisan_consent', {
+      p_token_hash: 'hash-reconsent-accept',
+      p_decision: 'accept',
+    });
+    expect(data?.[0]?.status).toBe('accepted');
+    const { data: art } = await admin
+      .from('artisans')
+      .select('state, display_name_fr, phone_e164, pending_display_name_fr, pending_phone_e164')
+      .eq('id', id)
+      .single();
+    expect(art?.state).toBe('published');
+    expect(art?.display_name_fr).toBe('Nouveau Nom');
+    expect(art?.phone_e164).toBe('+212699999999');
+    expect(art?.pending_display_name_fr).toBeNull();
+    expect(art?.pending_phone_e164).toBeNull();
+  });
+
+  it('re-consent refuse → draft jeté, fiche reste publiée à l’ancien contenu', async () => {
+    const id = await seedReconsent('hash-reconsent-refuse', 'Rejeté', '+212688888888');
+    const { data } = await admin.rpc('process_artisan_consent', {
+      p_token_hash: 'hash-reconsent-refuse',
+      p_decision: 'refuse',
+    });
+    expect(data?.[0]?.status).toBe('refused');
+    const { data: art } = await admin
+      .from('artisans')
+      .select('state, display_name_fr, deleted_at, pending_display_name_fr')
+      .eq('id', id)
+      .single();
+    expect(art?.state).toBe('published');
+    expect(art?.deleted_at).toBeNull();
+    expect(art?.display_name_fr).toBe('Ancien Nom');
+    expect(art?.pending_display_name_fr).toBeNull();
   });
 });

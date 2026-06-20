@@ -126,6 +126,7 @@ export type Database = {
           created_at: string;
           expires_at: string;
           id: string;
+          purpose: Database['public']['Enums']['consent_token_purpose'];
           residence_id: string;
           token_hash: string;
           used_at: string | null;
@@ -135,6 +136,7 @@ export type Database = {
           created_at?: string;
           expires_at: string;
           id?: string;
+          purpose?: Database['public']['Enums']['consent_token_purpose'];
           residence_id: string;
           token_hash: string;
           used_at?: string | null;
@@ -144,6 +146,7 @@ export type Database = {
           created_at?: string;
           expires_at?: string;
           id?: string;
+          purpose?: Database['public']['Enums']['consent_token_purpose'];
           residence_id?: string;
           token_hash?: string;
           used_at?: string | null;
@@ -158,6 +161,137 @@ export type Database = {
           },
           {
             foreignKeyName: 'artisan_consent_tokens_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      artisan_rectification_requests: {
+        Row: {
+          artisan_id: string;
+          created_at: string;
+          decided_at: string | null;
+          decided_by: string | null;
+          decision_reason: string | null;
+          field_target: Database['public']['Enums']['artisan_rectification_field'];
+          id: string;
+          justification_text: string;
+          requested_value: string;
+          residence_id: string;
+          state: Database['public']['Enums']['artisan_rectification_state'];
+          updated_at: string;
+        };
+        Insert: {
+          artisan_id: string;
+          created_at?: string;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_reason?: string | null;
+          field_target: Database['public']['Enums']['artisan_rectification_field'];
+          id?: string;
+          justification_text: string;
+          requested_value: string;
+          residence_id: string;
+          state?: Database['public']['Enums']['artisan_rectification_state'];
+          updated_at?: string;
+        };
+        Update: {
+          artisan_id?: string;
+          created_at?: string;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          decision_reason?: string | null;
+          field_target?: Database['public']['Enums']['artisan_rectification_field'];
+          id?: string;
+          justification_text?: string;
+          requested_value?: string;
+          residence_id?: string;
+          state?: Database['public']['Enums']['artisan_rectification_state'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'artisan_rectification_requests_artisan_id_fkey';
+            columns: ['artisan_id'];
+            isOneToOne: false;
+            referencedRelation: 'artisans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'artisan_rectification_requests_decided_by_fkey';
+            columns: ['decided_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'artisan_rectification_requests_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      artisan_responses: {
+        Row: {
+          artisan_id: string;
+          created_at: string;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          id: string;
+          residence_id: string;
+          response_text: string;
+          response_tsv: unknown;
+          target_id: string | null;
+          target_kind: Database['public']['Enums']['artisan_response_target'];
+        };
+        Insert: {
+          artisan_id: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          residence_id: string;
+          response_text: string;
+          response_tsv?: unknown;
+          target_id?: string | null;
+          target_kind: Database['public']['Enums']['artisan_response_target'];
+        };
+        Update: {
+          artisan_id?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          residence_id?: string;
+          response_text?: string;
+          response_tsv?: unknown;
+          target_id?: string | null;
+          target_kind?: Database['public']['Enums']['artisan_response_target'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'artisan_responses_artisan_id_fkey';
+            columns: ['artisan_id'];
+            isOneToOne: false;
+            referencedRelation: 'artisans';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'artisan_responses_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'artisan_responses_residence_id_fkey';
             columns: ['residence_id'];
             isOneToOne: false;
             referencedRelation: 'residences';
@@ -208,6 +342,8 @@ export type Database = {
           display_name_fr_tsv: unknown;
           has_invoice: Database['public']['Enums']['artisan_has_invoice'] | null;
           id: string;
+          pending_display_name_fr: string | null;
+          pending_phone_e164: string | null;
           phone_e164: string;
           price_relative: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at: string | null;
@@ -228,6 +364,8 @@ export type Database = {
           display_name_fr_tsv?: unknown;
           has_invoice?: Database['public']['Enums']['artisan_has_invoice'] | null;
           id?: string;
+          pending_display_name_fr?: string | null;
+          pending_phone_e164?: string | null;
           phone_e164: string;
           price_relative?: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at?: string | null;
@@ -248,6 +386,8 @@ export type Database = {
           display_name_fr_tsv?: unknown;
           has_invoice?: Database['public']['Enums']['artisan_has_invoice'] | null;
           id?: string;
+          pending_display_name_fr?: string | null;
+          pending_phone_e164?: string | null;
           phone_e164?: string;
           price_relative?: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at?: string | null;
@@ -716,6 +856,14 @@ export type Database = {
           status: string;
         }[];
       };
+      process_artisan_response: {
+        Args: { p_kind: string; p_payload: Json; p_token_hash: string };
+        Returns: {
+          artisan_id: string;
+          slug: string;
+          status: string;
+        }[];
+      };
       reject_admission: {
         Args: {
           p_actor_id: string;
@@ -729,6 +877,34 @@ export type Database = {
         }[];
       };
       request_account_deletion: { Args: never; Returns: undefined };
+      request_artisan_contact_link: {
+        Args: {
+          p_expires_at: string;
+          p_phone_e164: string;
+          p_token_hash: string;
+        };
+        Returns: {
+          sms_artisan_name: string;
+          sms_target_phone: string;
+          status: string;
+        }[];
+      };
+      request_artisan_reconsent: {
+        Args: {
+          p_artisan_id: string;
+          p_new_name_fr: string;
+          p_new_phone: string;
+          p_new_token_hash: string;
+        };
+        Returns: {
+          sms_artisan_name: string;
+          sms_target_phone: string;
+          status: string;
+        }[];
+      };
+      retract_artisan: { Args: { p_artisan_id: string }; Returns: undefined };
+      retract_own_comment: { Args: { p_rating_id: string }; Returns: undefined };
+      retract_own_rating: { Args: { p_rating_id: string }; Returns: undefined };
       show_limit: { Args: never; Returns: number };
       show_trgm: { Args: { '': string }; Returns: string[] };
     };
@@ -742,7 +918,17 @@ export type Database = {
       admission_state: 'pending' | 'accepted' | 'rejected';
       artisan_has_invoice: 'oui' | 'non' | 'sur_demande';
       artisan_price_relative: '$' | '$$' | '$$$' | '$$$$';
+      artisan_rectification_field:
+        | 'display_name_fr'
+        | 'display_name_ar'
+        | 'phone_e164'
+        | 'competences'
+        | 'price_relative'
+        | 'has_invoice';
+      artisan_rectification_state: 'pending' | 'accepted' | 'rejected';
+      artisan_response_target: 'listing' | 'rating';
       artisan_state: 'pending_consent' | 'published' | 'refused';
+      consent_token_purpose: 'consent' | 'respond';
       moderation_action:
         | 'admission_accepted'
         | 'admission_rejected'
@@ -752,7 +938,15 @@ export type Database = {
         | 'comment_removed'
         | 'purge_completed'
         | 'artisan_published'
-        | 'artisan_consent_refused';
+        | 'artisan_consent_refused'
+        | 'artisan_retracted'
+        | 'artisan_reconsent_requested'
+        | 'artisan_reconsent_refused'
+        | 'artisan_response_published'
+        | 'artisan_rectification_requested'
+        | 'rating_self_retracted'
+        | 'comment_self_retracted'
+        | 'artisan_reconsent_accepted';
       rating_visibility: 'pseudonym' | 'named';
       user_role: 'resident' | 'co_mod' | 'demandeur' | 'public';
     };
@@ -893,7 +1087,18 @@ export const Constants = {
       admission_state: ['pending', 'accepted', 'rejected'],
       artisan_has_invoice: ['oui', 'non', 'sur_demande'],
       artisan_price_relative: ['$', '$$', '$$$', '$$$$'],
+      artisan_rectification_field: [
+        'display_name_fr',
+        'display_name_ar',
+        'phone_e164',
+        'competences',
+        'price_relative',
+        'has_invoice',
+      ],
+      artisan_rectification_state: ['pending', 'accepted', 'rejected'],
+      artisan_response_target: ['listing', 'rating'],
       artisan_state: ['pending_consent', 'published', 'refused'],
+      consent_token_purpose: ['consent', 'respond'],
       moderation_action: [
         'admission_accepted',
         'admission_rejected',
@@ -904,6 +1109,14 @@ export const Constants = {
         'purge_completed',
         'artisan_published',
         'artisan_consent_refused',
+        'artisan_retracted',
+        'artisan_reconsent_requested',
+        'artisan_reconsent_refused',
+        'artisan_response_published',
+        'artisan_rectification_requested',
+        'rating_self_retracted',
+        'comment_self_retracted',
+        'artisan_reconsent_accepted',
       ],
       rating_visibility: ['pseudonym', 'named'],
       user_role: ['resident', 'co_mod', 'demandeur', 'public'],

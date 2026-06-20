@@ -2,13 +2,14 @@
 // sensibles (`/consent/[raw]`, `/auth/confirm?token_hash=...`). Le raw token de
 // consentement reste valide 24h–7j ; toute fuite Sentry = compromission.
 
-const CONSENT_PATH = /\/consent\/[^/?#]+/g;
+// Story 2.8 — `/consent/[raw]` ET `/respond/[raw]` portent un raw token sensible.
+const CONSENT_OR_RESPOND_PATH = /\/(consent|respond)\/[^/?#]+/g;
 const TOKEN_HASH_QUERY = /([?&])(token_hash|token)=[^&#]+/g;
 
 function scrubUrl(url: string | undefined): string | undefined {
   if (!url) return url;
   return url
-    .replace(CONSENT_PATH, '/consent/[REDACTED]')
+    .replace(CONSENT_OR_RESPOND_PATH, '/$1/[REDACTED]')
     .replace(TOKEN_HASH_QUERY, '$1$2=[REDACTED]');
 }
 

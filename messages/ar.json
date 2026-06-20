@@ -78,7 +78,25 @@
       "phone_duplicate": "",
       "submit_failed": "",
       "missing_residence": "",
-      "visibility_invalid": ""
+      "visibility_invalid": "",
+      "edit_forbidden": "",
+      "edit_submit_failed": "",
+      "confirm_mismatch": ""
+    },
+    "rating": {
+      "at_least_one_axis": "",
+      "score_invalid": "",
+      "comment_too_long": "",
+      "visibility_invalid": "",
+      "submit_failed": "",
+      "artisan_not_found": ""
+    },
+    "artisanResponse": {
+      "submit_failed": "تعذّر الحفظ. حاول مرة أخرى.",
+      "validation": "تحقق من الحقول.",
+      "expired": "انتهت صلاحية الرابط.",
+      "used": "تمت المعالجة.",
+      "invalid": "رابط غير صالح."
     }
   },
   "auth": {
@@ -251,7 +269,10 @@
         "title": "",
         "empty": "",
         "anonymousAuthor": "",
-        "rate": ""
+        "rate": "",
+        "pseudonym": "",
+        "deletedAuthor": "",
+        "rateUpdate": ""
       },
       "gone": {
         "title": "",
@@ -261,8 +282,7 @@
       "owner": {
         "title": "",
         "edit": "",
-        "remove": "",
-        "soon": ""
+        "remove": ""
       }
     },
     "artisanCreate": {
@@ -294,6 +314,55 @@
       "back": "",
       "smsFailedWarning": "",
       "tagsUnavailable": ""
+    },
+    "artisanRate": {
+      "pageTitle": "",
+      "intro": "",
+      "naToggle": "",
+      "naReactivate": "",
+      "axisRadiogroupLabel": "",
+      "axisStarLabel": "",
+      "comment": "",
+      "commentPlaceholder": "",
+      "charCount": "",
+      "visibilityTitle": "",
+      "visibilityDesc": "",
+      "submit": "",
+      "submitUpdate": "",
+      "submitting": "",
+      "success": "",
+      "back": "",
+      "retractRating": "",
+      "retractRatingConfirm": "",
+      "retractComment": ""
+    },
+    "artisanEdit": {
+      "title": "",
+      "displayNameFr": "",
+      "displayNameAr": "",
+      "phone": "",
+      "competences": "",
+      "price": "",
+      "priceNone": "",
+      "invoice": "",
+      "invoiceNone": "",
+      "invoiceOui": "",
+      "invoiceNon": "",
+      "invoiceSurDemande": "",
+      "reconsentWarning": "",
+      "reconsentInProgress": "",
+      "save": "",
+      "saving": "",
+      "savedNoReconsent": "",
+      "savedReconsent": "",
+      "smsFailedWarning": "",
+      "backToFiche": "",
+      "dangerZoneTitle": "",
+      "dangerZoneDescription": "",
+      "confirmPhraseLabel": "",
+      "confirmPhrase": "RETIRER",
+      "retract": "",
+      "retracting": ""
     }
   },
   "profil": {
@@ -405,6 +474,63 @@
     "doneAcceptedTitle": "شكرًا، بطاقتك متاحة الآن",
     "doneAcceptedBody": "بطاقتك مرئية الآن لجيرانك. يمكنك إغلاق هذه النافذة.",
     "doneRefusedTitle": "تم تسجيل اختيارك",
-    "doneRefusedBody": "تم حذف بياناتك. يمكنك إغلاق هذه النافذة."
+    "doneRefusedBody": "تم حذف بياناتك. يمكنك إغلاق هذه النافذة.",
+    "reconsentIntro": "",
+    "reconsentNameChange": "",
+    "reconsentPhoneChange": "",
+    "reconsentBadge": "",
+    "reconsentTitle": "",
+    "reconsentLead": ""
+  },
+  "artisanContact": {
+    "pageTitle": "تواصل مع دارنا كحرفي",
+    "intro": "هل أنت مُدرَج في الدليل وترغب في الرد أو طلب تصحيح؟ احصل على رابط آمن عبر SMS، دون إنشاء حساب.",
+    "phoneLabel": "رقم هاتفك",
+    "phoneHelper": "+212 6XX XX XX XX",
+    "submit": "إرسال الرابط",
+    "successGeneric": "إذا كان هذا الرقم مرتبطًا ببطاقة منشورة، فستتلقى رسالة SMS خلال دقائق.",
+    "langToggle": "Français"
+  },
+  "artisanRespond": {
+    "pageTitle": "حقك في الرد",
+    "ficheTitle": "الرد — {name}",
+    "phoneMasked": "الهاتف: {phone}",
+    "langToggle": "Français",
+    "tabResponse": "نشر رد",
+    "tabRectification": "طلب تصحيح",
+    "targetKindLabel": "ردك يخص",
+    "targetKindListing": "بطاقتي بشكل عام",
+    "targetKindRating": "تقييم محدد",
+    "recentRatings": "التقييم المعني",
+    "responseTextLabel": "ردك",
+    "responseTextPlaceholder": "رُدّ بهدوء، في بضع جمل…",
+    "charCount": "{count} / 500",
+    "submitResponse": "نشر ردي",
+    "fieldTargetLabel": "البيان المطلوب تصحيحه",
+    "requestedValueLabel": "القيمة المطلوبة",
+    "justificationLabel": "لماذا هذا التصحيح؟",
+    "submitRectification": "إرسال الطلب",
+    "signature": "رد {name}",
+    "inReplyToRating": "ردًا على تقييم",
+    "responsesSectionTitle": "ردود الحرفي",
+    "expiredTitle": "انتهت صلاحية الرابط",
+    "expiredBody": "انتهت صلاحية هذا الطلب. اطلب رابطًا جديدًا على darna.org/artisan/contact.",
+    "invalidTitle": "رابط غير صالح",
+    "invalidBody": "هذا الرابط غير صالح أو سبق استخدامه.",
+    "usedTitle": "تمت المعالجة",
+    "usedBody": "تمت معالجة هذا الطلب من قبل. اطلب رابطًا جديدًا عند الحاجة.",
+    "doneTitle": "شكرًا",
+    "donePublishedTitle": "تم نشر ردك",
+    "donePublishedBody": "ردك أصبح الآن مرئيًا على بطاقتك، بجانب الآراء.",
+    "doneRectificationPendingTitle": "تم استلام الطلب",
+    "doneRectificationPendingBody": "تم إرسال طلب التصحيح. سيعالجه مشرف قريبًا.",
+    "fields": {
+      "display_name_fr": "الاسم (بالفرنسية)",
+      "display_name_ar": "الاسم (بالعربية)",
+      "phone_e164": "الهاتف",
+      "competences": "المهارات",
+      "price_relative": "السعر النسبي",
+      "has_invoice": "الفاتورة"
+    }
   }
 }

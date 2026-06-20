@@ -108,7 +108,25 @@
       "phone_duplicate": "Un artisan avec ce numéro existe déjà.",
       "submit_failed": "Échec de l’envoi. Réessayez.",
       "missing_residence": "Vous devez être résident validé pour ajouter un artisan.",
-      "visibility_invalid": "Visibilité invalide."
+      "visibility_invalid": "Visibilité invalide.",
+      "edit_forbidden": "Tu ne peux modifier que tes propres fiches.",
+      "edit_submit_failed": "Impossible d’enregistrer tes changements. Réessaie.",
+      "confirm_mismatch": "Tape exactement RETIRER pour confirmer."
+    },
+    "rating": {
+      "at_least_one_axis": "Choisis au moins un axe à noter.",
+      "score_invalid": "Note invalide.",
+      "comment_too_long": "Ton commentaire dépasse 500 caractères.",
+      "visibility_invalid": "Choix de visibilité invalide.",
+      "submit_failed": "Impossible d'enregistrer ta note. Réessaie.",
+      "artisan_not_found": "Cet artisan n'est plus disponible."
+    },
+    "artisanResponse": {
+      "submit_failed": "Impossible d'enregistrer. Réessaie.",
+      "validation": "Vérifie les champs.",
+      "expired": "Lien expiré.",
+      "used": "Déjà traité.",
+      "invalid": "Lien invalide."
     }
   },
   "auth": {
@@ -281,7 +299,10 @@
         "title": "Avis des voisins",
         "empty": "Aucun avis pour l’instant.",
         "anonymousAuthor": "Un voisin",
-        "rate": "Noter cet artisan"
+        "rate": "Noter cet artisan",
+        "pseudonym": "Voisin anonyme #{suffix}",
+        "deletedAuthor": "Voisin supprimé",
+        "rateUpdate": "Modifier ma note"
       },
       "gone": {
         "title": "Cette fiche n’est plus disponible",
@@ -291,8 +312,7 @@
       "owner": {
         "title": "Votre contribution",
         "edit": "Modifier ma contribution",
-        "remove": "Retirer",
-        "soon": "Bientôt disponible"
+        "remove": "Retirer"
       }
     },
     "artisanCreate": {
@@ -324,6 +344,55 @@
       "back": "Retour à l’annuaire",
       "smsFailedWarning": "Création OK, mais l'envoi du SMS a échoué. Un co-mod pourra renvoyer le lien depuis l'admin.",
       "tagsUnavailable": "Les compétences sont indisponibles pour le moment. Réessayez plus tard."
+    },
+    "artisanRate": {
+      "pageTitle": "Noter {name}",
+      "intro": "Note seulement les axes que tu as testés. Tu peux ignorer ceux où tu n'as pas d'avis.",
+      "naToggle": "Non applicable",
+      "naReactivate": "Réactiver",
+      "axisRadiogroupLabel": "Note pour {axis}",
+      "axisStarLabel": "{value} sur 5 pour {axis}",
+      "comment": "Commentaire (facultatif)",
+      "commentPlaceholder": "Partage ton expérience en quelques mots…",
+      "charCount": "{count} / 500",
+      "visibilityTitle": "Signer en mon nom",
+      "visibilityDesc": "Par défaut tu apparais en « Voisin anonyme »",
+      "submit": "Publier ma note",
+      "submitUpdate": "Mettre à jour",
+      "submitting": "Envoi…",
+      "success": "Note enregistrée",
+      "back": "Retour",
+      "retractRating": "Retirer ma note",
+      "retractRatingConfirm": "Confirmer le retrait",
+      "retractComment": "Retirer mon commentaire seulement"
+    },
+    "artisanEdit": {
+      "title": "Modifier ma fiche",
+      "displayNameFr": "Nom de l’artisan",
+      "displayNameAr": "Nom en arabe (optionnel)",
+      "phone": "Téléphone",
+      "competences": "Compétences",
+      "price": "Prix relatif",
+      "priceNone": "Non précisé",
+      "invoice": "Facture",
+      "invoiceNone": "Non précisé",
+      "invoiceOui": "Oui",
+      "invoiceNon": "Non",
+      "invoiceSurDemande": "Sur demande",
+      "reconsentWarning": "Changer le nom ou le téléphone va re-déclencher le consentement de l’artisan par SMS. La fiche actuelle reste visible tant qu’il n’a pas accepté.",
+      "reconsentInProgress": "Modification en cours : l’artisan a reçu un nouveau SMS de confirmation. La fiche actuelle reste en ligne en attendant sa réponse.",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "savedNoReconsent": "Modifications enregistrées.",
+      "savedReconsent": "Modification en cours : l’artisan reçoit un nouveau SMS pour confirmer. La fiche actuelle reste en ligne en attendant.",
+      "smsFailedWarning": "Le SMS n’a pas pu être envoyé. Réessaie dans un moment.",
+      "backToFiche": "Retour à la fiche",
+      "dangerZoneTitle": "Retirer la fiche",
+      "dangerZoneDescription": "Cette action retire définitivement la fiche et toutes ses notes. Elle ne peut pas être annulée.",
+      "confirmPhraseLabel": "Tape RETIRER pour confirmer",
+      "confirmPhrase": "RETIRER",
+      "retract": "Retirer ma fiche définitivement",
+      "retracting": "Retrait…"
     }
   },
   "profil": {
@@ -435,6 +504,63 @@
     "doneAcceptedTitle": "Merci, votre fiche est en ligne",
     "doneAcceptedBody": "Votre fiche est désormais visible par les résidents. Vous pouvez fermer cet onglet.",
     "doneRefusedTitle": "Votre choix est enregistré",
-    "doneRefusedBody": "Les données vous concernant ont été supprimées. Vous pouvez fermer cet onglet."
+    "doneRefusedBody": "Les données vous concernant ont été supprimées. Vous pouvez fermer cet onglet.",
+    "reconsentIntro": "Une mise à jour de ta fiche est proposée :",
+    "reconsentNameChange": "Nom : {from} → {to}",
+    "reconsentPhoneChange": "Nouveau numéro de téléphone",
+    "reconsentBadge": "Mise à jour",
+    "reconsentTitle": "Votre fiche : mise à jour proposée",
+    "reconsentLead": "Un voisin a proposé une mise à jour de votre fiche {name}. Acceptez ou refusez ci-dessous."
+  },
+  "artisanContact": {
+    "pageTitle": "Contacter Darna en tant qu'artisan",
+    "intro": "Vous êtes référencé sur l'annuaire et souhaitez répondre ou demander une rectification ? Recevez un lien sécurisé par SMS, sans créer de compte.",
+    "phoneLabel": "Votre numéro de téléphone",
+    "phoneHelper": "+212 6XX XX XX XX",
+    "submit": "Envoyer le lien",
+    "successGeneric": "Si ce numéro est associé à une fiche publiée, vous recevrez un SMS dans quelques minutes.",
+    "langToggle": "العربية"
+  },
+  "artisanRespond": {
+    "pageTitle": "Votre droit de réponse",
+    "ficheTitle": "Répondre — {name}",
+    "phoneMasked": "Téléphone : {phone}",
+    "langToggle": "العربية",
+    "tabResponse": "Publier une réponse",
+    "tabRectification": "Demander rectification",
+    "targetKindLabel": "Votre réponse concerne",
+    "targetKindListing": "Ma fiche en général",
+    "targetKindRating": "Une note précise",
+    "recentRatings": "Note concernée",
+    "responseTextLabel": "Votre réponse",
+    "responseTextPlaceholder": "Répondez calmement, en quelques phrases…",
+    "charCount": "{count} / 500",
+    "submitResponse": "Publier ma réponse",
+    "fieldTargetLabel": "Donnée à rectifier",
+    "requestedValueLabel": "Valeur souhaitée",
+    "justificationLabel": "Pourquoi cette rectification ?",
+    "submitRectification": "Envoyer la demande",
+    "signature": "Réponse de {name}",
+    "inReplyToRating": "En réponse à une note",
+    "responsesSectionTitle": "Réponses de l'artisan",
+    "expiredTitle": "Lien expiré",
+    "expiredBody": "Cette demande a expiré. Demandez un nouveau lien sur darna.org/artisan/contact.",
+    "invalidTitle": "Lien invalide",
+    "invalidBody": "Ce lien n'est pas valide ou a déjà été utilisé.",
+    "usedTitle": "Déjà traité",
+    "usedBody": "Cette demande a déjà été traitée. Demandez un nouveau lien si besoin.",
+    "doneTitle": "Merci",
+    "donePublishedTitle": "Votre réponse est publiée",
+    "donePublishedBody": "Votre réponse est désormais visible sur votre fiche, à côté des avis.",
+    "doneRectificationPendingTitle": "Demande reçue",
+    "doneRectificationPendingBody": "Votre demande de rectification a été transmise. Un modérateur la traitera prochainement.",
+    "fields": {
+      "display_name_fr": "Nom (français)",
+      "display_name_ar": "Nom (arabe)",
+      "phone_e164": "Téléphone",
+      "competences": "Compétences",
+      "price_relative": "Prix relatif",
+      "has_invoice": "Facture"
+    }
   }
 }

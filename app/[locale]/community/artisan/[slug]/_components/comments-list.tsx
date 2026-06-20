@@ -1,9 +1,20 @@
-// Story 2.3 (AC1) — liste des avis voisins (10 plus récents). Pseudonyme ou nom
-// selon le `visibility` du contributeur (résolu en amont : `authorName` null →
-// libellé générique). Scores par axe noté affichés en petit.
+// Story 2.3 (AC1) — liste des avis voisins (10 plus récents). Pseudonyme stable
+// (FR16, story 2.6) ou nom selon le `visibility` du contributeur (résolu en amont
+// dans data.ts). Scores par axe noté affichés en petit.
 
 import { useTranslations } from 'next-intl';
 import type { ArtisanComment } from '../data';
+
+// FR16 — nommé → display_name ; pseudonyme → « Voisin anonyme #XXXX » stable ;
+// contributeur anonymisé (purge RGPD, suffixe null) → « Voisin supprimé ».
+function authorLabel(
+  comment: ArtisanComment,
+  t: (key: string, values?: Record<string, string>) => string,
+): string {
+  if (comment.authorName) return comment.authorName;
+  if (comment.pseudonymSuffix) return t('pseudonym', { suffix: comment.pseudonymSuffix });
+  return t('deletedAuthor');
+}
 
 function formatDate(s: string, locale: string): string {
   const d = new Date(s);
@@ -33,7 +44,7 @@ export function CommentsList({ locale, comments }: { locale: string; comments: A
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-neutral-900">
-                    {comment.authorName ?? t('anonymousAuthor')}
+                    {authorLabel(comment, t)}
                   </span>
                   {formattedDate && (
                     <time dateTime={comment.createdAt} className="text-xs text-neutral-400">

@@ -130,6 +130,7 @@ describe('CommentsList', () => {
   const NAMED: ArtisanComment = {
     id: 'c1',
     authorName: 'Yassine',
+    pseudonymSuffix: null,
     scores: [
       { axis: 'depannage', value: 5 },
       { axis: 'urgences', value: 4 },
@@ -140,15 +141,25 @@ describe('CommentsList', () => {
   const ANON: ArtisanComment = {
     id: 'c2',
     authorName: null,
+    pseudonymSuffix: 'A3F2',
     scores: [],
     commentText: 'Bon travail',
     createdAt: '2026-05-20T10:00:00Z',
   };
+  const DELETED: ArtisanComment = {
+    id: 'c4',
+    authorName: null,
+    pseudonymSuffix: null,
+    scores: [],
+    commentText: 'Contributeur supprimé',
+    createdAt: '2026-05-10T10:00:00Z',
+  };
 
-  it('affiche nom si named, libellé générique sinon', () => {
-    wrap(<CommentsList locale="fr" comments={[NAMED, ANON]} />);
+  it('affiche nom si named, pseudonyme stable (FR16) sinon, « Voisin supprimé » si anonymisé', () => {
+    wrap(<CommentsList locale="fr" comments={[NAMED, ANON, DELETED]} />);
     expect(screen.getByText('Yassine')).toBeDefined();
-    expect(screen.getByText('Un voisin')).toBeDefined();
+    expect(screen.getByText('Voisin anonyme #A3F2')).toBeDefined();
+    expect(screen.getByText('Voisin supprimé')).toBeDefined();
     expect(screen.getByText('Rapide et propre')).toBeDefined();
     expect(screen.getByText('Dépannage 5/5')).toBeDefined();
   });
@@ -166,11 +177,13 @@ describe('CommentsList', () => {
 });
 
 describe('ContributorPanel', () => {
-  it('rend les entrées édition/retrait (inactives — actions = 2.7)', () => {
-    wrap(<ContributorPanel />);
-    const edit = screen.getByRole('button', { name: 'Modifier ma contribution' });
-    const remove = screen.getByRole('button', { name: 'Retirer' });
-    expect((edit as HTMLButtonElement).disabled).toBe(true);
-    expect((remove as HTMLButtonElement).disabled).toBe(true);
+  it('rend les liens édition/retrait actifs (Story 2.7)', () => {
+    wrap(<ContributorPanel locale="fr" slug="hassan" />);
+    const edit = screen.getByRole('link', {
+      name: 'Modifier ma contribution',
+    }) as HTMLAnchorElement;
+    const remove = screen.getByRole('link', { name: 'Retirer' }) as HTMLAnchorElement;
+    expect(edit.getAttribute('href')).toBe('/fr/community/artisan/hassan/modifier');
+    expect(remove.getAttribute('href')).toBe('/fr/community/artisan/hassan/modifier#retrait');
   });
 });

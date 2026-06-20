@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-23
-last_updated: 2026-06-17T23:00:00Z
+last_updated: 2026-06-19T23:15:00Z
 project: SmartResidence
 project_key: NOKEY
 tracking_system: file-system
@@ -67,18 +67,18 @@ development_status:
   2-3-fiche-artisan-detaillee-action-tel: done
   2-4-creation-fiche-artisan-workflow-consentement-sms-asynchrone: done
   2-5-page-magic-link-consentement-artisan-accept-refuse-1-tap-sans-compte: done
-  2-6-notation-typee-multi-axes-commentaire-pseudo-identite: backlog
-  2-7-edition-retrait-de-ses-propres-contributions: backlog
-  2-8-droit-de-reponse-artisan: backlog
+  2-6-notation-typee-multi-axes-commentaire-pseudo-identite: review
+  2-7-edition-retrait-de-ses-propres-contributions: done
+  2-8-droit-de-reponse-artisan: review
   epic-2-retrospective: optional
 
   # Epic 3: Contenu durable — Guide résident, Numéros utiles, Pack accueil
-  epic-3: backlog
-  3-1-schema-contenu-durable-guide-entries-useful-numbers-pack-entries: backlog
-  3-2-guide-resident-lecture-recherche-deep-linking-par-entree: backlog
-  3-3-numeros-utiles-acces-rapide-avec-action-tel: backlog
-  3-4-pack-accueil-mis-en-avant-post-validation: backlog
-  3-5-interface-crud-co-mod-sur-guide-numeros-utiles-pack-accueil: backlog
+  epic-3: in-progress
+  3-1-schema-contenu-durable-guide-entries-useful-numbers-pack-entries: ready-for-dev
+  3-2-guide-resident-lecture-recherche-deep-linking-par-entree: ready-for-dev
+  3-3-numeros-utiles-acces-rapide-avec-action-tel: ready-for-dev
+  3-4-pack-accueil-mis-en-avant-post-validation: ready-for-dev
+  3-5-interface-crud-co-mod-sur-guide-numeros-utiles-pack-accueil: ready-for-dev
   epic-3-retrospective: optional
 
   # Epic 4: Contenu éphémère — Alertes & Bons plans

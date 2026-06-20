@@ -142,7 +142,7 @@ export const config = {
   matcher: [
     {
       source:
-        '/((?!_next/static|_next/image|favicon.ico|fonts/|icons/|install/|og/|manifest.webmanifest|sw.js|robots.txt|sitemap.xml|api/|auth/|consent/).*)',
+        '/((?!_next/static|_next/image|favicon.ico|fonts/|icons/|install/|og/|manifest.webmanifest|sw.js|robots.txt|sitemap.xml|api/|auth/|consent/|respond/|artisan/contact).*)',
       // Story 1.10a (deferred 1.4 #58) — skip les requêtes RSC/prefetch :
       // évite un appel Supabase getUser() à chaque fetch RSC client-side
       // (latence + risque de boucle redirect). Les soft-navigations restent

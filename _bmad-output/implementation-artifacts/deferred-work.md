@@ -170,11 +170,6 @@
 - **Polyfills jsdom incomplets** [`tests/setup.ts:21-27`] — ResizeObserver présent ; IntersectionObserver / matchMedia / scrollTo absents → futurs tests Radix Select/Dropdown crasheront.
 - **Qualité code mineure** : `Date.now()` comme `messageId` dans `sendSmsViaLog` non-unique, shadowing variable `body` dans `client.ts:43`, `id="consent_confirmed"` hardcodé vs `useId()` dans le form.
 - **Atomicité INSERT artisan + consent_token via RPC `SECURITY DEFINER`** [`actions.ts:148-221`, Dev Notes §Atomicité] — Le dev a choisi l'alternative MVP « 2 INSERTs admin encadrés » (spec-compliant). Si stats d'orphans (artisan `pending_consent` sans token, ou avec token mais SMS jamais envoyé) deviennent significatives → câbler la RPC.
-
-## Deferred from: code review of story-2.5 (2026-06-19)
-
-- **Rate-limit basé sur `x-forwarded-for` spoofable + fallback `unknown`** [`app/api/webhook/sms-consent/route.ts:29`] — Le leftmost `x-forwarded-for` est manipulable par le client sans proxy de confiance qui le réécrit ; fallback `unknown` = bucket partagé (lockout collatéral). Durcissement infra-dépendant (extraire l'IP via le mécanisme de confiance de l'hébergeur). Atténué par l'entropie HMAC du token (brute-force infaisable) + `checkLimit` fail-open.
-- **`artisan_consent_tokens.token_hash` sans index UNIQUE** [`supabase/migrations/20260619090000_artisans_schema.sql:128`] — `maybeSingle()` (page) lèverait sur >1 ligne → token valide dégradé en `invalid` ; `select ... into v` (RPC) prendrait une ligne arbitraire. Collision pratiquement impossible (HMAC sur raw unique) mais le lookup-credential mérite une contrainte UNIQUE. Schéma issu de 2.4.
 - **AR38 sémantique : status 401 vs 200/303 distinguent token forgé/valide** [`app/api/webhook/sms-consent/route.ts:60`] — Le contenu est identique mais le status code différent reste un signal observable. Indistinguabilité complète demande de renvoyer 200 + page identique côté webhook (refactor du flow PRG). Acceptable au MVP, à durcir post-bêta.
 - **`UNIQUE (target_id, action)` sur `moderation_log` pour dedup naturel** [`supabase/migrations/20260524005559_init_schema.sql`] — 2e ligne de défense DB-side pour empêcher les doublons d'événements consent en cas de race. Si P1 (atomicité RPC) appliqué, moins critique.
 - **Skeleton `loading.tsx` consent sans `dir` attribute** [`app/consent/[token]/loading.tsx`] — Flash LTR sur connexion lente avant que `<main dir>` ne rende en AR. Cosmétique.
@@ -183,3 +178,15 @@
 - **Clock skew Node `Date.now()` vs PG `now()` sur `expires_at`** [`lib/consent/lookup.ts:55`, `RPC:57`] — Différence < 1s typique Vercel. UX désorientante rare (page valid mais POST → expired). Cosmétique.
 - **P8 — Root layout `app/layout.tsx` sans `<html>/<body>`** [`app/layout.tsx`] — Ajouter `<html>` au root crée un conflit avec `app/[locale]/layout.tsx` qui le rend déjà (lang/dir dynamique). Refactor non-trivial : déplacer le `<html>` au root + driver lang/dir via cookie ou middleware-injected header. Note explicite ajoutée dans `app/layout.tsx`. Next 15+ avertit mais rend la page consent fonctionnellement.
 - **P25 — Tests webhook + composant page consent** [`tests/`] — Tests webhook nécessitent un mock Route Handler + RPC + redirects + multi-content-type non trivial ; tests composant page utilisent `useActionState` (cluster avec limitation jsdom déjà documentée 2.4 P12). À reprendre dans le cluster E2E (1.10c expansion ou story dédiée).
+
+## Deferred from: code review of story-2.6 (2026-06-19)
+
+- **Scope bleed Story 2.7 dans le diff 2.6** [`app/[locale]/community/artisan/[slug]/noter/actions.ts:187-249`] — `retractOwnRating`/`retractOwnComment` (RPC `retract_own_rating`/`retract_own_comment`, migration `20260624090100_artisan_self_actions.sql` déjà présente) livrés alors que 2.7 est `ready-for-dev`. Non appelé par l'UI 2.6 → inoffensif, mais le working tree 2.6 est contaminé. Confirmer que le split 2.6/2.7 est intentionnel avant commit.
+- **Pas de CHECK DB sur longueur `comment_text`** [`supabase/migrations/20260619090000_artisans_schema.sql`] — Colonne `text` nu ; borne ≤500 enforced uniquement par Zod (UTF-16 units) + `maxLength` client. Pas de défense-en-profondeur DB. Nécessite une migration `char_length(comment_text) <= 500` → hors scope 2.6 (no-migration). À câbler quand une migration ratings est rouverte.
+
+## Deferred from: dev of story-2.8 (2026-06-19)
+
+- **UI co-mod queue de rectification** [`artisan_rectification_requests`] — Les demandes de rectification s'insèrent en `state='pending'` mais aucune UI co-mod ne les traite (accept→mutate artisan / reject). Les rows s'accumulent jusqu'à Epic 5.x (queue modération générique). Tracé dans `moderation_log` (`artisan_rectification_requested`).
+- **Timing equalize constant-time** [`app/artisan/contact/actions.ts`] — `sleep(150)` MVP approximatif (le SMS Brevo varie 100-500ms) ne neutralise pas un attaquant statistique en volume. V1.5 : `waitUntil` (Vercel) pour envoyer le SMS en background task → réponse HTTP constante quelle que soit la branche. Atténué au MVP par le rate-limit phone (3/h).
+- **Notification contributeur quand l'artisan répond** — Pas de notif e-mail/in-app au contributeur (la fiche publique affiche la réponse = canal de surface). V1.5 (e-mail) / Epic 7 (in-app).
+- **Smoke E2E /artisan/contact → /respond → publication** — Flux webhook PRG + pages non e2e-testés (POST natif, incompatible jsdom `useActionState`). Cluster E2E 1.10c.

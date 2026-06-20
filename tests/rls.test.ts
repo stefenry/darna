@@ -220,14 +220,12 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS cross-résidence (AR32)', () => {
     );
 
     // 2e résidence (le seed n'en fournit qu'une).
-    await admin
-      .from('residences')
-      .upsert({
-        id: RESIDENCE_2_ID,
-        name: 'Test Residence 2',
-        slug: `test2-${Date.now()}`,
-        villa_count: 150,
-      });
+    await admin.from('residences').upsert({
+      id: RESIDENCE_2_ID,
+      name: 'Test Residence 2',
+      slug: `test2-${Date.now()}`,
+      villa_count: 150,
+    });
 
     const karim = await makeCoMod(
       localEnv.SUPABASE_LOCAL_URL,
@@ -414,14 +412,12 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS artisans / ratings (AC8)', () => {
       localEnv.SUPABASE_LOCAL_SERVICE_KEY,
     );
 
-    await admin
-      .from('residences')
-      .upsert({
-        id: RESIDENCE_2_ID,
-        name: 'Test Residence 2',
-        slug: `test2-art-${Date.now()}`,
-        villa_count: 150,
-      });
+    await admin.from('residences').upsert({
+      id: RESIDENCE_2_ID,
+      name: 'Test Residence 2',
+      slug: `test2-art-${Date.now()}`,
+      villa_count: 150,
+    });
 
     const alice = await makeResident(
       localEnv.SUPABASE_LOCAL_URL,
@@ -637,5 +633,329 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS artisans / ratings (AC8)', () => {
       .eq('artisan_id', publishedArtisanId);
     expect(error).toBeNull();
     expect(data).toHaveLength(0);
+  });
+
+  // Story 2.6 — chemin d'écriture notation. Seed via admin (bypass RLS) pour être
+  // robuste au `--shuffle` (ne dépend pas de l'ordre des tests).
+  it('bob peut METTRE À JOUR sa propre note (ratings_resident_update_own)', async () => {
+    await admin.from('ratings').upsert(
+      {
+        artisan_id: publishedArtisanId,
+        user_id: bobId,
+        residence_id: DARNA_RESIDENCE_ID,
+        score_depannage: 3,
+      },
+      { onConflict: 'artisan_id,user_id' },
+    );
+    const { data, error } = await bobClient
+      .from('ratings')
+      .update({ score_depannage: 5 })
+      .eq('artisan_id', publishedArtisanId)
+      .eq('user_id', bobId)
+      .select();
+    expect(error).toBeNull();
+    expect(data?.[0]?.score_depannage).toBe(5);
+  });
+
+  it('alice ne peut PAS modifier la note de bob (update-own → 0 ligne, note inchangée)', async () => {
+    const { data: bobRating } = await admin
+      .from('ratings')
+      .upsert(
+        {
+          artisan_id: publishedArtisanId,
+          user_id: bobId,
+          residence_id: DARNA_RESIDENCE_ID,
+          score_depannage: 4,
+        },
+        { onConflict: 'artisan_id,user_id' },
+      )
+      .select()
+      .single();
+    const { data, error } = await aliceClient
+      .from('ratings')
+      .update({ score_depannage: 1 })
+      .eq('id', bobRating!.id)
+      .select();
+    expect(error).toBeNull();
+    expect(data ?? []).toHaveLength(0); // RLS filtre la ligne d'autrui
+    const { data: after } = await admin
+      .from('ratings')
+      .select('score_depannage')
+      .eq('id', bobRating!.id)
+      .single();
+    expect(after?.score_depannage).toBe(4);
+  });
+
+  it('une 2e note (artisan, user) viole unique → 23505 (justifie le select-then-branch)', async () => {
+    await admin.from('ratings').upsert(
+      {
+        artisan_id: publishedArtisanId,
+        user_id: bobId,
+        residence_id: DARNA_RESIDENCE_ID,
+        score_depannage: 3,
+      },
+      { onConflict: 'artisan_id,user_id' },
+    );
+    const { error } = await bobClient.from('ratings').insert({
+      artisan_id: publishedArtisanId,
+      user_id: bobId,
+      residence_id: DARNA_RESIDENCE_ID,
+      score_urgences: 2,
+    });
+    expect(error).not.toBeNull();
+    expect(error?.code).toBe('23505');
+  });
+
+  it('INSERT sans aucun axe noté viole ratings_at_least_one_score_check (23514)', async () => {
+    const ts = Date.now();
+    const { data: fresh, error: freshErr } = await admin
+      .from('artisans')
+      .insert({
+        slug: `noaxis-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        display_name_fr: 'No Axis',
+        phone_e164: `+2126${String(ts).slice(-8)}`,
+        state: 'published',
+        created_by: aliceId,
+        published_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+    if (freshErr || !fresh) throw freshErr ?? new Error('fresh artisan insert failed');
+    const { error } = await bobClient.from('ratings').insert({
+      artisan_id: fresh.id,
+      user_id: bobId,
+      residence_id: DARNA_RESIDENCE_ID,
+    });
+    expect(error).not.toBeNull();
+    expect(error?.code).toBe('23514');
+  });
+
+  // ── Story 2.7 — édition & retrait (AC11) ──────────────────────────────────
+  // Artisans frais seedés via admin (bypass RLS) pour ne pas perturber les autres
+  // tests sous --shuffle. `seq` garantit slug/phone uniques.
+  let seq = 0;
+  async function freshPublishedArtisan(ownerId: string): Promise<string> {
+    seq += 1;
+    const uniq = `${Date.now()}${seq}`;
+    const { data, error } = await admin
+      .from('artisans')
+      .insert({
+        slug: `retract-${uniq}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        display_name_fr: 'Retract Test',
+        phone_e164: `+2127${uniq.slice(-8)}`,
+        state: 'published',
+        created_by: ownerId,
+        published_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+    if (error || !data) throw error ?? new Error('fresh published artisan insert failed');
+    return data.id;
+  }
+
+  it('alice (créatrice) peut éditer le non-PII de sa fiche (artisans_resident_update_own)', async () => {
+    const id = await freshPublishedArtisan(aliceId);
+    const { data, error } = await aliceClient
+      .from('artisans')
+      .update({ price_relative: '$$' })
+      .eq('id', id)
+      .select();
+    expect(error).toBeNull();
+    expect(data?.[0]?.price_relative).toBe('$$');
+  });
+
+  it('bob ne peut PAS éditer la fiche d’alice (RLS update-own → 0 ligne)', async () => {
+    const id = await freshPublishedArtisan(aliceId);
+    const { data, error } = await bobClient
+      .from('artisans')
+      .update({ price_relative: '$$$' })
+      .eq('id', id)
+      .select();
+    expect(error).toBeNull();
+    expect(data ?? []).toHaveLength(0);
+  });
+
+  it('retract_artisan par un non-contributeur → exception forbidden', async () => {
+    const id = await freshPublishedArtisan(aliceId);
+    const { error } = await bobClient.rpc('retract_artisan', { p_artisan_id: id });
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/forbidden/);
+  });
+
+  it('retract_artisan par le contributeur → cascade soft-delete (0 rating actif)', async () => {
+    const id = await freshPublishedArtisan(aliceId);
+    await admin.from('ratings').insert({
+      artisan_id: id,
+      user_id: bobId,
+      residence_id: DARNA_RESIDENCE_ID,
+      score_depannage: 4,
+    });
+    const { error } = await aliceClient.rpc('retract_artisan', { p_artisan_id: id });
+    expect(error).toBeNull();
+    const { count } = await admin
+      .from('ratings')
+      .select('*', { count: 'exact', head: true })
+      .eq('artisan_id', id)
+      .is('deleted_at', null);
+    expect(count).toBe(0);
+    const { data: art } = await admin
+      .from('artisans')
+      .select('deleted_at, deletion_reason')
+      .eq('id', id)
+      .single();
+    expect(art?.deleted_at).not.toBeNull();
+    expect(art?.deletion_reason).toBe('author_retract');
+  });
+
+  it('retract_own_rating par l’auteur → soft-delete + user_id NULL', async () => {
+    const id = await freshPublishedArtisan(aliceId);
+    const { data: rating } = await admin
+      .from('ratings')
+      .insert({
+        artisan_id: id,
+        user_id: bobId,
+        residence_id: DARNA_RESIDENCE_ID,
+        score_depannage: 5,
+      })
+      .select()
+      .single();
+    const { error } = await bobClient.rpc('retract_own_rating', { p_rating_id: rating!.id });
+    expect(error).toBeNull();
+    const { data: after } = await admin
+      .from('ratings')
+      .select('deleted_at, user_id, deletion_reason')
+      .eq('id', rating!.id)
+      .single();
+    expect(after?.deleted_at).not.toBeNull();
+    expect(after?.user_id).toBeNull();
+    expect(after?.deletion_reason).toBe('author_retract');
+  });
+
+  it('retract_own_rating sur la note d’autrui → exception forbidden', async () => {
+    const id = await freshPublishedArtisan(aliceId);
+    const { data: rating } = await admin
+      .from('ratings')
+      .insert({
+        artisan_id: id,
+        user_id: bobId,
+        residence_id: DARNA_RESIDENCE_ID,
+        score_depannage: 3,
+      })
+      .select()
+      .single();
+    const { error } = await aliceClient.rpc('retract_own_rating', { p_rating_id: rating!.id });
+    expect(error).not.toBeNull();
+    expect(error?.message).toMatch(/forbidden/);
+  });
+
+  // ── Story 2.8 — artisan_responses & rectification_requests (AC11) ──────────
+  async function makeComod(label: string): Promise<{ id: string; client: DarnaClient }> {
+    const localEnv = parseSupabaseLocalEnv();
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    const id = created.user.id;
+    await admin.auth.admin.updateUserById(id, {
+      app_metadata: { role: 'co_mod', residence_id: DARNA_RESIDENCE_ID },
+    });
+    await admin
+      .from('users')
+      .update({ role: 'co_mod', residence_id: DARNA_RESIDENCE_ID })
+      .eq('id', id);
+    const client = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      { auth: { storageKey: `rls-resp-${label}`, persistSession: false } },
+    );
+    await establishSession(admin, client, email, label);
+    return { id, client };
+  }
+
+  it('artisan_responses : alice (résidence) voit la réponse seedée ; eve (résidence 2) → 0', async () => {
+    await admin.from('artisan_responses').insert({
+      artisan_id: publishedArtisanId,
+      residence_id: DARNA_RESIDENCE_ID,
+      target_kind: 'listing',
+      response_text: 'Merci pour vos retours.',
+    });
+    const { data: seen } = await aliceClient
+      .from('artisan_responses')
+      .select('id')
+      .eq('artisan_id', publishedArtisanId);
+    expect(seen?.length ?? 0).toBeGreaterThan(0);
+    const { data: eveSeen } = await eveClient
+      .from('artisan_responses')
+      .select('id')
+      .eq('artisan_id', publishedArtisanId);
+    expect(eveSeen ?? []).toHaveLength(0);
+  });
+
+  it('artisan_responses : INSERT direct client → 42501 (écriture RPC-only)', async () => {
+    const { error } = await aliceClient.from('artisan_responses').insert({
+      artisan_id: publishedArtisanId,
+      residence_id: DARNA_RESIDENCE_ID,
+      target_kind: 'listing',
+      response_text: 'Tentative directe',
+    });
+    expect(error).not.toBeNull();
+    expect(error?.code).toBe('42501');
+  });
+
+  it('artisan_rectification_requests : résident → 0 ; co-mod résidence → visible', async () => {
+    await admin.from('artisan_rectification_requests').insert({
+      artisan_id: publishedArtisanId,
+      residence_id: DARNA_RESIDENCE_ID,
+      field_target: 'phone_e164',
+      requested_value: '+212600000123',
+      justification_text: 'Numéro changé',
+    });
+    const { data: aliceSees } = await aliceClient
+      .from('artisan_rectification_requests')
+      .select('id');
+    expect(aliceSees ?? []).toHaveLength(0);
+
+    const comod = await makeComod('carla');
+    const { data: comodSees } = await comod.client
+      .from('artisan_rectification_requests')
+      .select('id')
+      .eq('artisan_id', publishedArtisanId);
+    expect(comodSees?.length ?? 0).toBeGreaterThan(0);
+  });
+
+  it('RPC process_artisan_response / request_artisan_contact_link non grantées à authenticated', async () => {
+    const r1 = await aliceClient.rpc('process_artisan_response', {
+      p_token_hash: 'x',
+      p_kind: 'response',
+      p_payload: { response_text: 'x', target_kind: 'listing' },
+    });
+    expect(r1.error).not.toBeNull();
+    const r2 = await aliceClient.rpc('request_artisan_contact_link', {
+      p_phone_e164: '+212600000001',
+      p_token_hash: 'x',
+      p_expires_at: new Date().toISOString(),
+    });
+    expect(r2.error).not.toBeNull();
+  });
+
+  it('moderation_log : action artisan_response_published non lisible cross-résidence', async () => {
+    await admin.from('moderation_log').insert({
+      residence_id: DARNA_RESIDENCE_ID,
+      actor_id: null,
+      action: 'artisan_response_published',
+      target_kind: 'artisan',
+      target_id: publishedArtisanId,
+    });
+    const { data: eveSees } = await eveClient
+      .from('moderation_log')
+      .select('id')
+      .eq('target_id', publishedArtisanId)
+      .eq('action', 'artisan_response_published');
+    expect(eveSees ?? []).toHaveLength(0);
   });
 });

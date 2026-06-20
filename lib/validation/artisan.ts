@@ -3,23 +3,15 @@
 
 import { z } from 'zod';
 import { zPhoneMaroc } from './phone-e164';
+import { sanitizeName } from './sanitize';
 
 export const PRICE_RELATIVE = ['$', '$$', '$$$', '$$$$'] as const;
 export const HAS_INVOICE = ['oui', 'non', 'sur_demande'] as const;
 export const VISIBILITY = ['pseudonym', 'named'] as const;
 export const MAX_TAG_KEYS = 8;
 
-// Story 2.5 review P23 — strip bidi / zero-width / control chars qui spoofent
-// visuellement le nom (RIGHT-TO-LEFT OVERRIDE, ZWJ, soft hyphen, BOM). NFC
-// normalise puis collapse les multiples espaces.
-const STRIP_CONTROL_AND_BIDI = new RegExp(
-  '[\\u0000-\\u001F\\u007F-\\u009F\\u00AD\\u200B-\\u200F\\u202A-\\u202E\\u2060\\u2066-\\u2069\\uFEFF]',
-  'g',
-);
-function sanitizeName(s: string): string {
-  return s.normalize('NFC').replace(STRIP_CONTROL_AND_BIDI, '').replace(/\s+/g, ' ').trim();
-}
-
+// `sanitizeName` (NFC + strip bidi/control, review 2.5 P23) vit désormais dans
+// `lib/validation/sanitize.ts` (partagé avec l'édition 2.7).
 const zOptionalText = (max: number) => z.string().trim().max(max).optional().or(z.literal(''));
 
 export const zCreateArtisanForm = z.object({

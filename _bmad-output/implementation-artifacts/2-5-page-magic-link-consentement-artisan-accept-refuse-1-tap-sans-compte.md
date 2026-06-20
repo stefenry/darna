@@ -57,28 +57,6 @@ Story aval directe de 2.4 : elle **consomme le token HMAC** (`lib/consent/token`
   - [x] Tests : `lib/consent/lookup.test.ts` (statuts, mock lookup), composant page (rendu valid/expired/used/invalid), webhook (mock RPC : accept→email, refuse→email, not_found→401, idempotent). RLS : la RPC `SECURITY DEFINER` doit scoper proprement (un token ne touche QUE son artisan) — test si pertinent.
   - [x] `pnpm typecheck`/`lint`/`test` verts ; smoke : générer un token (2.4, SMS=log) → ouvrir `/consent/[raw]` → accepter → artisan `published` + e-mail loggué + `moderation_log`.
 
-### Review Findings
-
-> Code review adversariale (Blind Hunter + Edge Case Hunter + Acceptance Auditor) — 2026-06-19. 3 decision-needed, 4 patch, 2 defer, 7 écartés.
-
-**Decision-needed (à trancher avant patch) :**
-
-- [ ] [Review][Decision] AC1 incomplet — commentaire contributeur + mention pseudo/nommé non affichés — La page ne rend ni le commentaire contributeur ni la mention pseudonyme/nommé exigés par AC1. `comment_text` vit sur `ratings` (pas `artisans`) et aucun rating n'existe au stade `pending_consent` → donnée non récupérable sans plomberie amont (2.4). `lib/consent/lookup.ts:35` ne sélectionne pas ces champs ; `app/consent/[token]/page.tsx:49-72` ne les rend pas (clé i18n `consent.visibilityNote` présente mais inutilisée).
-- [ ] [Review][Decision] Fiabilité e-mail contributeur (best-effort) — Sur échec d'envoi (`app/api/webhook/sms-consent/route.ts:65-74` catch+log), le token est déjà consommé → re-clic = `already_used` sans re-notifier. Notification de décision potentiellement perdue (e-mail = seul canal, in-app = Epic 7). Best-effort MVP ou outbox/retry ?
-- [ ] [Review][Decision] `consentHashEquals` (timing-safe, AC8) non utilisé — Comparaison via lookup DB indexé (`lib/consent/lookup.ts:38`, RPC `where token_hash = p_token_hash`) au lieu du helper timing-safe explicitement mandaté par AC8/§Sécurité. Sécurité réelle OK (entropie HMAC + index), mais déviation à acter ou corriger.
-
-**Patch (correctifs non ambigus) :**
-
-- [x] [Review][Patch] Page `/consent` rendue sans `<html>/<body>/lang` (route hors `[locale]`, root layout retourne `children` bruts) [app/consent/[token]/page.tsx:38 + app/layout.tsx:21]
-- [x] [Review][Patch] Race double-submit dans la RPC : pas de verrou ligne token (`select ... into v` sans `for update`) → double e-mail + double `moderation_log` sur double-clic [supabase/migrations/20260622120000_artisan_consent_rpc.sql:31-66]
-- [x] [Review][Patch] `request.formData()` sans try/catch → 500 au lieu de 400 sur body non-form [app/api/webhook/sms-consent/route.ts:33]
-- [x] [Review][Patch] E-mail contributeur AR utilise `display_name_fr` (la RPC ne renvoie pas `display_name_ar`) [app/api/webhook/sms-consent/route.ts:95]
-
-**Defer (réel mais non actionnable maintenant) :**
-
-- [x] [Review][Defer] Rate-limit basé sur `x-forwarded-for` spoofable + fallback `unknown` [app/api/webhook/sms-consent/route.ts:29] — deferred, durcissement infra-dépendant (entropie HMAC rend le brute-force token infaisable)
-- [x] [Review][Defer] `artisan_consent_tokens.token_hash` sans index UNIQUE [supabase/migrations/20260619090000_artisans_schema.sql:128] — deferred, pre-existing (schéma 2.4 ; collision improbable mais hygiène)
-
 ## Dev Notes
 
 > **Stack & conventions** : identiques 2.2-2.4. Réutilise massivement 2.4 (`lib/consent/token`, `artisan_consent_tokens`, boundary email).
@@ -243,6 +221,7 @@ claude-opus-4-8[1m] (Claude Opus 4.8, 1M context) — bmad-dev-story, 2026-06-18
 - [x] [Review][Defer] **Validation runtime slug Next router** — `slugify` 2.1 = `[a-z0-9-]+` strict.
 - [x] [Review][Defer] **Tag `key={tag.label}` collision React** — Noms uniques par résidence en pratique.
 - [x] [Review][Defer] **Clock skew Node vs PG `expires_at`** — < 1s typique Vercel.
+- [x] [Review][Defer] **AC1 — « commentaire contributeur » non affiché sur la page** [`app/consent/[token]/page.tsx:48-90`, `lib/consent/lookup.ts:33-41`] — Distinct de P9 (mention pseudo/nommé) : AC1 liste aussi le commentaire du contributeur, jamais rendu. `comment_text` vit sur `ratings`, pas sur `artisans`, et aucun rating n'existe au stade `pending_consent` → donnée non récupérable sans plomberie amont (2.4). Décision D1=opt.1 (2026-06-19) : **différé** — fiche minimale (nom + compétences) suffit au MVP ; afficher le commentaire demanderait de le persister contre l'artisan en 2.4.
 
 #### Dismissed
 
