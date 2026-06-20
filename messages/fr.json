@@ -311,6 +311,9 @@
     }
   },
   "comod": {
+    "nav": {
+      "community": "Espace résident"
+    },
     "home": {
       "title": "Espace co-modération",
       "intro": "Gère l'admission et le contenu durable de la résidence.",
@@ -478,7 +481,8 @@
       }
     },
     "nav": {
-      "settings": "Mon profil"
+      "settings": "Mon profil",
+      "comod": "Espace co-mod"
     },
     "guide": {
       "title": "Guide de la résidence",

@@ -217,6 +217,9 @@
     }
   },
   "comod": {
+    "nav": {
+      "community": ""
+    },
     "home": {
       "title": "",
       "intro": "",
@@ -300,7 +303,8 @@
       }
     },
     "nav": {
-      "settings": ""
+      "settings": "",
+      "comod": ""
     },
     "guide": {
       "title": "",

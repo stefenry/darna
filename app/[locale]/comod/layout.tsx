@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
+import { Home } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PageContainer } from '@/components/layout/page-container';
 import { routing } from '@/lib/i18n/routing';
@@ -43,5 +45,20 @@ export default async function ComodLayout({ children, params }: Props) {
     );
   }
 
-  return children;
+  const t = await getTranslations('comod.nav');
+
+  return (
+    <PageContainer className="py-6" as="main">
+      <div className="mb-6 flex items-center justify-end">
+        <Link
+          href={`/${locale}/community`}
+          aria-label={t('community')}
+          className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+        >
+          <Home className="size-5" aria-hidden />
+        </Link>
+      </div>
+      {children}
+    </PageContainer>
+  );
 }
