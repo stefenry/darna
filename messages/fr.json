@@ -177,6 +177,14 @@
       "duplicate": "Tu as déjà signalé ce contenu ; les co-modérateurs vont l’examiner.",
       "rate_limited": "Trop de signalements en peu de temps. Réessaie dans un moment.",
       "submit_failed": "Le signalement n’a pas pu être envoyé. Réessaie."
+    },
+    "moderation": {
+      "forbidden": "Action réservée aux co-modérateurs de la résidence.",
+      "invalid_input": "Données invalides.",
+      "report_not_found": "Signalement introuvable.",
+      "already_resolved": "Un autre co-mod a déjà traité ce signalement.",
+      "action_failed": "L’action n’a pas pu être effectuée. Réessaie.",
+      "motive_required": "Choisis un motif de retrait."
     }
   },
   "auth": {
@@ -264,7 +272,8 @@
         "admission": "File d'admission",
         "guide": "Guide",
         "numeros": "Numéros utiles",
-        "pack": "Pack accueil"
+        "pack": "Pack accueil",
+        "moderation": "Modération"
       }
     },
     "admin": {
@@ -326,6 +335,74 @@
     "forbidden": {
       "title": "Accès réservé",
       "body": "Cet espace est réservé aux co-modérateurs de la résidence."
+    },
+    "moderation": {
+      "pageTitle": "File de modération",
+      "intro": "Signalements ouverts, du plus ancien au plus récent. SLA : 24h de présence (7h–23h).",
+      "emptyState": "Aucun signalement en attente. 🎉",
+      "slaBreached": "SLA dépassé",
+      "reporterNote": "Note",
+      "reasons": {
+        "diffamation": "Diffamation",
+        "info_erronee": "Info erronée",
+        "harcelement": "Harcèlement",
+        "spam": "Spam",
+        "hors_charte": "Hors-charte",
+        "autre": "Autre"
+      },
+      "targets": {
+        "artisan": "Fiche artisan",
+        "rating": "Avis",
+        "alert": "Alerte",
+        "alert_comment": "Commentaire d’alerte",
+        "tip": "Bon plan",
+        "guide_entry": "Entrée du guide",
+        "useful_number": "Numéro utile"
+      },
+      "age": {
+        "lessThanHour": "il y a moins d’une heure",
+        "hours": "il y a {value}h",
+        "days": "il y a {value}j"
+      },
+      "detail": {
+        "title": "Examen du signalement",
+        "back": "Retour à la file",
+        "targetHeading": "Contenu signalé",
+        "alreadyRemoved": "Déjà retiré",
+        "targetMissing": "Contenu introuvable (peut-être déjà supprimé).",
+        "priorHeading": "Actions de modération antérieures",
+        "resolvedRemoved": "Ce signalement a été traité : contenu retiré.",
+        "resolvedKept": "Ce signalement a été traité : contenu conservé.",
+        "resolvedNotice": "Un autre co-mod a déjà traité ce signalement."
+      },
+      "events": {
+        "content_removed": "Contenu retiré",
+        "content_kept": "Contenu conservé",
+        "escalation_triggered": "Escalade juridique déclenchée"
+      },
+      "actions": {
+        "remove": "Retirer le contenu",
+        "keep": "Conserver le contenu"
+      },
+      "removeForm": {
+        "title": "Retirer le contenu — motif",
+        "motiveLabel": "Motif du retrait",
+        "motivePlaceholder": "Choisis un motif"
+      },
+      "keepForm": {
+        "title": "Conserver le contenu"
+      },
+      "motives": {
+        "diffamation": "Diffamation",
+        "info_erronee": "Info erronée",
+        "hors_charte": "Hors-charte",
+        "autre": "Autre"
+      },
+      "noteLabel": "Note (facultatif)",
+      "notePlaceholder": "Précise ta décision si besoin",
+      "submitting": "Traitement…",
+      "confirm": "Confirmer",
+      "cancel": "Annuler"
     }
   },
   "community": {

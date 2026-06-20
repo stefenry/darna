@@ -1374,6 +1374,22 @@ export type Database = {
       };
       auth_residence_id: { Args: never; Returns: string };
       auth_role: { Args: never; Returns: string };
+      moderate_keep_content: {
+        Args: { p_note?: string; p_report_id: string };
+        Returns: {
+          out_reporter_id: string;
+          out_residence_id: string;
+        }[];
+      };
+      moderate_remove_content: {
+        Args: { p_motive: string; p_note?: string; p_report_id: string };
+        Returns: {
+          out_residence_id: string;
+          out_target_id: string;
+          out_target_type: string;
+          target_author_id: string;
+        }[];
+      };
       process_artisan_consent: {
         Args: { p_decision: string; p_token_hash: string };
         Returns: {

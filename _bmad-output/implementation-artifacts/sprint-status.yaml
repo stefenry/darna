@@ -94,7 +94,7 @@ development_status:
   epic-5: in-progress
   5-1-schema-reports-extension-moderation-log-rls-transparence: review
   5-2-signalement-contenu-par-resident-raison-fermee: review
-  5-3-interface-co-mod-queue-signalements-retrait-notification-auteur: backlog
+  5-3-interface-co-mod-queue-signalements-retrait-notification-auteur: review
   5-4-journal-public-sur-transparence: backlog
   5-5-workflow-escalade-juridique: backlog
   epic-5-retrospective: optional

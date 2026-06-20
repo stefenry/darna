@@ -1999,3 +1999,250 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS modération & transparence (Epic 5)',
     expect((data ?? []).every((r) => r.action !== 'report_opened')).toBe(true);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Story 5.3 — RPC de résolution co_mod (moderate_remove_content / _keep_content).
+//   Retrait : soft-delete cible polymorphe + report closed_removed + audit
+//   content_removed. Garde co_mod + résidence + anti-race (state='open').
+// ─────────────────────────────────────────────────────────────────────────────
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS modération RPC (Epic 5.3)', () => {
+  let admin: DarnaClient;
+  let residentId: string;
+  let comodId: string;
+  let comodOtherId: string;
+  let residentClient: DarnaClient;
+  let comodClient: DarnaClient;
+  let comodOtherClient: DarnaClient;
+  let entryId: string; // guide_entry cible (Darna)
+  const seededIds: string[] = [];
+
+  async function makeUser(
+    localUrl: string,
+    publishableKey: string,
+    role: 'resident' | 'co_mod',
+    label: string,
+    residenceId: string,
+  ): Promise<{ id: string; client: DarnaClient }> {
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    const id = created.user.id;
+    await admin.auth.admin.updateUserById(id, {
+      app_metadata: { role, residence_id: residenceId },
+    });
+    await admin.from('users').update({ role, residence_id: residenceId }).eq('id', id);
+    const client = createClient<Database>(localUrl, publishableKey, {
+      auth: { storageKey: `rls-modrpc-${label}`, persistSession: false },
+    });
+    await establishSession(admin, client, email, label);
+    return { id, client };
+  }
+
+  async function seedReport(targetId: string): Promise<string> {
+    const { data, error } = await admin
+      .from('reports')
+      .insert({
+        residence_id: DARNA_RESIDENCE_ID,
+        reporter_id: residentId,
+        target_type: 'guide_entry',
+        target_id: targetId,
+        reason: 'hors_charte',
+      })
+      .select('id')
+      .single();
+    if (error || !data) throw error ?? new Error('seed report failed');
+    return data.id;
+  }
+
+  beforeAll(async () => {
+    const localEnv = parseSupabaseLocalEnv();
+    admin = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+    );
+    await admin.from('residences').upsert({
+      id: RESIDENCE_2_ID,
+      name: 'Test Residence 2',
+      slug: `test2-modrpc-${Date.now()}`,
+      villa_count: 150,
+    });
+
+    const resident = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'resident',
+      'mres',
+      DARNA_RESIDENCE_ID,
+    );
+    residentId = resident.id;
+    residentClient = resident.client;
+
+    const comod = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'co_mod',
+      'mcomod',
+      DARNA_RESIDENCE_ID,
+    );
+    comodId = comod.id;
+    comodClient = comod.client;
+
+    const comodOther = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'co_mod',
+      'mcomod2',
+      RESIDENCE_2_ID,
+    );
+    comodOtherId = comodOther.id;
+    comodOtherClient = comodOther.client;
+
+    const ts = Date.now();
+    const { data: entry, error: entryErr } = await admin
+      .from('guide_entries')
+      .insert({
+        slug: `regle-test-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        theme_key: 'codes_portails',
+        title_fr: 'Règle test',
+        body_fr_markdown: 'Contenu à modérer.',
+        order_in_theme: 0,
+        created_by: comodId,
+      })
+      .select('id')
+      .single();
+    if (entryErr || !entry) throw entryErr ?? new Error('seed guide_entry failed');
+    entryId = entry.id;
+  });
+
+  afterAll(async () => {
+    if (!admin) return;
+    await admin.from('reports').delete().eq('reporter_id', residentId);
+    if (entryId) {
+      await admin.from('moderation_log').delete().eq('target_id', entryId);
+      await admin.from('guide_entries').delete().eq('id', entryId);
+    }
+    for (const id of seededIds) await admin.from('guide_entries').delete().eq('id', id);
+    for (const id of [residentId, comodId, comodOtherId]) {
+      if (id) await admin.auth.admin.deleteUser(id);
+    }
+  });
+
+  it('(a) un résident ne peut PAS appeler moderate_remove_content (not_co_mod)', async () => {
+    const reportId = await seedReport(entryId);
+    const { error } = await residentClient.rpc('moderate_remove_content', {
+      p_report_id: reportId,
+      p_motive: 'hors_charte',
+    });
+    expect(error?.message).toContain('not_co_mod');
+    await admin.from('reports').delete().eq('id', reportId);
+  });
+
+  it('(b) un co_mod d’une autre résidence est rejeté (wrong_residence)', async () => {
+    const reportId = await seedReport(entryId);
+    const { error } = await comodOtherClient.rpc('moderate_remove_content', {
+      p_report_id: reportId,
+      p_motive: 'autre',
+    });
+    expect(error?.message).toContain('wrong_residence');
+    await admin.from('reports').delete().eq('id', reportId);
+  });
+
+  it('(c) co_mod retire : report closed_removed + cible soft-deletée + audit content_removed', async () => {
+    const reportId = await seedReport(entryId);
+    const { error } = await comodClient.rpc('moderate_remove_content', {
+      p_report_id: reportId,
+      p_motive: 'diffamation',
+      p_note: 'Propos diffamatoires.',
+    });
+    expect(error).toBeNull();
+
+    const { data: rep } = await admin
+      .from('reports')
+      .select('state, resolved_by, resolution_motive')
+      .eq('id', reportId)
+      .single();
+    expect(rep?.state).toBe('closed_removed');
+    expect(rep?.resolved_by).toBe(comodId);
+
+    const { data: entry } = await admin
+      .from('guide_entries')
+      .select('deleted_at, deleted_by')
+      .eq('id', entryId)
+      .single();
+    expect(entry?.deleted_at).not.toBeNull();
+    expect(entry?.deleted_by).toBe(comodId);
+
+    const { data: ml } = await admin
+      .from('moderation_log')
+      .select('action, reason_code')
+      .eq('target_id', entryId)
+      .eq('action', 'content_removed');
+    expect((ml ?? []).length).toBe(1);
+    expect(ml?.[0]?.reason_code).toBe('diffamation');
+  });
+
+  it('(d) re-résoudre le même report → already_resolved (anti-race)', async () => {
+    // Le report de (c) est déjà closed_removed. Nouvelle tentative.
+    const { data: rep } = await admin
+      .from('reports')
+      .select('id')
+      .eq('reporter_id', residentId)
+      .eq('state', 'closed_removed')
+      .limit(1)
+      .single();
+    const { error } = await comodClient.rpc('moderate_keep_content', {
+      p_report_id: rep!.id,
+    });
+    expect(error?.message).toContain('already_resolved');
+  });
+
+  it('(e) co_mod conserve : report closed_kept + audit content_kept', async () => {
+    // Nouvelle cible (la précédente est soft-deletée) pour un report frais.
+    const ts = Date.now();
+    const { data: entry2 } = await admin
+      .from('guide_entries')
+      .insert({
+        slug: `regle-keep-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        theme_key: 'codes_portails',
+        title_fr: 'Règle keep',
+        body_fr_markdown: 'Contenu conforme.',
+        order_in_theme: 0,
+        created_by: comodId,
+      })
+      .select('id')
+      .single();
+    seededIds.push(entry2!.id);
+    const reportId = await seedReport(entry2!.id);
+
+    const { error } = await comodClient.rpc('moderate_keep_content', {
+      p_report_id: reportId,
+      p_note: 'Conforme à la charte.',
+    });
+    expect(error).toBeNull();
+
+    const { data: rep } = await admin.from('reports').select('state').eq('id', reportId).single();
+    expect(rep?.state).toBe('closed_kept');
+
+    const { data: ml } = await admin
+      .from('moderation_log')
+      .select('action')
+      .eq('target_id', entry2!.id)
+      .eq('action', 'content_kept');
+    expect((ml ?? []).length).toBe(1);
+
+    // La cible conservée n'est PAS soft-deletée.
+    const { data: entryRow } = await admin
+      .from('guide_entries')
+      .select('deleted_at')
+      .eq('id', entry2!.id)
+      .single();
+    expect(entryRow?.deleted_at).toBeNull();
+    await admin.from('moderation_log').delete().eq('target_id', entry2!.id);
+  });
+});

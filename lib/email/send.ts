@@ -21,6 +21,12 @@ import type { ArtisanConsentRefusedVars } from './templates/artisan-consent-refu
 import { reportNotifyComodTemplate as reportNotifyComodFr } from './templates/report-notify-comod.fr';
 import { reportNotifyComodTemplate as reportNotifyComodAr } from './templates/report-notify-comod.ar';
 import type { ReportNotifyComodVars } from './templates/report-notify-comod.fr';
+import { contentRemovedAuthorTemplate as contentRemovedAuthorFr } from './templates/content-removed-author.fr';
+import { contentRemovedAuthorTemplate as contentRemovedAuthorAr } from './templates/content-removed-author.ar';
+import type { ContentRemovedAuthorVars } from './templates/content-removed-author.fr';
+import { reportKeptReporterTemplate as reportKeptReporterFr } from './templates/report-kept-reporter.fr';
+import { reportKeptReporterTemplate as reportKeptReporterAr } from './templates/report-kept-reporter.ar';
+import type { ReportKeptReporterVars } from './templates/report-kept-reporter.fr';
 
 // AR16 — Boundary unique pour tout envoi e-mail transactionnel applicatif.
 // Note : `scripts/budget-alert.ts` est un script CLI ops (pas runtime app)
@@ -68,6 +74,18 @@ export type SendArgs =
       to: string;
       locale: 'fr' | 'ar';
       vars: ReportNotifyComodVars;
+    }
+  | {
+      template: 'content-removed-author';
+      to: string;
+      locale: 'fr' | 'ar';
+      vars: ContentRemovedAuthorVars;
+    }
+  | {
+      template: 'report-kept-reporter';
+      to: string;
+      locale: 'fr' | 'ar';
+      vars: ReportKeptReporterVars;
     };
 
 export type SendResult =
@@ -133,5 +151,13 @@ function renderTemplate(args: SendArgs) {
       return args.locale === 'ar' ? consentRefusedAr(args.vars) : consentRefusedFr(args.vars);
     case 'report-notify-comod':
       return args.locale === 'ar' ? reportNotifyComodAr(args.vars) : reportNotifyComodFr(args.vars);
+    case 'content-removed-author':
+      return args.locale === 'ar'
+        ? contentRemovedAuthorAr(args.vars)
+        : contentRemovedAuthorFr(args.vars);
+    case 'report-kept-reporter':
+      return args.locale === 'ar'
+        ? reportKeptReporterAr(args.vars)
+        : reportKeptReporterFr(args.vars);
   }
 }
