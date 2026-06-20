@@ -28,6 +28,12 @@ describe('timeRemaining', () => {
       value: 5,
     });
   });
+  it('arrondit au jour le plus proche (71h → 3 jours, pas 2)', () => {
+    expect(timeRemaining(new Date(now + 71 * 3_600_000).toISOString(), now)).toEqual({
+      state: 'days',
+      value: 3,
+    });
+  });
 });
 
 describe('buildEphemeralSlug', () => {

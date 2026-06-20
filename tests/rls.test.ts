@@ -1798,6 +1798,29 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu éphémère (Epic 4)', () => 
       .single();
     expect(after?.deleted_at).not.toBeNull();
   });
+
+  it("(l) review mineur : l'auto-retrait est audité mais MASQUÉ de la vue publique", async () => {
+    // aliceTipId a été auto-retiré en (h) → trace tip_self_retracted en audit.
+    const { data: audit } = await admin
+      .from('moderation_log')
+      .select('action')
+      .eq('target_id', aliceTipId)
+      .eq('action', 'tip_self_retracted');
+    expect((audit ?? []).length).toBe(1);
+
+    // …mais la vue publique /transparence ne l'expose pas (geste auteur ≠ modération).
+    const anon = createClient<Database>(
+      parseSupabaseLocalEnv().SUPABASE_LOCAL_URL,
+      parseSupabaseLocalEnv().SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      { auth: { storageKey: 'rls-eph-anon', persistSession: false } },
+    );
+    const { data: pub, error } = await anon
+      .from('moderation_log_public')
+      .select('action')
+      .eq('target_id', aliceTipId);
+    expect(error).toBeNull();
+    expect((pub ?? []).every((r) => r.action !== 'tip_self_retracted')).toBe(true);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

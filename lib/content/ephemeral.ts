@@ -48,12 +48,16 @@ export type TimeRemaining =
   | { state: 'hours'; value: number }
   | { state: 'days'; value: number };
 
-/** État d'expiration pur (l'i18n est résolu par l'appelant). ≥48h → jours. */
+/**
+ * État d'expiration pur (l'i18n est résolu par l'appelant). ≥48h → jours, arrondi
+ * au jour le PLUS PROCHE (pas tronqué) pour ne pas sous-estimer le délai affiché
+ * — « expire dans 3 jours » pour ~71h, pas « 2 jours ».
+ */
 export function timeRemaining(expiresAtIso: string, nowMs: number): TimeRemaining {
   const ms = new Date(expiresAtIso).getTime() - nowMs;
   if (ms <= 0) return { state: 'expired' };
   const hours = Math.floor(ms / 3_600_000);
-  if (hours >= 48) return { state: 'days', value: Math.floor(hours / 24) };
+  if (hours >= 48) return { state: 'days', value: Math.round(hours / 24) };
   if (hours >= 1) return { state: 'hours', value: hours };
   return { state: 'soon' };
 }
