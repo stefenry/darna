@@ -76,7 +76,19 @@
       "motive_invalid": "Ce motif n'est pas valide.",
       "already_decided": "Un voisin a déjà traité cette demande.",
       "wrong_residence": "Cette demande ne relève pas de ta résidence.",
-      "decision_failed": "La décision n'a pas pu être enregistrée. Réessaie."
+      "decision_failed": "La décision n'a pas pu être enregistrée. Réessaie.",
+      "content": {
+        "fr_required": "Le champ français est requis.",
+        "phone_invalid": "Numéro de téléphone invalide (format +212…).",
+        "theme_invalid": "Thème invalide.",
+        "category_invalid": "Catégorie invalide.",
+        "section_required": "La section est requise.",
+        "order_invalid": "L'ordre doit être un entier positif.",
+        "too_long": "Ce champ est trop long.",
+        "submit_failed": "Échec de l'enregistrement. Réessaie.",
+        "not_found": "Cette entrée est introuvable.",
+        "wrong_residence": "Cette entrée ne relève pas de ta résidence."
+      }
     },
     "profil": {
       "forbidden": "Tu dois être connecté pour faire ça.",
@@ -93,6 +105,14 @@
     },
     "annuaire": {
       "fetch_failed": "Impossible de charger l’annuaire pour le moment.",
+      "retry": "Réessayer"
+    },
+    "guide": {
+      "fetch_failed": "Impossible de charger le guide pour le moment.",
+      "retry": "Réessayer"
+    },
+    "numerosUtiles": {
+      "fetch_failed": "Impossible de charger les numéros pour le moment.",
       "retry": "Réessayer"
     },
     "artisan": {
@@ -208,6 +228,51 @@
     }
   },
   "comod": {
+    "home": {
+      "title": "Espace co-modération",
+      "intro": "Gère l'admission et le contenu durable de la résidence.",
+      "tiles": {
+        "admission": "File d'admission",
+        "guide": "Guide",
+        "numeros": "Numéros utiles",
+        "pack": "Pack accueil"
+      }
+    },
+    "admin": {
+      "newEntry": "+ Nouvelle entrée",
+      "edit": "Éditer",
+      "retire": "Retirer",
+      "confirmRetire": "Retirer cette entrée ?",
+      "retireReasonLabel": "Motif (optionnel)",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "cancel": "Annuler",
+      "frEditor": "Français",
+      "arEditor": "العربية",
+      "preview": "Aperçu",
+      "orderLabel": "Ordre d'affichage",
+      "untranslatedWarning": "Cette entrée affichera la version FR en mode AR jusqu'à traduction.",
+      "retiredBadge": "Retiré",
+      "backToList": "Retour à la liste",
+      "empty": "Aucune entrée pour le moment.",
+      "guide": {
+        "pageTitle": "Guide — administration",
+        "intro": "Crée et édite les entrées du guide de la résidence.",
+        "themeLabel": "Thème"
+      },
+      "numeros": {
+        "pageTitle": "Numéros utiles — administration",
+        "intro": "Crée et édite les numéros essentiels de la résidence.",
+        "categoryLabel": "Catégorie",
+        "phoneLabel": "Téléphone",
+        "notesLabel": "Note"
+      },
+      "pack": {
+        "pageTitle": "Pack accueil — administration",
+        "intro": "Crée et édite les sections du pack accueil.",
+        "sectionLabel": "Section"
+      }
+    },
     "admission": {
       "pageTitle": "File d'admission",
       "intro": "Valide ou rejette les demandes de ta résidence. Objectif : décider sous 24h max.",
@@ -237,10 +302,74 @@
   "community": {
     "home": {
       "title": "Bienvenue à Darna",
-      "body": "L'annuaire, le guide et les alertes de la résidence arrivent bientôt."
+      "body": "Retrouve l'essentiel de la résidence.",
+      "tiles": {
+        "annuaire": "Annuaire des artisans",
+        "guide": "Guide de la résidence",
+        "numeros": "Numéros utiles"
+      }
     },
     "nav": {
       "settings": "Mon profil"
+    },
+    "guide": {
+      "title": "Guide de la résidence",
+      "intro": "Les infos pratiques de la résidence, comme une FAQ. Cherche ou parcours par thème.",
+      "empty": "Le guide est en cours de préparation. Reviens bientôt.",
+      "search": {
+        "label": "Rechercher dans le guide",
+        "placeholder": "code portail, gardien, déchets…"
+      },
+      "themes": {
+        "codes_portails": "Codes portails",
+        "horaires_gardien": "Horaires gardien",
+        "regles_jardin": "Règles jardin",
+        "dechets": "Déchets",
+        "traditions": "Traditions",
+        "securite": "Sécurité",
+        "autre": "Autre"
+      },
+      "count": "{n, plural, =0 {aucune entrée} one {# entrée} other {# entrées}}",
+      "notTranslatedBadge": "Non traduit",
+      "breadcrumb": "Guide",
+      "searchResults": {
+        "title": "Résultats de recherche",
+        "empty": "Aucun résultat. Essaie un autre mot-clé."
+      },
+      "entry": {
+        "back": "Retour au guide"
+      }
+    },
+    "numerosUtiles": {
+      "title": "Numéros utiles",
+      "intro": "Les contacts essentiels de la résidence, à portée d'un tap.",
+      "categories": {
+        "securite": "Sécurité",
+        "syndic": "Syndic",
+        "urgences": "Urgences",
+        "sante": "Santé",
+        "autre": "Autre"
+      },
+      "call": "Appeler {label}",
+      "callAction": "Appeler",
+      "unavailable": "Numéro indisponible",
+      "empty": "Aucun numéro pour le moment."
+    },
+    "packAccueil": {
+      "banner": {
+        "title": "Bienvenue à Darna !",
+        "body": "Un aperçu de 10 minutes pour tout savoir sur la résidence.",
+        "cta": "Découvrir le Pack accueil",
+        "later": "Plus tard",
+        "dismiss": "Fermer"
+      },
+      "title": "Pack accueil",
+      "intro": "L'essentiel pour bien démarrer dans la résidence.",
+      "back": "Retour à l'accueil",
+      "empty": "Le pack accueil est en cours de préparation.",
+      "entry": {
+        "guideLink": "Voir dans le Guide"
+      }
     },
     "annuaire": {
       "title": "Annuaire des artisans",

@@ -1,6 +1,6 @@
 # Story 3.3: Numéros utiles — accès rapide avec action `tel:`
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -30,28 +30,28 @@ Story de **consultation** courte, jumelle de 3.2 sur le même schéma (3.1). Ell
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Data layer Numéros** (AC: 1, 3, 6)
+- [x] **Task 1 — Data layer Numéros** (AC: 1, 3, 6)
   - [ ] `app/[locale]/community/numeros-utiles/data.ts` : `fetchUsefulNumbers(locale)` → client session, `select id, category_key, label_fr, label_ar, phone_e164, notes_fr, notes_ar, order_in_category from useful_numbers where deleted_at is null order by category_key, order_in_category` (RLS scope résidence). Mappe `label = locale==='ar' ? (label_ar ?? label_fr) : label_fr` et `notes = locale==='ar' ? (notes_ar ?? notes_fr) : notes_fr` (fallback FR, FR48 — pas de badge ici, la note est secondaire). Grouper par `category_key` suivant l'ordre const `USEFUL_NUMBER_CATEGORY_ORDER`. `cache()`.
   - [ ] `lib/content/useful-numbers.ts` : const `USEFUL_NUMBER_CATEGORY_ORDER` (= `['securite','syndic','urgences','sante','autre']`, réutilisable liste + co_mod 3.5).
 
-- [ ] **Task 2 — Page `/community/numeros-utiles`** (AC: 1, 2, 3, 5)
+- [x] **Task 2 — Page `/community/numeros-utiles`** (AC: 1, 2, 3, 5)
   - [ ] `app/[locale]/community/numeros-utiles/page.tsx` (RSC, `export const dynamic = 'force-dynamic'`, `generateMetadata` titre i18n). `setRequestLocale` ; `<AppHeader>`/titre + intro ; pour chaque catégorie non vide : `<h2>` libellé i18n `community.numerosUtiles.categories.<key>` + liste d'entrées. État vide global « Aucun numéro pour le moment » si tout vide.
   - [ ] `_components/number-card.tsx` : label (locale, `<h3>`/`<span>`), numéro affiché (format lisible, `dir="ltr"` sur le numéro même en RTL — AC5), note en `text-sm text-neutral-500` si présente, et le bouton appel (Task 3). Style borderless v2 (carte blanche, `rounded-[14px]`, `shadow-xs`).
   - [ ] `loading.tsx` (skeleton catégories), `error.tsx` (pattern annuaire).
 
-- [ ] **Task 3 — Bouton d'appel (réutilisation 2.3)** (AC: 1, 2)
+- [x] **Task 3 — Bouton d'appel (réutilisation 2.3)** (AC: 1, 2)
   - [ ] Réutiliser le `<CallButton>` de la fiche artisan (`app/[locale]/community/artisan/[slug]/_components/call-button.tsx`) : si générique, l'**importer** ; sinon **extraire** un `components/content/call-button.tsx` partagé (props `{ phoneE164, label }`) et faire pointer la fiche artisan dessus (refacto minimal, **préserver** son comportement sticky sur la fiche). Le bouton rend `<a href={`tel:${phoneE164}`}>` (pas de JS, pas de modal — NFR40b « Geste = WhatsApp ») avec cible tactile **≥ 56px** (AC1 prime sur NFR36 48px). `aria-label` « Appeler {label} ».
   - [ ] Vérifier l'encodage : `tel:` accepte le `+` E.164 tel quel ; ne pas re-formater le numéro dans le `href`.
 
-- [ ] **Task 4 — Cache offline Serwist** (AC: 4)
+- [x] **Task 4 — Cache offline Serwist** (AC: 4)
   - [ ] `sw/index.ts` : étendre le matcher de la `RuntimeCaching` `durable-content` (créée en 3.2) pour couvrir `/[locale]/community/numeros-utiles` (+ payload RSC). Si 3.2 a borné le matcher au seul Guide, élargir le pattern aux routes durables (`/community/(guide|numeros-utiles)`). StaleWhileRevalidate, 24h. Tester en `dev:webpack`.
 
-- [ ] **Task 5 — i18n `community.numerosUtiles` + tuile home** (AC: 1, 2, 3)
+- [x] **Task 5 — i18n `community.numerosUtiles` + tuile home** (AC: 1, 2, 3)
   - [ ] `messages/fr.json` namespace `community.numerosUtiles` : `title` (« Numéros utiles »), `intro`, `categories.{securite,syndic,urgences,sante,autre}` (« Sécurité », « Syndic », « Urgences », « Santé », « Autre »), `call` (« Appeler {label} »), `empty` (« Aucun numéro pour le moment »). Tonalité tutoiement.
   - [ ] Ajouter la **tuile Numéros utiles** sur la home (`community.home.tiles.numeros` + lien dans `app/[locale]/community/page.tsx`, **à côté** de la tuile Guide ajoutée en 3.2 — préserver la grille).
   - [ ] `messages/ar.json` : mêmes clés en **stub** (structure parallèle).
 
-- [ ] **Task 6 — Tests** (AC: 1, 2, 3, 6)
+- [x] **Task 6 — Tests** (AC: 1, 2, 3, 6)
   - [ ] `tests/numeros/numeros-list.test.tsx` (jsdom, `<NextIntlClientProvider>`, mock data layer) : rend les catégories non vides ; chaque entrée a un `<a href="tel:+212…">` ; note rendue si présente ; fallback FR de note en AR ; état vide si data layer renvoie `[]`.
   - [ ] `tests/rls.test.ts` : étendre — un résident d'une **autre** résidence ne `SELECT` pas l'entrée `useful_numbers` seedée (réutiliser les seeds du block Epic 3 de 3.1).
 
@@ -111,11 +111,29 @@ Story de **consultation** courte, jumelle de 3.2 sur le même schéma (3.1). Ell
 
 ### Agent Model Used
 
+claude-opus-4-8 (dev autonome Epic 3, 2026-06-20).
+
 ### Debug Log References
+
+- Aucune migration, aucun `gen:types` (D1). `pnpm typecheck` ✅, `pnpm lint` ✅ (0 erreur), `pnpm test` → 349 passed (NumberCard + CallButton inline ; le test fiche artisan 2.3 reste vert après extraction), `pnpm test:rls` → block Epic 3 **9/9 verts** (test i useful_numbers cross-résidence ; 1 échec pré-existant `moderation_log` hors-périmètre).
 
 ### Completion Notes List
 
+- **CallButton extrait + partagé (D2)** : `components/content/call-button.tsx` générique avec prop `variant` (`sticky` fiche / `inline` carte numéro), garde E.164, ≥56px (`min-h-touch-lg`). La fiche artisan (`artisan/[slug]/_components/call-button.tsx`) devient un **wrapper fin** conservant son API `{ name, phoneE164 }` + i18n `community.artisan` → **le test fiche 2.3 reste inchangé et vert** (pas de régression). Pas de duplication.
+- Numéro affiché en `dir="ltr"` (D3) même en RTL ; format MA lisible. Bouton « Appeler » visible court + `aria-label` « Appeler {label} » complet (a11y).
+- Note = fallback FR silencieux **sans badge** (D5) ; le badge « Non traduit » reste réservé au corps Guide (FR48).
+- SW : le matcher `durable-content` (créé en 3.2) couvre **déjà** `numeros-utiles` (regex `/community/(guide|numeros-utiles)`) → aucune modif SW requise ici.
+- Home : tuile Numéros utiles ajoutée à la grille (préserve Annuaire + Guide).
+- i18n `community.numerosUtiles` + `errors.numerosUtiles` (fr) ; `ar.json` stub parallèle. `tel:` jamais reformaté (le `+` E.164 passe tel quel).
+
 ### File List
+
+- **NEW** `components/content/call-button.tsx` (CallButton partagé sticky/inline)
+- **NEW** `lib/content/useful-numbers.ts` (`USEFUL_NUMBER_CATEGORY_ORDER`)
+- **NEW** `app/[locale]/community/numeros-utiles/{page,data,loading,error}.tsx` + `_components/number-card.tsx`
+- **NEW** `tests/numeros/numeros-list.test.tsx`
+- **UPDATE** `app/[locale]/community/artisan/[slug]/_components/call-button.tsx` (wrapper → CallButton partagé)
+- **UPDATE** `app/[locale]/community/page.tsx` (tuile Numéros), `messages/{fr,ar}.json` (`community.numerosUtiles`, `errors.numerosUtiles`, tuile), `tests/rls.test.ts` (seed + test i)
 
 ### Change Log
 

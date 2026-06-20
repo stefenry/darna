@@ -43,6 +43,8 @@
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "serwist": "^9.5.11",
     "tailwind-merge": "^3.3.0",
     "zod": "^4.4.3"

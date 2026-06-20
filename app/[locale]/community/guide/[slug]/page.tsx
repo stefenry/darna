@@ -1,0 +1,77 @@
+// Story 3.2 (AC3/AC4/AC7/AC8) — entrée Guide (deep link, cible canonique Epic 6).
+// RSC. `not-found` → notFound() (404, pas de fuite cross-tenant). Corps rendu via
+// le renderer Markdown partagé (XSS-safe, skipHtml). Fil d'Ariane « Guide › thème ».
+
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { ArrowLeft, ChevronRight } from 'lucide-react';
+import { routing } from '@/lib/i18n/routing';
+import type { Locale } from '@/lib/i18n/config';
+import { MarkdownRender } from '@/components/content/markdown-render';
+import { fetchGuideEntryBySlug } from './data';
+
+export const dynamic = 'force-dynamic';
+
+type Props = { params: Promise<{ locale: string; slug: string }> };
+
+function isValidLocale(locale: string): locale is Locale {
+  return (routing.locales as readonly string[]).includes(locale);
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, slug } = await params;
+  if (!isValidLocale(locale) || !slug?.trim()) return {};
+  const result = await fetchGuideEntryBySlug(locale, slug);
+  return result.kind === 'found' ? { title: result.entry.title } : {};
+}
+
+export default async function GuideEntryPage({ params }: Props) {
+  const { locale, slug } = await params;
+  if (!isValidLocale(locale)) notFound();
+  if (!slug?.trim()) notFound();
+  setRequestLocale(locale);
+
+  const result = await fetchGuideEntryBySlug(locale, slug);
+  if (result.kind === 'not-found') notFound();
+  const { entry } = result;
+
+  const t = await getTranslations('community.guide');
+
+  return (
+    <article className="flex flex-col gap-5">
+      <Link
+        href={`/${locale}/community/guide`}
+        aria-label={t('entry.back')}
+        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+      >
+        <ArrowLeft className="size-5" aria-hidden />
+      </Link>
+
+      <nav
+        aria-label={t('breadcrumb')}
+        className="flex items-center gap-1 text-sm text-neutral-500"
+      >
+        <Link href={`/${locale}/community/guide`} className="hover:text-neutral-700">
+          {t('breadcrumb')}
+        </Link>
+        <ChevronRight className="size-4" aria-hidden />
+        <span className="text-neutral-700">{t(`themes.${entry.themeKey}`)}</span>
+      </nav>
+
+      <header className="flex flex-col gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 break-words">
+          {entry.title}
+        </h1>
+        {entry.untranslated && (
+          <span className="w-fit rounded-sm bg-bg-soft px-2 py-0.5 text-xs font-medium text-neutral-500">
+            {t('notTranslatedBadge')}
+          </span>
+        )}
+      </header>
+
+      <MarkdownRender source={entry.body} />
+    </article>
+  );
+}

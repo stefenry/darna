@@ -1,6 +1,6 @@
 # Story 3.2: Guide résident — lecture + recherche + deep linking par entrée
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -32,46 +32,46 @@ Story de **consultation** : elle pose le chemin de lecture par-dessus le schéma
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Dépendance + renderer Markdown partagé** (AC: 3, 8)
+- [x] **Task 1 — Dépendance + renderer Markdown partagé** (AC: 3, 8)
   - [ ] `pnpm add react-markdown remark-gfm` (versions stables compat React 19 / Next 16). **Ne pas** ajouter `rehype-raw`/`rehype-sanitize` (on n'autorise aucun HTML brut → pas de surface XSS à sanitiser).
   - [ ] `components/content/markdown-render.tsx` (RSC-compatible, pas de `'use client'`) : `<Markdown remarkPlugins={[remarkGfm]} skipHtml components={{…}}>{source}</Markdown>`. `components` mappe titres/listes/liens/`<a target>` aux tokens borderless v2 (prose sobre, liens `accent-600`, pas de `prose` Tailwind si non installé → classes utilitaires). Liens externes `rel="noopener noreferrer"`. Placer en `components/content/` (partagé Guide + Pack + preview co_mod, pas sous une route).
   - [ ] `components/content/markdown-render.test.tsx` : rend titres/listes/liens ; **`<script>alert(1)</script>` et `<img src=x onerror=…>` n'apparaissent pas dans le DOM** (skipHtml) ; un lien `[x](https://…)` a `rel="noopener noreferrer"`.
 
-- [ ] **Task 2 — Migration : RPC recherche `search_guide_entries`** (AC: 2, 8)
+- [x] **Task 2 — Migration : RPC recherche `search_guide_entries`** (AC: 2, 8)
   - [ ] `supabase/migrations/20260623100000_guide_search_rpc.sql` (timestamp > 3.1). `create function public.search_guide_entries(p_query text, p_locale text) returns table(slug text, theme_key public.guide_theme_key, title text, snippet text, rank real) language sql stable security invoker set search_path = public as $$ … $$;`
   - [ ] Corps : `websearch_to_tsquery(<config>, p_query)` (config `french` si `p_locale='fr'`, sinon `simple`) sur `search_fr_tsv`/`search_ar_tsv` ; `ts_rank` pour le tri ; `ts_headline(<config>, coalesce(title_<loc>,title_fr) || ' — ' || coalesce(body_<loc>_markdown, body_fr_markdown), query, 'StartSel=<mark>,StopSel=</mark>,MaxFragments=1,MinWords=5,MaxWords=20')` pour le snippet ; `title` = `coalesce(title_<loc>, title_fr)` (fallback FR, FR48). `where deleted_at is null` (RLS scope déjà la résidence — **security invoker** = la policy résident s'applique). `order by rank desc limit 30`. Pas de `residence_id` en paramètre (RLS le déduit du JWT).
   - [ ] Empêcher l'injection de syntaxe tsquery : `websearch_to_tsquery` est sûr par construction (pas de parse d'opérateurs). Sanitiser la longueur côté data layer (réutiliser `sanitizeQuery`).
 
-- [ ] **Task 3 — Data layer Guide (liste + recherche)** (AC: 1, 2, 4, 8)
+- [x] **Task 3 — Data layer Guide (liste + recherche)** (AC: 1, 2, 4, 8)
   - [ ] `app/[locale]/community/guide/data.ts` : `fetchGuideEntries(locale)` → client session, `select slug, theme_key, title_fr, title_ar, order_in_theme from guide_entries where deleted_at is null order by theme_key, order_in_theme` (RLS scope résidence), mappe `title = locale==='ar' ? (title_ar ?? title_fr) : title_fr` + flag `untranslated = locale==='ar' && !title_ar`. Grouper par `theme_key` (objet ordonné suivant l'ordre enum canonique défini en const). `cache()` comme `data.ts` annuaire.
   - [ ] `searchGuide(locale, rawQuery)` → `sanitizeQuery` (réutiliser `lib/search/fts.ts`) ; si `!hasQuery` → `[]` ; sinon `supabase.rpc('search_guide_entries', { p_query, p_locale: locale })`. Retour typé `{ slug, themeKey, title, snippet, rank }[]`.
   - [ ] Const `GUIDE_THEME_ORDER` (ordre d'affichage des thèmes) dans `lib/content/guide.ts` (réutilisable liste + co_mod 3.5).
 
-- [ ] **Task 4 — Data layer entrée (deep link)** (AC: 3, 4, 8)
+- [x] **Task 4 — Data layer entrée (deep link)** (AC: 3, 4, 8)
   - [ ] `app/[locale]/community/guide/[slug]/data.ts` : `fetchGuideEntryBySlug(locale, slug)` (pattern `cache(_fetch…)` de la fiche artisan l.69) → `select * from guide_entries where slug = ? and deleted_at is null .maybeSingle()` (RLS scope résidence → un slug d'une autre résidence renvoie `null`). Retour discriminé `{ kind:'found', entry, body, title, untranslated } | { kind:'not-found' }`. `body = locale==='ar' ? (body_ar_markdown ?? body_fr_markdown) : body_fr_markdown` ; `untranslated = locale==='ar' && !body_ar_markdown`.
 
-- [ ] **Task 5 — Page liste `/community/guide`** (AC: 1, 2, 7)
+- [x] **Task 5 — Page liste `/community/guide`** (AC: 1, 2, 7)
   - [ ] `app/[locale]/community/guide/page.tsx` (RSC, `export const dynamic = 'force-dynamic'`, `generateMetadata` titre Guide). Lit `searchParams.q` ; si `q` présent → branche recherche (`searchGuide`) sinon liste groupée (`fetchGuideEntries`). `setRequestLocale`. `<AppHeader>`/titre + intro i18n.
   - [ ] `_components/guide-search.tsx` (`'use client'`) : input qui met à jour l'URL `?q=` (debounce ; pattern `search-input.tsx` annuaire). a11y : `role="search"`, label i18n.
   - [ ] `_components/guide-theme-section.tsx` : `<details>` natif (clavier gratuit, NFR37) par thème, `<summary>` = libellé i18n `community.guide.themes.<key>` + count, liste de `<Link href=…/guide/[slug]>` (titre + badge « Non traduit » si `untranslated`).
   - [ ] `_components/guide-search-results.tsx` : liste plate classée, chaque item = `<Link>` titre + snippet (le `<mark>` du `ts_headline` rendu via `dangerouslySetInnerHTML` **uniquement** sur la sortie `ts_headline` — déjà échappée par Postgres sauf les balises `<mark>` que l'on a définies ; sécuriser : `ts_headline` HTML-échappe le contenu, seules nos `<mark>` passent → sûr. **Documenter** ce point en commentaire). État vide « Aucun résultat » (i18n).
   - [ ] `loading.tsx` (skeleton thèmes, pas spinner — AR21), `error.tsx` (pattern annuaire).
 
-- [ ] **Task 6 — Page entrée `/community/guide/[slug]`** (AC: 3, 4, 7, 8)
+- [x] **Task 6 — Page entrée `/community/guide/[slug]`** (AC: 3, 4, 7, 8)
   - [ ] `app/[locale]/community/guide/[slug]/page.tsx` (RSC, `force-dynamic`). `fetchGuideEntryBySlug` ; `kind==='not-found'` → `notFound()`. Rend `<AppHeader>` (chevron retour) + **fil d'Ariane** « Guide › {thème i18n} » (`<Link>` vers `/guide` ancré thème — ou simple lien `/guide`) + `<h1>` titre + badge « Non traduit » (AC4) + `<MarkdownRender source={body} />`. `generateMetadata` titre = titre entrée (cache la lecture).
   - [ ] `loading.tsx` skeleton.
   - [ ] **Préserver** : ne pas exposer `body_*_markdown` brut dans le HTML hors du renderer ; pas d'`<a>` vers une autre résidence (slugs scoping RLS).
 
-- [ ] **Task 7 — Cache offline Serwist** (AC: 5)
+- [x] **Task 7 — Cache offline Serwist** (AC: 5)
   - [ ] `sw/index.ts` : ajouter une `RuntimeCaching` `durable-content` (StaleWhileRevalidate, `ExpirationPlugin` maxAge 24h, maxEntries ~64) matchant les navigations `/[locale]/community/guide` et `/community/guide/*` **et** leurs payloads RSC (`?_rsc=`), partitionnée par résidence si nécessaire via cookie/locale (s'aligner sur le pattern `annuaireCache` l.32-48, mais StaleWhileRevalidate car contenu éditorial moins volatil). Le `cacheOnNavigation` global est déjà actif (next.config) ; cette règle garantit le **< 100 ms** offline (AC5).
   - [ ] Vérifier en `dev:webpack` (Serwist KO sous Turbopack — architecture l.142/203).
 
-- [ ] **Task 8 — i18n `community.guide`** (AC: 1, 2, 4, 7)
+- [x] **Task 8 — i18n `community.guide`** (AC: 1, 2, 4, 7)
   - [ ] `messages/fr.json` namespace `community.guide` : `title` (« Guide de la résidence »), `intro`, `search.label`/`search.placeholder` (« code portail, gardien… »), `themes.{codes_portails,horaires_gardien,regles_jardin,dechets,traditions,securite,autre}` (libellés FR), `notTranslatedBadge` (« Non traduit »), `breadcrumb` (« Guide »), `searchResults.empty`, `searchResults.title`, `count` (`{n, plural, …}`), `entry.back`. Tonalité : tutoiement, pas de jargon.
   - [ ] Ajouter une **tuile Guide** sur la home : `community.home` (ou `community.nav`) clé `tiles.guide` + lien dans `app/[locale]/community/page.tsx` (le placeholder actuel n'a pas de tuiles — **préserver** le titre/body existants, ajouter une grille de tuiles ; 3.3 ajoutera la tuile Numéros, 3.4 la bannière Pack).
   - [ ] `messages/ar.json` : mêmes clés en **stub** (structure parallèle, MVP FR-only, AR différé V1.5).
 
-- [ ] **Task 9 — Tests** (AC: 1, 3, 4, 8)
+- [x] **Task 9 — Tests** (AC: 1, 3, 4, 8)
   - [ ] `tests/guide/guide-list.test.tsx` (jsdom, `<NextIntlClientProvider>`) : rendu thèmes dépliables + badge « Non traduit » sur entrée AR sans `title_ar` (mock data layer).
   - [ ] `tests/guide/guide-entry.test.tsx` : rend titre + markdown ; `notFound` si data layer renvoie `not-found`.
   - [ ] `markdown-render.test.tsx` (Task 1) : script inerte.
@@ -137,11 +137,34 @@ Story de **consultation** : elle pose le chemin de lecture par-dessus le schéma
 
 ### Agent Model Used
 
+claude-opus-4-8 (dev autonome Epic 3, 2026-06-20).
+
 ### Debug Log References
+
+- `pnpm add react-markdown remark-gfm` → react-markdown 10.1.0, remark-gfm 4.0.1 (compat React 19 / Next 16).
+- Migration RPC `20260627100000_guide_search_rpc.sql` appliquée ; `pnpm gen:types` → `search_guide_entries` dans `Functions`.
+- `pnpm typecheck` ✅, `pnpm lint` ✅ (0 erreur, 13 warnings = baseline), `pnpm test` → 345 passed (markdown-render + guide-list), `pnpm test:rls` → block Epic 3 **8/8 verts** (g/h RPC cross-résidence inclus ; 1 échec pré-existant `moderation_log` hors-périmètre, voir 3.1).
 
 ### Completion Notes List
 
+- **Déviation timestamp** : RPC en `20260627100000_guide_search_rpc.sql` (story prévoyait `20260623100000`, slot pris par Epic 2 — cohérent avec 3.1).
+- `markdown-render.tsx` placé en `components/content/` (partagé Guide/Pack/preview co_mod), **RSC-compatible** (pas de `'use client'`). XSS-safe : `skipHtml` + pas de `rehype-raw` → `<script>`/`<img onerror>` inertes (testé). Liens externes `rel="noopener noreferrer" target="_blank"` ; `urlTransform` par défaut neutralise `javascript:`.
+- RPC `search_guide_entries` **SECURITY INVOKER** (jamais DEFINER) : RLS du résident appliquée → preuve cross-résidence en test RLS (g/h). `ts_rank` (tri) + `ts_headline` (snippet `<mark>`). Locale-aware via `regconfig` (`french`/`simple`). `revoke execute from public, anon` + `grant to authenticated`.
+- Snippet `ts_headline` rendu via `dangerouslySetInnerHTML` : sûr car Postgres HTML-échappe le source, seules nos `<mark>` passent (commenté au point d'usage). NB : `react/no-danger` n'est pas activé dans l'ESLint du projet.
+- SW : `durableContentCache` (StaleWhileRevalidate, 24h, 64 entrées) matchant `/community/(guide|numeros-utiles)` + payloads RSC. Couvre déjà `numeros-utiles` (3.3) et `guide/pack-accueil` (3.4, sous `guide/`). Note mono-résidence MVP (pas de partitionnement par résidence).
+- Home : passée du placeholder à une **grille de tuiles** (Annuaire + Guide). 3.3 ajoutera Numéros, 3.4 la bannière Pack.
+- `community.guide` + `errors.guide` ajoutés à `fr.json` ; `ar.json` en **stub parallèle** (MVP FR-only).
+- `<AppHeader>` cité par la story n'existe pas comme composant → header/back-link inline (pattern fiche artisan), conforme à l'intent.
+
 ### File List
+
+- **NEW** `supabase/migrations/20260627100000_guide_search_rpc.sql`
+- **NEW** `components/content/markdown-render.tsx` (+ `.test.tsx`)
+- **NEW** `lib/content/guide.ts` (`GUIDE_THEME_ORDER`)
+- **NEW** `app/[locale]/community/guide/{page,data,loading,error}.tsx` + `_components/{guide-search,guide-theme-section,guide-search-results}.tsx`
+- **NEW** `app/[locale]/community/guide/[slug]/{page,data,loading}.tsx`
+- **NEW** `tests/guide/guide-list.test.tsx`
+- **UPDATE** `sw/index.ts` (durable-content cache), `app/[locale]/community/page.tsx` (tuiles), `messages/{fr,ar}.json` (`community.guide`, `errors.guide`, tuiles), `lib/supabase/types.generated.ts` (RPC), `tests/rls.test.ts` (g/h), `package.json`/`pnpm-lock.yaml` (react-markdown, remark-gfm)
 
 ### Change Log
 

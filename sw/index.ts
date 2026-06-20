@@ -3,7 +3,7 @@
 // La prod (`pnpm build && pnpm start`) marche normalement.
 import { defaultCache } from '@serwist/next/worker';
 import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from 'serwist';
-import { CacheFirst, ExpirationPlugin, NetworkOnly, Serwist } from 'serwist';
+import { CacheFirst, ExpirationPlugin, NetworkOnly, Serwist, StaleWhileRevalidate } from 'serwist';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -37,6 +37,25 @@ const annuaireCache: RuntimeCaching = {
   }),
 };
 
+// Story 3.2 (AC5) / 3.3 / 3.4 — contenu durable (Guide + entrées + Pack accueil)
+// en StaleWhileRevalidate : lecture hors-ligne < 100ms, rafraîchi en arrière-plan
+// (contenu éditorial peu volatil). Matche les navigations `/[locale]/community/
+// guide…` (inclut `guide/[slug]` ET `guide/pack-accueil` 3.4) ET leurs payloads
+// RSC (même pathname, query `?_rsc=` → entrée de cache distincte par URL complète).
+// 3.3 élargit ce matcher à `numeros-utiles`.
+//
+// NOTE multi-tenant : le contenu est résidence-scopé (RLS). Au MVP mono-résidence
+// (Darna), pas de partitionnement par résidence ; à généraliser (cookie/locale)
+// si plusieurs résidences partagent un appareil (cf. story 3.2 Task 7).
+const durableContentCache: RuntimeCaching = {
+  matcher: ({ url, sameOrigin }) =>
+    sameOrigin && /\/community\/(guide|numeros-utiles)(\/|$|\?)/.test(url.pathname + url.search),
+  handler: new StaleWhileRevalidate({
+    cacheName: 'durable-content',
+    plugins: [new ExpirationPlugin({ maxAgeSeconds: 24 * 60 * 60, maxEntries: 64 })],
+  }),
+};
+
 // Story 2.3 (AC4) — fiche artisan : pas de runtime cache (review 2026-06-17 P19).
 // La page est authentifiée et personnalisée (ContributorPanel visible si isOwner)
 // → un CacheFirst sans clé user fuiterait le HTML d'un user à un autre sur
@@ -63,7 +82,7 @@ const serwist = new Serwist({
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: supportsNavigationPreload,
-  runtimeCaching: [tokenSurfaceBypass, annuaireCache, ...defaultCache],
+  runtimeCaching: [tokenSurfaceBypass, durableContentCache, annuaireCache, ...defaultCache],
 });
 
 serwist.addEventListeners();

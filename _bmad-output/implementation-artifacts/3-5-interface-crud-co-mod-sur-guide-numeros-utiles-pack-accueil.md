@@ -1,6 +1,6 @@
 # Story 3.5: Interface CRUD co-mod sur Guide, Numéros utiles, Pack accueil
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -32,21 +32,21 @@ Story de **curation** : elle ajoute la couche d'écriture co_mod par-dessus le s
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Migration : RPC retrait `retire_durable_entry`** (AC: 5, 8)
+- [x] **Task 1 — Migration : RPC retrait `retire_durable_entry`** (AC: 5, 8)
   - [ ] `supabase/migrations/20260623110000_durable_content_retire_rpc.sql` (timestamp > 3.1/3.2). `create function public.retire_durable_entry(p_kind text, p_id uuid, p_reason text) returns void language plpgsql security definer set search_path = public as $$ … $$;` — sur le **modèle exact** de `accept_admission`/`process_artisan_consent`.
   - [ ] Corps : valider `p_kind in ('guide_entry','useful_number','pack_entry')` (sinon `raise exception 'invalid_kind'`) ; résoudre la table cible ; `raise exception 'not_co_mod'` si `auth_role() <> 'co_mod'` ; charger l'entrée, `raise exception 'not_found'` si absente ou déjà `deleted_at is not null` ; `raise exception 'wrong_residence'` si `residence_id <> auth_residence_id()` ; `update <table> set deleted_at = now(), deleted_by = auth.uid(), deletion_reason = p_reason where id = p_id` ; `insert into moderation_log (residence_id, actor_id, action, target_kind, target_id, reason_text_anonymized) values (auth_residence_id(), auth.uid(), 'content_removed', p_kind, p_id, p_reason)`. Atomique (une transaction de fonction).
   - [ ] **Pas** de nouvelle valeur d'enum `moderation_action` (réutilise `content_removed`).
 
-- [ ] **Task 2 — Config d'entité générique** (AC: 1, 2)
+- [x] **Task 2 — Config d'entité générique** (AC: 1, 2)
   - [ ] `lib/content/admin-config.ts` : une const décrivant les 3 entités (`guide` | `numeros` | `pack`) : `{ table, kind, route, fields, i18nNs, listSelect, orderField }`. Permet à l'éditeur/liste/actions de rester génériques. Réutiliser `GUIDE_THEME_ORDER` (3.2), `USEFUL_NUMBER_CATEGORY_ORDER` (3.3).
   - [ ] Types dérivés de `Database['public']['Tables']` (jamais de typage manuel).
 
-- [ ] **Task 3 — Schémas Zod + mapping erreurs** (AC: 2, 3, 8)
+- [x] **Task 3 — Schémas Zod + mapping erreurs** (AC: 2, 3, 8)
   - [ ] `lib/validation/durable-content.ts` : `zGuideEntry` (`slug` slugifié, `theme_key z.enum([...])`, `title_fr` requis non vide, `title_ar` optionnel, `body_fr_markdown` requis, `body_ar_markdown` optionnel, `order_in_theme z.coerce.number().int().min(0)`), `zUsefulNumber` (`category_key` enum, `label_fr` requis, `phone_e164` via regex E.164 `^\+[1-9]\d{6,14}$`, `notes_*` optionnels, ordre), `zPackEntry` (`section_key` requis texte, `title_fr`/`body_fr_markdown` requis, AR optionnels, ordre). `slug` auto-généré depuis `title_fr` si non fourni (helper `slugify`, réutiliser si existant — sinon créer `lib/content/slugify.ts`).
   - [ ] `mapDurableFieldError(path)` → clé i18n `errors.comod.content.*` (lire le `path` Zod uniquement, jamais le message natif — AR17).
   - [ ] `lib/validation/durable-content.test.ts` : FR requis, AR optionnel, phone E.164, enum thème/catégorie, ordre ≥ 0.
 
-- [ ] **Task 4 — Server Actions create/edit/retire** (AC: 3, 4, 5, 8)
+- [x] **Task 4 — Server Actions create/edit/retire** (AC: 3, 4, 5, 8)
   - [ ] `app/[locale]/comod/admin/_actions/durable-content.ts` (`'use server'`). 3 fonctions génériques paramétrées par `kind` (ou 1 par opération × entité — privilégier génériques avec `kind` validé) : `createDurableEntry(kind, formData)`, `updateDurableEntry(kind, id, formData)`, `retireDurableEntry(kind, id, reason)`. Signature compatible `useActionState` (union `{ ok:true } | { ok:false; code; field?; message_key }`).
   - [ ] **Garde** : `requireComod()` en tête (renvoie `forbidden`/`errors.comod.forbidden` sinon).
   - [ ] **Create/Edit** : `z…safeParse` → mapping field error ; **client session** (`createClient`, pas admin) → `insert`/`update` (RLS `<table>_co_mod_insert`/`_update` + grants colonne 3.1 = enforcement). `created_by = guard.user.id` à l'insert ; `residence_id` **jamais** lu du form (déduit par RLS / `auth_residence_id`). `revalidatePath('/[locale]/community/<module>')` + la route entrée si Guide. Sur erreur DB → `log` + `submit_failed`.
@@ -54,28 +54,28 @@ Story de **curation** : elle ajoute la couche d'écriture co_mod par-dessus le s
   - [ ] **Avertissement AR vide (AC3)** : non bloquant — l'action **réussit** avec `body_ar_markdown=NULL` et renvoie un flag `{ ok:true, warning:'untranslated' }` que le form affiche.
   - [ ] Tests node (`// @vitest-environment node`, mocks `requireComod` + `createClient` chaîné + `logger`, calquer `tests/profil/profile-actions.test.ts` et `tests/comod/*`) : create OK, edit OK, validation KO, retire via rpc, forbidden si pas co_mod.
 
-- [ ] **Task 5 — Liste d'admin par module** (AC: 1, 6, 7)
+- [x] **Task 5 — Liste d'admin par module** (AC: 1, 6, 7)
   - [ ] `app/[locale]/comod/admin/guide/page.tsx`, `…/numeros-utiles/page.tsx`, `…/pack-accueil/page.tsx` (RSC, `force-dynamic`, `generateMetadata`). Chacune lit ses entrées via **client session** (RLS co_mod voit aussi les soft-deleted de sa résidence — afficher état « retiré » + possibilité future de restaurer). Pattern de lecture identique à `comod/admission/page.tsx` (l.40-60).
   - [ ] `_components/admin-list.tsx` (générique, paramétré `kind`) : table/cartes (titre/label, thème/catégorie/section, ordre, badge « retiré » si `deleted_at`), boutons « Éditer » (`<Link>` vers `[id]`) et « Retirer » (ouvre `<RetireConfirm>`). CTA « + Nouvelle entrée » → `nouveau`.
   - [ ] `_components/retire-confirm.tsx` (`'use client'`) : confirmation (pas modal plein écran — inline/dialog Radix accessible, focus-trap, Escape) appelant `retireDurableEntry`. Champ `reason` optionnel.
   - [ ] `loading.tsx`/`error.tsx` par module (ou partagés sous `admin/`).
 
-- [ ] **Task 6 — Éditeur bilingue générique (nouveau + édition)** (AC: 2, 3, 7)
+- [x] **Task 6 — Éditeur bilingue générique (nouveau + édition)** (AC: 2, 3, 7)
   - [ ] Routes `…/<module>/nouveau/page.tsx` et `…/<module>/[id]/page.tsx` (RSC : la 2ᵉ charge l'entrée via session client, `notFound()` si absente/autre résidence). Toutes deux montent `<DurableEntryForm kind=… mode='create'|'edit' existing? />`.
   - [ ] `_components/durable-entry-form.tsx` (`'use client'`, `useActionState`) : champs selon `kind` (config Task 2). Pour Guide/Pack : **deux `<textarea>` Markdown FR/AR côte à côte** (grid 2 colonnes desktop, empilé mobile) chacun avec **preview live** via `<MarkdownRender>` (3.2, fonctionne en client) ; sélecteur thème/section ; input ordre. Pour Numéros : `label_fr`/`label_ar`, `phone_e164` (input `inputMode="tel"`), `notes_*`, sélecteur catégorie, ordre. CTA sticky « Enregistrer » (`<StickyBottomBar>`).
   - [ ] **Validation client** : ≥ FR rempli (CTA disabled sinon) **+** miroir serveur. Sur `ok && warning==='untranslated'` → toast/encart « Cette entrée affichera la version FR en mode AR jusqu'à traduction » (AC3). Sur succès → toast + `router.push` vers la liste.
   - [ ] a11y : `<fieldset>`/`<legend>`, labels liés (`useId`), erreurs `role="alert"`, RTL via logical properties (NFR45), clavier complet (NFR37). `noValidate aria-busy`.
   - [ ] Test rendu (jsdom, `<NextIntlClientProvider>`, mock action) : champs FR/AR présents, preview rend le markdown, CTA disabled si FR vide.
 
-- [ ] **Task 7 — Entrées de navigation co_mod** (AC: 1, 6)
+- [x] **Task 7 — Entrées de navigation co_mod** (AC: 1, 6)
   - [ ] Ajouter des liens vers `/comod/admin/{guide,numeros-utiles,pack-accueil}` depuis un hub co_mod (étendre `comod/layout.tsx` ou une home `comod/page.tsx` si elle existe ; sinon ajouter une nav légère). **Préserver** la garde `requireComod` du layout (AC6 vient de là — ne rien affaiblir).
 
-- [ ] **Task 8 — i18n `comod.admin` + `errors.comod.content`** (AC: 1, 2, 3, 5)
+- [x] **Task 8 — i18n `comod.admin` + `errors.comod.content`** (AC: 1, 2, 3, 5)
   - [ ] `messages/fr.json` namespace `comod.admin` : sous-clés partagées (`newEntry`, `edit`, `retire`, `confirmRetire`, `retireReasonLabel`, `save`, `saving`, `cancel`, `frEditor`, `arEditor`, `preview`, `orderLabel`, `untranslatedWarning` = « Cette entrée affichera la version FR en mode AR jusqu'à traduction », `retiredBadge`, `backToList`) + par module (`guide.{pageTitle,intro,themeLabel}`, `numeros.{pageTitle,intro,categoryLabel,phoneLabel,notesLabel}`, `pack.{pageTitle,intro,sectionLabel}`). Réutiliser `community.guide.themes.*` (libellés thèmes) et `community.numerosUtiles.categories.*` (libellés catégories) pour les sélecteurs.
   - [ ] `errors.comod.content.*` (FR requis, phone invalide, thème invalide, ordre invalide, `submit_failed`, `not_found`, `wrong_residence`). Réutiliser `errors.comod.forbidden` existant.
   - [ ] `messages/ar.json` : stub parallèle.
 
-- [ ] **Task 9 — Tests RLS + intégration** (AC: 5, 8)
+- [x] **Task 9 — Tests RLS + intégration** (AC: 5, 8)
   - [ ] `tests/rls.test.ts` — étendre le block Epic 3 : (a) co_mod `INSERT`/`UPDATE` OK sa résidence ; (b) co_mod autre résidence `UPDATE` → `42501`/0 ligne ; (c) RPC `retire_durable_entry` par co_mod → entrée `deleted_at` non null **et** ligne `moderation_log` `content_removed` créée ; (d) après retrait, `SELECT` résident → 0 ligne ; (e) RPC appelé par un `resident` → exception `not_co_mod` (re-check interne, pas seulement RLS).
 
 ## Dev Notes
@@ -147,11 +147,35 @@ Story de **curation** : elle ajoute la couche d'écriture co_mod par-dessus le s
 
 ### Agent Model Used
 
+claude-opus-4-8 (dev autonome Epic 3, 2026-06-20).
+
 ### Debug Log References
+
+- Migration RPC `20260627110000_durable_content_retire_rpc.sql` appliquée ; `pnpm gen:types` → `retire_durable_entry` dans `Functions`.
+- `pnpm typecheck` ✅, `pnpm lint` ✅ (0 erreur), `pnpm test` → 382 passed (validation Zod + actions node + éditeur render), `pnpm test:rls` → **59 passed, 0 failed** (incl. mes tests retrait RPC r/s + les tests review 3.1 k-q).
 
 ### Completion Notes List
 
+- **Coordination avec la code-review 3.1 concurrente** : pendant ce dev, une revue parallèle a durci le schéma 3.1 via `20260628090000_review_3_1_hardening.sql` (CHECK E.164/longueurs/format slug, UNIQUE ordre + phone, trigger `enforce_deleted_by_actor`, **P10 : `created_by default auth.uid()` retiré du grant insert**, policies résident sur `auth_role()/auth_residence_id()`). J'ai aligné 3.5 dessus : (1) **`created_by` retiré des inserts** de `saveDurableEntry` (sinon `42501`) — posé par défaut DB ; (2) regex Zod phone alignée `^\+[1-9]\d{7,14}$` ; (3) `section_key` **slugifié** en validation (CHECK `^[a-z0-9_-]{1,64}$`, anti path-traversal P4). Le trigger P1 et mon RPC posent tous deux `deleted_by = auth.uid()` (cohérent).
+- **Create/Edit = client session co_mod** (RLS `<table>_co_mod_*` + grants colonne 3.1) ; `residence_id` déduit du JWT (insert), jamais lu du form ; tenant figé en UPDATE. **Retire = RPC SECURITY DEFINER** `retire_durable_entry` (soft-delete + `moderation_log content_removed` atomiques) qui **re-vérifie `auth_role()='co_mod'` + résidence** en interne → un résident reçoit `not_co_mod` (prouvé test RLS s). Whitelist `p_kind` → table (%I sûr).
+- **Action enum réutilisée** : `content_removed` + `target_kind in (guide_entry|useful_number|pack_entry)` (D3) — aucune valeur d'enum ajoutée.
+- **Éditeur générique unique** (`durable-entry-form.tsx`) paramétré `kind` : Guide/Pack = 2 textareas Markdown FR/AR côte à côte + **preview live** (`<MarkdownRender>` 3.2) ; Numéros = champs téléphone. Validation client (≥ FR rempli → CTA disabled) miroir serveur (Zod). Avertissement « Non traduit » non bloquant (AC3). a11y fieldset/labels useId/role=alert, RTL `dir`.
+- **Garde 403** héritée du `comod/layout` (`requireComod` → `comod.forbidden`) ; Server Actions re-gardent (`requireComod` en tête) — défense en profondeur (AC6/D6). Hub co_mod `comod/page.tsx` (tuiles admission + 3 modules).
+- 9 routes minces (`{guide,numeros-utiles,pack-accueil}/{page,nouveau,[id]}`) délèguent à 2 vues RSC partagées (`admin-page-views.tsx`). `notFound()` si id absent/autre résidence (RLS).
+- **Pas de toast/StickyBottomBar** dans le repo (vérifié) → encarts inline `role=status/alert` + barre sticky native (déviation mineure vs « toast sonner » cité, même intention UX).
+- i18n `comod.home` + `comod.admin` + `errors.comod.content` (fr) ; `ar.json` stub parallèle. Réutilise `community.guide.themes.*` / `community.numerosUtiles.categories.*` pour les sélecteurs.
+
 ### File List
+
+- **NEW** `supabase/migrations/20260627110000_durable_content_retire_rpc.sql`
+- **NEW** `lib/content/admin-config.ts` ; `lib/validation/durable-content.ts` (+ `.test.ts`)
+- **NEW** `app/[locale]/comod/admin/_actions/durable-content.ts`
+- **NEW** `app/[locale]/comod/admin/_data/durable.ts`
+- **NEW** `app/[locale]/comod/admin/_components/{admin-list,retire-confirm,durable-entry-form,admin-page-views}.tsx`
+- **NEW** `app/[locale]/comod/admin/{guide,numeros-utiles,pack-accueil}/{page,nouveau/page,[id]/page}.tsx` (9)
+- **NEW** `app/[locale]/comod/page.tsx` (hub co_mod)
+- **NEW** `tests/comod/{durable-content-actions.test.ts,durable-entry-form.test.tsx}`
+- **UPDATE** `messages/{fr,ar}.json` (`comod.home`, `comod.admin`, `errors.comod.content`), `lib/supabase/types.generated.ts` (RPC), `tests/rls.test.ts` (tests r/s retrait RPC)
 
 ### Change Log
 

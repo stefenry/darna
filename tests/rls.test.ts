@@ -1411,4 +1411,67 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu durable (Epic 3)', () => {
     expect(after?.deleted_at).not.toBeNull();
     expect(after?.deleted_by).toBe(comodId); // trigger a écrasé residentId
   });
+
+  // ── Story 3.5 — RPC retire_durable_entry (SECURITY DEFINER) ──────────────────
+  it('(r) co_mod retire via RPC → soft-delete + moderation_log content_removed', async () => {
+    const ts = Date.now();
+    const { data: seeded, error: seedErr } = await admin
+      .from('guide_entries')
+      .insert({
+        slug: `traditions-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        theme_key: 'traditions',
+        title_fr: 'À retirer',
+        body_fr_markdown: 'corps',
+        order_in_theme: 50,
+        created_by: comodId,
+      })
+      .select()
+      .single();
+    if (seedErr || !seeded) throw seedErr ?? new Error('seed retire failed');
+
+    const { error: rpcErr } = await comodClient.rpc('retire_durable_entry', {
+      p_kind: 'guide_entry',
+      p_id: seeded.id,
+      p_reason: 'test_retrait',
+    });
+    expect(rpcErr).toBeNull();
+
+    const { data: row } = await admin
+      .from('guide_entries')
+      .select('deleted_at, deleted_by')
+      .eq('id', seeded.id)
+      .single();
+    expect(row?.deleted_at).not.toBeNull();
+    expect(row?.deleted_by).toBe(comodId);
+
+    const { data: logs } = await admin
+      .from('moderation_log')
+      .select('action, target_kind, target_id, actor_id')
+      .eq('target_id', seeded.id)
+      .eq('action', 'content_removed');
+    expect((logs ?? []).length).toBe(1);
+    expect(logs?.[0]?.target_kind).toBe('guide_entry');
+
+    // Le résident ne voit plus l'entrée retirée.
+    const { data: residentSees } = await residentClient
+      .from('guide_entries')
+      .select('id')
+      .eq('id', seeded.id);
+    expect(residentSees ?? []).toHaveLength(0);
+
+    // Cleanup local (ne pas laisser de moderation_log/entry derrière).
+    await admin.from('moderation_log').delete().eq('target_id', seeded.id);
+    await admin.from('guide_entries').delete().eq('id', seeded.id);
+  });
+
+  it('(s) RPC retire_durable_entry appelé par un résident → exception not_co_mod (re-check interne)', async () => {
+    const { error } = await residentClient.rpc('retire_durable_entry', {
+      p_kind: 'guide_entry',
+      p_id: seededNumberId, // un uuid quelconque ; le re-check rôle échoue avant le lookup
+      p_reason: 'x',
+    });
+    expect(error).not.toBeNull();
+    expect(error?.message).toContain('not_co_mod');
+  });
 });

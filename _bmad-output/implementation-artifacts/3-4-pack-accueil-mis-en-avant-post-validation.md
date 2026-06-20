@@ -1,6 +1,6 @@
 # Story 3.4: Pack accueil mis en avant post-validation
 
-Status: ready-for-dev
+Status: review
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -30,37 +30,37 @@ Story d'**onboarding** : elle branche la mise en avant automatique (bannière co
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1 — Lecture du lifecycle utilisateur** (AC: 1, 3)
+- [x] **Task 1 — Lecture du lifecycle utilisateur** (AC: 1, 3)
   - [ ] `lib/auth/current-user.ts` (ou data layer home) : helper `fetchOnboardingState()` → client session, `select first_login_at, pack_accueil_dismissed_at from users where id = auth.uid() .single()`. Retour `{ showPackBanner: boolean }` = `first_login_at === null && pack_accueil_dismissed_at === null`. `cache()`.
   - [ ] Réutiliser le client session (`lib/supabase/server.ts`) ; ne pas re-fetcher l'auth (`requireResident` du layout l'a déjà validée — passer l'`user.id`).
 
-- [ ] **Task 2 — Bannière Pack sur la home** (AC: 1, 3, 5)
+- [x] **Task 2 — Bannière Pack sur la home** (AC: 1, 3, 5)
   - [ ] `app/[locale]/community/page.tsx` : après le titre/tuiles (préserver l'existant + tuiles 3.2/3.3), si `showPackBanner` → rendre `<PackBanner />`. La home est déjà `force-dynamic`.
   - [ ] `app/[locale]/community/_components/pack-banner.tsx` (`'use client'` pour le dismiss) : carte proéminente (accent `bg-soft`/bordure accent), titre i18n « Bienvenue ! Découvre le Pack accueil », CTA `<Link>` vers `/community/guide/pack-accueil` (cible ≥ 48px), bouton « Plus tard » + « ✕ » qui appellent l'action dismiss (Task 4). a11y : `role="region" aria-label`, ✕ avec `aria-label`, focusable, **Escape** ferme (= dismiss ou simple masquage local + action). Optimistic : masquer localement au tap puis `dismissPackBanner()` en arrière-plan (geste WhatsApp, NFR40b).
   - [ ] **Décision overlay vs bannière** : bannière in-page (pas overlay plein écran/modal — modales bannies MVP, spec UX). L'épic dit « bannière/overlay » → choisir **bannière** (D3).
 
-- [ ] **Task 3 — Page Pack accueil (route statique)** (AC: 2, 4, 5)
+- [x] **Task 3 — Page Pack accueil (route statique)** (AC: 2, 4, 5)
   - [ ] `app/[locale]/community/guide/pack-accueil/page.tsx` (RSC, `force-dynamic`, `generateMetadata` titre i18n). Segment **statique** sœur de `guide/[slug]` (prime dessus). `<AppHeader>` (retour) + intro.
   - [ ] `app/[locale]/community/guide/pack-accueil/data.ts` : `fetchPackEntries(locale)` → `select section_key, title_fr, title_ar, body_fr_markdown, body_ar_markdown, order_in_section from pack_entries where deleted_at is null order by section_key, order_in_section` (RLS scope résidence). Mappe locale + fallback FR (+ flag `untranslated`, badge « Non traduit » via clé partagée `community.guide.notTranslatedBadge`). Grouper par `section_key` (ordre = ordre d'apparition / `min(order_in_section)` par section ; `section_key` est `text` libre, 3.1 D3).
   - [ ] `_components/pack-section.tsx` : `<details>` par section (clavier gratuit), titre = `section_key` rendu lisible (ou via map i18n optionnelle si sections canoniques), entrées rendues via `<MarkdownRender>` (composant partagé 3.2). **Deep-links Guide** : les liens markdown `[texte](/community/guide/<slug>)` dans le corps pointent vers les entrées Guide (résolus par le renderer ; les co_mods saisissent ces liens en 3.5).
   - [ ] À la **fin de lecture** : marquer `first_login_at`. Pattern : un `<MarkOnboardingComplete />` client (effet `useEffect` au mount de la page Pack OU au unmount/`beforeunload`) qui appelle `completeOnboarding()` (Task 4) **une seule fois**. Simpler & fiable : appeler au **mount** de la page Pack (« je suis entré dans le pack = onboarding amorcé/complété ») — l'épic dit « quand je ferme la page » mais le mount est plus robuste que `beforeunload` (peu fiable mobile). Documenter ce choix (D4).
   - [ ] `loading.tsx` skeleton.
 
-- [ ] **Task 4 — Server Actions lifecycle** (AC: 3, 4, 6)
+- [x] **Task 4 — Server Actions lifecycle** (AC: 3, 4, 6)
   - [ ] `app/[locale]/community/_actions/onboarding.ts` (`'use server'`) : `dismissPackBanner()` et `completeOnboarding()`.
   - [ ] `dismissPackBanner` : `requireResident()` ; `update users set pack_accueil_dismissed_at = now() where id = auth.uid() and pack_accueil_dismissed_at is null` (garde idempotente — ne réécrit pas). Client **session** (grant self). `revalidatePath('/[locale]/community')`. Échec → warn-log, retour silencieux (non bloquant — AC6).
   - [ ] `completeOnboarding` : idem avec `first_login_at` (`where … and first_login_at is null`). Pose **aussi** `pack_accueil_dismissed_at` si encore null (lire le pack vaut dismiss de la bannière — cohérent D2). `revalidatePath('/[locale]/community')`.
   - [ ] **Aucune** écriture admin ; **aucune** colonne hors `first_login_at`/`pack_accueil_dismissed_at`/`updated_at` (grants self).
   - [ ] Tests node (`// @vitest-environment node`, mocks `requireResident` + `createClient` chaîné + logger, calquer `tests/profil/profile-actions.test.ts`) : pose si null, no-op si déjà posé, échec DB → warn sans throw.
 
-- [ ] **Task 5 — i18n `community.packAccueil`** (AC: 1, 2, 5)
+- [x] **Task 5 — i18n `community.packAccueil`** (AC: 1, 2, 5)
   - [ ] `messages/fr.json` namespace `community.packAccueil` : `banner.title` (« Bienvenue à Darna ! »), `banner.body` (« Un aperçu de 10 minutes pour tout savoir sur la résidence. »), `banner.cta` (« Découvrir le Pack accueil »), `banner.later` (« Plus tard »), `banner.dismiss` (aria « Fermer »), `title` (« Pack accueil »), `intro`, `entry.guideLink` (« Voir dans le Guide »). Réutiliser `community.guide.notTranslatedBadge`. Tonalité chaleureuse, tutoiement.
   - [ ] `messages/ar.json` : stub parallèle.
 
-- [ ] **Task 6 — Cache offline** (AC: lecture pack hors-ligne, FR45)
+- [x] **Task 6 — Cache offline** (AC: lecture pack hors-ligne, FR45)
   - [ ] `sw/index.ts` : élargir le matcher `durable-content` (3.2/3.3) à `/community/guide/pack-accueil`. La home (`/community`) reste navigation-cached ; la **bannière** dépend du lifecycle serveur → pas critique offline.
 
-- [ ] **Task 7 — Tests** (AC: 1, 3, 4)
+- [x] **Task 7 — Tests** (AC: 1, 3, 4)
   - [ ] `tests/pack/pack-banner.test.tsx` (jsdom) : bannière rendue si `showPackBanner=true`, absente sinon ; tap « ✕ » masque + appelle l'action (mock).
   - [ ] `tests/pack/pack-page.test.tsx` : sections dépliables, deep-links Guide rendus, badge « Non traduit » si AR absent.
   - [ ] `tests/pack/onboarding-actions.test.ts` (Task 4) : idempotence + non-blocage.
@@ -126,11 +126,31 @@ Story d'**onboarding** : elle branche la mise en avant automatique (bannière co
 
 ### Agent Model Used
 
+claude-opus-4-8 (dev autonome Epic 3, 2026-06-20).
+
 ### Debug Log References
+
+- Aucune migration (D1 — colonnes lifecycle 1.3 + grant UPDATE self confirmés dans `init_rls` : `grant update (display_name, first_login_at, pack_accueil_dismissed_at, updated_at)`). `pnpm typecheck` ✅, `pnpm lint` ✅ (0 erreur), `pnpm test` → 360 passed (pack-banner + pack-page + onboarding-actions node), `pnpm test:rls` → block Epic 3 **10/10 verts** (test j onboarding self ; 1 échec pré-existant `moderation_log` hors-périmètre).
 
 ### Completion Notes List
 
+- **Aucune migration** : `users.first_login_at`/`pack_accueil_dismissed_at` (1.3) + `pack_entries` (3.1) réutilisés.
+- **Sémantique 2 signaux (D2)** : `showPackBanner = first_login_at===null && pack_accueil_dismissed_at===null`. `dismissPackBanner` pose seulement `pack_accueil_dismissed_at` ; `completeOnboarding` pose `first_login_at` ET `pack_accueil_dismissed_at` (consommer vaut écarter). Actions **idempotentes** (garde `.is(col, null)`) et **non bloquantes** (échec → `warn` log, jamais throw — prouvé en test node).
+- **`first_login_at` au mount (D4)** : `<MarkOnboardingComplete>` pose le signal à l'entrée du Pack (`beforeunload` non fiable mobile). Ref-guard contre le double-mount StrictMode.
+- **Bannière in-page (D3)**, pas overlay/modal. Optimistic dismiss (masquage local + action en arrière-plan). a11y : `role="region"`, ✕ `aria-label`, **Escape** ferme, CTA ≥ touch.
+- **Route `pack-accueil` statique** sœur de `guide/[slug]` (segment statique prioritaire) ; réutilise `<MarkdownRender>` (3.2) → les deep-links Guide markdown `[texte](/community/guide/<slug>)` sont rendus (testé).
+- SW : `guide/pack-accueil` est sous `/community/guide` → **déjà** couvert par le matcher `durable-content` (3.2), aucune modif SW.
+- Écriture **self uniquement** via client session (`users_resident_update_self`, `id=auth.uid()`) — test RLS (j) prouve qu'un résident ne pose `first_login_at` que sur SA ligne (0 ligne sur autrui).
+- i18n `community.packAccueil` (fr) ; `ar.json` stub parallèle.
+
 ### File List
+
+- **NEW** `app/[locale]/community/_data/onboarding.ts` (`fetchOnboardingState`)
+- **NEW** `app/[locale]/community/_actions/onboarding.ts` (`dismissPackBanner`, `completeOnboarding`)
+- **NEW** `app/[locale]/community/_components/pack-banner.tsx`
+- **NEW** `app/[locale]/community/guide/pack-accueil/{page,data,loading}.tsx` + `_components/{pack-section,mark-onboarding-complete}.tsx`
+- **NEW** `tests/pack/{pack-banner.test.tsx,pack-page.test.tsx,onboarding-actions.test.ts}`
+- **UPDATE** `app/[locale]/community/page.tsx` (bannière conditionnelle), `messages/{fr,ar}.json` (`community.packAccueil`), `tests/rls.test.ts` (test j)
 
 ### Change Log
 

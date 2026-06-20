@@ -46,7 +46,19 @@
       "motive_invalid": "",
       "already_decided": "",
       "wrong_residence": "",
-      "decision_failed": ""
+      "decision_failed": "",
+      "content": {
+        "fr_required": "",
+        "phone_invalid": "",
+        "theme_invalid": "",
+        "category_invalid": "",
+        "section_required": "",
+        "order_invalid": "",
+        "too_long": "",
+        "submit_failed": "",
+        "not_found": "",
+        "wrong_residence": ""
+      }
     },
     "profil": {
       "forbidden": "",
@@ -62,6 +74,14 @@
       "exceeded": ""
     },
     "annuaire": {
+      "fetch_failed": "",
+      "retry": ""
+    },
+    "guide": {
+      "fetch_failed": "",
+      "retry": ""
+    },
+    "numerosUtiles": {
       "fetch_failed": "",
       "retry": ""
     },
@@ -178,6 +198,51 @@
     }
   },
   "comod": {
+    "home": {
+      "title": "",
+      "intro": "",
+      "tiles": {
+        "admission": "",
+        "guide": "",
+        "numeros": "",
+        "pack": ""
+      }
+    },
+    "admin": {
+      "newEntry": "",
+      "edit": "",
+      "retire": "",
+      "confirmRetire": "",
+      "retireReasonLabel": "",
+      "save": "",
+      "saving": "",
+      "cancel": "",
+      "frEditor": "",
+      "arEditor": "",
+      "preview": "",
+      "orderLabel": "",
+      "untranslatedWarning": "",
+      "retiredBadge": "",
+      "backToList": "",
+      "empty": "",
+      "guide": {
+        "pageTitle": "",
+        "intro": "",
+        "themeLabel": ""
+      },
+      "numeros": {
+        "pageTitle": "",
+        "intro": "",
+        "categoryLabel": "",
+        "phoneLabel": "",
+        "notesLabel": ""
+      },
+      "pack": {
+        "pageTitle": "",
+        "intro": "",
+        "sectionLabel": ""
+      }
+    },
     "admission": {
       "pageTitle": "",
       "intro": "",
@@ -207,10 +272,74 @@
   "community": {
     "home": {
       "title": "",
-      "body": ""
+      "body": "",
+      "tiles": {
+        "annuaire": "",
+        "guide": "",
+        "numeros": ""
+      }
     },
     "nav": {
       "settings": ""
+    },
+    "guide": {
+      "title": "",
+      "intro": "",
+      "empty": "",
+      "search": {
+        "label": "",
+        "placeholder": ""
+      },
+      "themes": {
+        "codes_portails": "",
+        "horaires_gardien": "",
+        "regles_jardin": "",
+        "dechets": "",
+        "traditions": "",
+        "securite": "",
+        "autre": ""
+      },
+      "count": "",
+      "notTranslatedBadge": "",
+      "breadcrumb": "",
+      "searchResults": {
+        "title": "",
+        "empty": ""
+      },
+      "entry": {
+        "back": ""
+      }
+    },
+    "numerosUtiles": {
+      "title": "",
+      "intro": "",
+      "categories": {
+        "securite": "",
+        "syndic": "",
+        "urgences": "",
+        "sante": "",
+        "autre": ""
+      },
+      "call": "",
+      "callAction": "",
+      "unavailable": "",
+      "empty": ""
+    },
+    "packAccueil": {
+      "banner": {
+        "title": "",
+        "body": "",
+        "cta": "",
+        "later": "",
+        "dismiss": ""
+      },
+      "title": "",
+      "intro": "",
+      "back": "",
+      "empty": "",
+      "entry": {
+        "guideLink": ""
+      }
     },
     "annuaire": {
       "title": "",
