@@ -2246,3 +2246,190 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS modération RPC (Epic 5.3)', () => {
     await admin.from('moderation_log').delete().eq('target_id', entry2!.id);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Story 5.5 — RPC d'escalade juridique (escalate_report_legal / resolve_legal_escalation).
+//   open → closed_kept_pending_legal → approved (content_kept) / removed
+//   (content_removed + soft-delete). Garde co_mod + résidence + état atomique.
+// ─────────────────────────────────────────────────────────────────────────────
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS escalade juridique (Epic 5.5)', () => {
+  let admin: DarnaClient;
+  let residentId: string;
+  let comodId: string;
+  let residentClient: DarnaClient;
+  let comodClient: DarnaClient;
+  const entries: string[] = [];
+
+  async function makeUser(
+    localUrl: string,
+    publishableKey: string,
+    role: 'resident' | 'co_mod',
+    label: string,
+  ): Promise<{ id: string; client: DarnaClient }> {
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    const id = created.user.id;
+    await admin.auth.admin.updateUserById(id, {
+      app_metadata: { role, residence_id: DARNA_RESIDENCE_ID },
+    });
+    await admin.from('users').update({ role, residence_id: DARNA_RESIDENCE_ID }).eq('id', id);
+    const client = createClient<Database>(localUrl, publishableKey, {
+      auth: { storageKey: `rls-legal-${label}`, persistSession: false },
+    });
+    await establishSession(admin, client, email, label);
+    return { id, client };
+  }
+
+  async function seedEntryAndReport(): Promise<{ entryId: string; reportId: string }> {
+    const seq = entries.length;
+    const ts = `${Date.now()}-${seq}`;
+    const { data: entry, error: e1 } = await admin
+      .from('guide_entries')
+      .insert({
+        slug: `legal-${ts}`,
+        residence_id: DARNA_RESIDENCE_ID,
+        theme_key: 'codes_portails',
+        title_fr: 'Legal test',
+        body_fr_markdown: 'Contenu litigieux.',
+        order_in_theme: 900 + seq,
+        created_by: comodId,
+      })
+      .select('id')
+      .single();
+    if (e1 || !entry) throw e1 ?? new Error('seed entry failed');
+    entries.push(entry.id);
+    const { data: report, error: e2 } = await admin
+      .from('reports')
+      .insert({
+        residence_id: DARNA_RESIDENCE_ID,
+        reporter_id: residentId,
+        target_type: 'guide_entry',
+        target_id: entry.id,
+        reason: 'diffamation',
+      })
+      .select('id')
+      .single();
+    if (e2 || !report) throw e2 ?? new Error('seed report failed');
+    return { entryId: entry.id, reportId: report.id };
+  }
+
+  beforeAll(async () => {
+    const localEnv = parseSupabaseLocalEnv();
+    admin = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+    );
+    const resident = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'resident',
+      'lres',
+    );
+    residentId = resident.id;
+    residentClient = resident.client;
+    const comod = await makeUser(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      'co_mod',
+      'lcomod',
+    );
+    comodId = comod.id;
+    comodClient = comod.client;
+  });
+
+  afterAll(async () => {
+    if (!admin) return;
+    await admin.from('reports').delete().eq('reporter_id', residentId);
+    for (const id of entries) {
+      await admin.from('moderation_log').delete().eq('target_id', id);
+      await admin.from('guide_entries').delete().eq('id', id);
+    }
+    for (const id of [residentId, comodId]) if (id) await admin.auth.admin.deleteUser(id);
+  });
+
+  it('(a) un résident ne peut PAS escalader (not_co_mod)', async () => {
+    const { reportId } = await seedEntryAndReport();
+    const { error } = await residentClient.rpc('escalate_report_legal', {
+      p_report_id: reportId,
+      p_context_note: 'tentative',
+    });
+    expect(error?.message).toContain('not_co_mod');
+  });
+
+  it('(b) co_mod escalade : state pending_legal + audit escalation_triggered', async () => {
+    const { entryId, reportId } = await seedEntryAndReport();
+    const { error } = await comodClient.rpc('escalate_report_legal', {
+      p_report_id: reportId,
+      p_context_note: 'Avis juridique requis.',
+    });
+    expect(error).toBeNull();
+    const { data: rep } = await admin.from('reports').select('state').eq('id', reportId).single();
+    expect(rep?.state).toBe('closed_kept_pending_legal');
+    const { data: ml } = await admin
+      .from('moderation_log')
+      .select('action')
+      .eq('target_id', entryId)
+      .eq('action', 'escalation_triggered');
+    expect((ml ?? []).length).toBe(1);
+  });
+
+  it('(c) resolve sur un report non escaladé → not_pending_legal', async () => {
+    const { reportId } = await seedEntryAndReport(); // état open
+    const { error } = await comodClient.rpc('resolve_legal_escalation', {
+      p_report_id: reportId,
+      p_decision: 'approved',
+      p_note: 'x',
+    });
+    expect(error?.message).toContain('not_pending_legal');
+  });
+
+  it('(d) resolve approved : closed_kept_legal_approved + content_kept', async () => {
+    const { entryId, reportId } = await seedEntryAndReport();
+    await comodClient.rpc('escalate_report_legal', {
+      p_report_id: reportId,
+      p_context_note: 'ctx',
+    });
+    const { error } = await comodClient.rpc('resolve_legal_escalation', {
+      p_report_id: reportId,
+      p_decision: 'approved',
+      p_note: 'Avis : conserver.',
+    });
+    expect(error).toBeNull();
+    const { data: rep } = await admin.from('reports').select('state').eq('id', reportId).single();
+    expect(rep?.state).toBe('closed_kept_legal_approved');
+    const { data: entry } = await admin
+      .from('guide_entries')
+      .select('deleted_at')
+      .eq('id', entryId)
+      .single();
+    expect(entry?.deleted_at).toBeNull(); // conservé
+  });
+
+  it('(e) resolve removed : closed_removed_legal_advised + cible soft-deletée', async () => {
+    const { entryId, reportId } = await seedEntryAndReport();
+    await comodClient.rpc('escalate_report_legal', {
+      p_report_id: reportId,
+      p_context_note: 'ctx',
+    });
+    const { error } = await comodClient.rpc('resolve_legal_escalation', {
+      p_report_id: reportId,
+      p_decision: 'removed',
+      p_note: 'Avis : retirer.',
+    });
+    expect(error).toBeNull();
+    const { data: rep } = await admin.from('reports').select('state').eq('id', reportId).single();
+    expect(rep?.state).toBe('closed_removed_legal_advised');
+    const { data: entry } = await admin
+      .from('guide_entries')
+      .select('deleted_at, deleted_by')
+      .eq('id', entryId)
+      .single();
+    expect(entry?.deleted_at).not.toBeNull();
+    expect(entry?.deleted_by).toBe(comodId);
+  });
+});

@@ -227,7 +227,10 @@
       "report_not_found": "Signalement introuvable.",
       "already_resolved": "Un autre co-mod a déjà traité ce signalement.",
       "action_failed": "L’action n’a pas pu être effectuée. Réessaie.",
-      "motive_required": "Choisis un motif de retrait."
+      "motive_required": "Choisis un motif de retrait.",
+      "not_pending_legal": "Ce signalement n’est pas en attente d’avis juridique.",
+      "legal_contact_missing": "Le contact juridique n’est pas configuré. Voir le runbook (LEGAL_CONTACT_EMAIL).",
+      "context_required": "Ajoute un contexte pour le juriste."
     }
   },
   "auth": {
@@ -416,7 +419,8 @@
         "priorHeading": "Actions de modération antérieures",
         "resolvedRemoved": "Ce signalement a été traité : contenu retiré.",
         "resolvedKept": "Ce signalement a été traité : contenu conservé.",
-        "resolvedNotice": "Un autre co-mod a déjà traité ce signalement."
+        "resolvedNotice": "Un autre co-mod a déjà traité ce signalement.",
+        "resolvedPendingLegal": "Ce signalement a été escaladé : en attente d’avis juridique."
       },
       "events": {
         "content_removed": "Contenu retiré",
@@ -425,7 +429,8 @@
       },
       "actions": {
         "remove": "Retirer le contenu",
-        "keep": "Conserver le contenu"
+        "keep": "Conserver le contenu",
+        "escalate": "Escalader (juridique)"
       },
       "removeForm": {
         "title": "Retirer le contenu — motif",
@@ -445,7 +450,20 @@
       "notePlaceholder": "Précise ta décision si besoin",
       "submitting": "Traitement…",
       "confirm": "Confirmer",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "escalateForm": {
+        "title": "Escalader vers le contact juridique",
+        "contextLabel": "Contexte pour le juriste (obligatoire, 1000 caractères max)",
+        "contextPlaceholder": "Explique pourquoi un avis juridique est nécessaire."
+      },
+      "legal": {
+        "pendingTitle": "En attente d’avis juridique",
+        "pendingHint": "Le dossier a été transmis au contact juridique. Enregistre ici la suite donnée à sa réponse.",
+        "noteLabel": "Note (avis du juriste, facultatif)",
+        "notePlaceholder": "Résume l’avis reçu",
+        "approve": "Avis : conserver le contenu",
+        "remove": "Avis : retirer le contenu"
+      }
     }
   },
   "community": {

@@ -30,5 +30,30 @@ export const zKeepContent = z.object({
   note: zNote,
 });
 
+export const ESCALATION_NOTE_MAXLEN = 1000;
+
+// Story 5.5 — escalade juridique : note de contexte obligatoire (≤ 1000c).
+export const zEscalateLegal = z.object({
+  report_id: z.string().uuid(),
+  context_note: z.preprocess(
+    (v) =>
+      typeof v === 'string'
+        ? sanitizeUserText(v, { maxLen: ESCALATION_NOTE_MAXLEN, multiline: true })
+        : '',
+    z.string().trim().min(1).max(ESCALATION_NOTE_MAXLEN),
+  ),
+});
+
+export const LEGAL_DECISIONS = ['approved', 'removed'] as const;
+export type LegalDecision = (typeof LEGAL_DECISIONS)[number];
+
+export const zResolveLegal = z.object({
+  report_id: z.string().uuid(),
+  decision: z.enum(LEGAL_DECISIONS),
+  note: zNote,
+});
+
 export type RemoveContentInput = z.infer<typeof zRemoveContent>;
 export type KeepContentInput = z.infer<typeof zKeepContent>;
+export type EscalateLegalInput = z.infer<typeof zEscalateLegal>;
+export type ResolveLegalInput = z.infer<typeof zResolveLegal>;

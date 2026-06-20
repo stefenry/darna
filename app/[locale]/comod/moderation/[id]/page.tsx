@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/layout/page-container';
 import { routing } from '@/lib/i18n/routing';
 import { fetchReportDetail } from '../data';
 import { ModerationActions } from '../_components/moderation-actions';
+import { LegalResolution } from '../_components/legal-resolution';
 
 // Story 5.3 — détail d'un signalement : contexte complet + actions retirer/conserver.
 export const dynamic = 'force-dynamic';
@@ -36,7 +37,8 @@ export default async function ReportDetailPage({ params }: Props) {
   const report = await fetchReportDetail(locale as 'fr' | 'ar', id);
   if (!report) notFound();
 
-  const resolved = report.state !== 'open';
+  const pendingLegal = report.state === 'closed_kept_pending_legal';
+  const resolved = report.state !== 'open' && !pendingLegal;
 
   return (
     <PageContainer className="py-10" as="main">
@@ -102,10 +104,12 @@ export default async function ReportDetailPage({ params }: Props) {
           </section>
         )}
 
-        {resolved ? (
+        {pendingLegal ? (
+          <LegalResolution reportId={report.id} locale={locale} />
+        ) : resolved ? (
           <section className="rounded-[14px] border border-neutral-200 p-4">
             <p className="text-sm font-medium text-neutral-700">
-              {report.state === 'closed_removed'
+              {report.state === 'closed_removed' || report.state === 'closed_removed_legal_advised'
                 ? t('detail.resolvedRemoved')
                 : t('detail.resolvedKept')}
             </p>

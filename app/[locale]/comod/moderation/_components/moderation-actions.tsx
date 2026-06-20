@@ -9,9 +9,9 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { REMOVAL_MOTIVES, type RemovalMotive } from '@/lib/validation/moderation';
-import { removeReportedContent, keepReportedContent } from '../actions';
+import { removeReportedContent, keepReportedContent, escalateReportLegal } from '../actions';
 
-type Mode = null | 'remove' | 'keep';
+type Mode = null | 'remove' | 'keep' | 'escalate';
 
 export function ModerationActions({ reportId, locale }: { reportId: string; locale: string }) {
   const t = useTranslations('comod.moderation');
@@ -62,6 +62,25 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
     });
   };
 
+  const submitEscalate = () => {
+    setError(null);
+    if (!note.trim()) {
+      setError(tErr('context_required'));
+      return;
+    }
+    startTransition(async () => {
+      const res = await escalateReportLegal({ report_id: reportId, context_note: note });
+      if (res.ok) onDone();
+      else setError(tErr(res.code));
+    });
+  };
+
+  const submitFor: Record<Exclude<Mode, null>, () => void> = {
+    remove: submitRemove,
+    keep: submitKeep,
+    escalate: submitEscalate,
+  };
+
   if (mode === null) {
     return (
       <div className="flex flex-wrap gap-2">
@@ -87,9 +106,28 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
         >
           {t('actions.keep')}
         </button>
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            setNote('');
+            setMode('escalate');
+          }}
+          className="inline-flex min-h-touch items-center justify-center rounded-[14px] border border-neutral-200 px-5 text-sm font-semibold text-neutral-700 hover:bg-bg-soft"
+        >
+          {t('actions.escalate')}
+        </button>
       </div>
     );
   }
+
+  const formTitle =
+    mode === 'remove'
+      ? t('removeForm.title')
+      : mode === 'escalate'
+        ? t('escalateForm.title')
+        : t('keepForm.title');
+  const noteLabel = mode === 'escalate' ? t('escalateForm.contextLabel') : t('noteLabel');
 
   return (
     <div
@@ -100,9 +138,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
       }}
       className="flex flex-col gap-3 rounded-[14px] border border-neutral-200 bg-bg-soft p-4"
     >
-      <p className="text-sm font-semibold text-neutral-800">
-        {mode === 'remove' ? t('removeForm.title') : t('keepForm.title')}
-      </p>
+      <p className="text-sm font-semibold text-neutral-800">{formTitle}</p>
 
       {mode === 'remove' && (
         <label className="flex flex-col gap-1 text-sm">
@@ -126,17 +162,19 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
       )}
 
       <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium text-neutral-700">{t('noteLabel')}</span>
+        <span className="font-medium text-neutral-700">{noteLabel}</span>
         <textarea
           ref={
-            mode === 'keep' ? (firstFieldRef as React.RefObject<HTMLTextAreaElement>) : undefined
+            mode !== 'remove' ? (firstFieldRef as React.RefObject<HTMLTextAreaElement>) : undefined
           }
           value={note}
-          maxLength={2000}
+          maxLength={mode === 'escalate' ? 1000 : 2000}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
           className="rounded-[10px] border border-neutral-200 bg-white px-3 py-2 text-sm"
-          placeholder={t('notePlaceholder')}
+          placeholder={
+            mode === 'escalate' ? t('escalateForm.contextPlaceholder') : t('notePlaceholder')
+          }
         />
       </label>
 
@@ -149,7 +187,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={mode === 'remove' ? submitRemove : submitKeep}
+          onClick={submitFor[mode]}
           disabled={isPending}
           className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-4 text-sm font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
         >

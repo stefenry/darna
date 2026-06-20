@@ -1374,6 +1374,16 @@ export type Database = {
       };
       auth_residence_id: { Args: never; Returns: string };
       auth_role: { Args: never; Returns: string };
+      escalate_report_legal: {
+        Args: { p_context_note: string; p_report_id: string };
+        Returns: {
+          out_reporter_id: string;
+          out_residence_id: string;
+          out_target_id: string;
+          out_target_type: string;
+          target_author_id: string;
+        }[];
+      };
       moderate_keep_content: {
         Args: { p_note?: string; p_report_id: string };
         Returns: {
@@ -1446,6 +1456,14 @@ export type Database = {
           sms_artisan_name: string;
           sms_target_phone: string;
           status: string;
+        }[];
+      };
+      resolve_legal_escalation: {
+        Args: { p_decision: string; p_note: string; p_report_id: string };
+        Returns: {
+          out_residence_id: string;
+          out_target_id: string;
+          out_target_type: string;
         }[];
       };
       retire_durable_entry: {
@@ -1535,7 +1553,13 @@ export type Database = {
         | 'spam'
         | 'hors_charte'
         | 'autre';
-      report_state: 'open' | 'closed_removed' | 'closed_kept';
+      report_state:
+        | 'open'
+        | 'closed_removed'
+        | 'closed_kept'
+        | 'closed_kept_pending_legal'
+        | 'closed_kept_legal_approved'
+        | 'closed_removed_legal_advised';
       report_target_type:
         | 'artisan'
         | 'rating'
@@ -1735,7 +1759,14 @@ export const Constants = {
       ],
       rating_visibility: ['pseudonym', 'named'],
       report_reason: ['diffamation', 'info_erronee', 'harcelement', 'spam', 'hors_charte', 'autre'],
-      report_state: ['open', 'closed_removed', 'closed_kept'],
+      report_state: [
+        'open',
+        'closed_removed',
+        'closed_kept',
+        'closed_kept_pending_legal',
+        'closed_kept_legal_approved',
+        'closed_removed_legal_advised',
+      ],
       report_target_type: [
         'artisan',
         'rating',

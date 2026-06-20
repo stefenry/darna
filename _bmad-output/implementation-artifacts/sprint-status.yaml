@@ -96,7 +96,7 @@ development_status:
   5-2-signalement-contenu-par-resident-raison-fermee: review
   5-3-interface-co-mod-queue-signalements-retrait-notification-auteur: review
   5-4-journal-public-sur-transparence: review
-  5-5-workflow-escalade-juridique: backlog
+  5-5-workflow-escalade-juridique: review
   epic-5-retrospective: optional
 
   # Epic 6: Partage WhatsApp, deep linking & engagement léger
