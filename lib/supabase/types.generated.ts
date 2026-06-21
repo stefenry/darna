@@ -171,6 +171,7 @@ export type Database = {
           expires_at: string;
           id: string;
           residence_id: string;
+          share_count: number;
           slug: string;
           template_id: string | null;
           title_ar: string | null;
@@ -188,6 +189,7 @@ export type Database = {
           expires_at: string;
           id?: string;
           residence_id: string;
+          share_count?: number;
           slug: string;
           template_id?: string | null;
           title_ar?: string | null;
@@ -205,6 +207,7 @@ export type Database = {
           expires_at?: string;
           id?: string;
           residence_id?: string;
+          share_count?: number;
           slug?: string;
           template_id?: string | null;
           title_ar?: string | null;
@@ -470,6 +473,7 @@ export type Database = {
           price_relative: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at: string | null;
           residence_id: string;
+          share_count: number;
           slug: string;
           state: Database['public']['Enums']['artisan_state'];
           updated_at: string;
@@ -492,6 +496,7 @@ export type Database = {
           price_relative?: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at?: string | null;
           residence_id: string;
+          share_count?: number;
           slug: string;
           state?: Database['public']['Enums']['artisan_state'];
           updated_at?: string;
@@ -514,6 +519,7 @@ export type Database = {
           price_relative?: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at?: string | null;
           residence_id?: string;
+          share_count?: number;
           slug?: string;
           state?: Database['public']['Enums']['artisan_state'];
           updated_at?: string;
@@ -557,6 +563,7 @@ export type Database = {
           residence_id: string;
           search_ar_tsv: unknown;
           search_fr_tsv: unknown;
+          share_count: number;
           slug: string;
           theme_key: Database['public']['Enums']['guide_theme_key'];
           title_ar: string | null;
@@ -577,6 +584,7 @@ export type Database = {
           residence_id: string;
           search_ar_tsv?: unknown;
           search_fr_tsv?: unknown;
+          share_count?: number;
           slug: string;
           theme_key: Database['public']['Enums']['guide_theme_key'];
           title_ar?: string | null;
@@ -597,6 +605,7 @@ export type Database = {
           residence_id?: string;
           search_ar_tsv?: unknown;
           search_fr_tsv?: unknown;
+          share_count?: number;
           slug?: string;
           theme_key?: Database['public']['Enums']['guide_theme_key'];
           title_ar?: string | null;
@@ -1119,6 +1128,7 @@ export type Database = {
           expires_at: string;
           id: string;
           residence_id: string;
+          share_count: number;
           slug: string;
           title_ar: string | null;
           title_fr: string;
@@ -1136,6 +1146,7 @@ export type Database = {
           expires_at: string;
           id?: string;
           residence_id: string;
+          share_count?: number;
           slug: string;
           title_ar?: string | null;
           title_fr: string;
@@ -1153,6 +1164,7 @@ export type Database = {
           expires_at?: string;
           id?: string;
           residence_id?: string;
+          share_count?: number;
           slug?: string;
           title_ar?: string | null;
           title_fr?: string;
@@ -1383,6 +1395,10 @@ export type Database = {
           out_target_type: string;
           target_author_id: string;
         }[];
+      };
+      increment_share_count: {
+        Args: { p_id: string; p_kind: string };
+        Returns: undefined;
       };
       moderate_keep_content: {
         Args: { p_note?: string; p_report_id: string };

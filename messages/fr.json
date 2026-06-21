@@ -965,5 +965,11 @@
       "price_relative": "Prix relatif",
       "has_invoice": "Facture"
     }
+  },
+  "share": {
+    "button": {
+      "share": "Partager",
+      "copied": "Lien copié"
+    }
   }
 }

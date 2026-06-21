@@ -1821,6 +1821,45 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu éphémère (Epic 4)', () => 
     expect(error).toBeNull();
     expect((pub ?? []).every((r) => r.action !== 'tip_self_retracted')).toBe(true);
   });
+
+  it('(m) 6.2 increment_share_count : résident de la résidence incrémente son alerte', async () => {
+    const { data: before } = await admin
+      .from('alerts')
+      .select('share_count')
+      .eq('id', activeAlertId)
+      .single();
+    const { error } = await aliceClient.rpc('increment_share_count', {
+      p_kind: 'alert',
+      p_id: activeAlertId,
+    });
+    expect(error).toBeNull();
+    const { data: after } = await admin
+      .from('alerts')
+      .select('share_count')
+      .eq('id', activeAlertId)
+      .single();
+    expect(after?.share_count).toBe((before?.share_count ?? 0) + 1);
+  });
+
+  it('(n) 6.2 increment_share_count : borné résidence — co_mod d’une AUTRE résidence = no-op', async () => {
+    const { data: before } = await admin
+      .from('alerts')
+      .select('share_count')
+      .eq('id', activeAlertId)
+      .single();
+    // eve est co_mod de la résidence 2 ; l'alerte vit en résidence 1.
+    const { error } = await eveClient.rpc('increment_share_count', {
+      p_kind: 'alert',
+      p_id: activeAlertId,
+    });
+    expect(error).toBeNull(); // RPC réussit mais 0 ligne ne matche (residence guard).
+    const { data: after } = await admin
+      .from('alerts')
+      .select('share_count')
+      .eq('id', activeAlertId)
+      .single();
+    expect(after?.share_count).toBe(before?.share_count ?? 0);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

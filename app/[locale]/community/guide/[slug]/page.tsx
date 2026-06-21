@@ -12,6 +12,8 @@ import type { Locale } from '@/lib/i18n/config';
 import { MarkdownRender } from '@/components/content/markdown-render';
 import { ReportButton } from '@/components/content/report-button';
 import { canonicalMetadata } from '@/lib/share/metadata';
+import { canonicalUrl } from '@/lib/share/canonical';
+import { ShareButton } from '@/components/content/share-button';
 import { fetchGuideEntryBySlug } from './data';
 
 export const dynamic = 'force-dynamic';
@@ -80,6 +82,13 @@ export default async function GuideEntryPage({ params }: Props) {
       </header>
 
       <MarkdownRender source={entry.body} />
+
+      <ShareButton
+        kind="guide_entry"
+        id={entry.id}
+        url={canonicalUrl('guide_entry', slug)}
+        title={entry.title}
+      />
 
       <div className="border-t border-neutral-100 pt-4">
         <ReportButton targetType="guide_entry" targetId={entry.id} />

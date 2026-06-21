@@ -7,6 +7,8 @@ import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
 import { timeRemaining } from '@/lib/content/ephemeral';
 import { canonicalMetadata } from '@/lib/share/metadata';
+import { canonicalUrl } from '@/lib/share/canonical';
+import { ShareButton } from '@/components/content/share-button';
 import { fetchAlertBySlug } from '../data';
 import { RetireOwnButton } from '../_components/retire-own-button';
 import { ReportButton } from '@/components/content/report-button';
@@ -88,6 +90,13 @@ export default async function AlertDetailPage({ params }: Props) {
       </header>
 
       <p className="whitespace-pre-wrap text-base leading-relaxed text-neutral-800">{entry.body}</p>
+
+      <ShareButton
+        kind="alert"
+        id={entry.id}
+        url={canonicalUrl('alert', entry.slug)}
+        title={entry.title}
+      />
 
       {entry.isOwn ? (
         <div className="border-t border-neutral-200 pt-4">
