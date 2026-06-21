@@ -12,6 +12,10 @@ const serverSchema = z
     BREVO_API_KEY: z.string().min(1),
     BREVO_SENDER_EMAIL: z.email(),
     BREVO_SENDER_NAME: z.string().min(1).default('Darna'),
+    // Optional alternative provider : si présent, supplante Brevo pour les
+    // transactionnels (lib/email/client.ts). Utilisé en staging tant que le
+    // sender domain Brevo n'est pas validé.
+    RESEND_API_KEY: z.string().optional(),
     GLITCHTIP_DSN: z.url(),
     UPSTASH_REDIS_REST_URL: z.url(),
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
