@@ -18,18 +18,27 @@ export async function resolveRedirect({
   locale,
   nextParam,
 }: Args): Promise<string> {
+  // Co_mod prioritaire : auth-signin / admission-submit posent par défaut
+  // nextParam=/<locale>/admission, qui matche isSafeAdmissionNext et renvoyait
+  // le co_mod sur /admission au login. On respecte uniquement les deep-links
+  // explicites vers /comod ou une entity canonique ; sinon raccourci /comod.
+  if (user.app_metadata?.role === 'co_mod') {
+    if (
+      nextParam &&
+      (nextParam === `/${locale}/comod` ||
+        nextParam.startsWith(`/${locale}/comod/`) ||
+        isCanonicalEntityPath(nextParam))
+    ) {
+      return nextParam;
+    }
+    return `/${locale}/comod`;
+  }
+
   // `next` admis : soit une page d'admission (story 1.6), soit une ENTITÉ
   // canonique (story 6.3 — deep link post-login : `/artisan/<slug>` etc., le
   // route handler 307-redirige ensuite le résident vers la fiche communautaire).
   if (nextParam && (isSafeAdmissionNext(nextParam, locale) || isCanonicalEntityPath(nextParam))) {
     return nextParam;
-  }
-
-  // Co_mods (bootstrap via scripts/invite-co-mods.ts) n'ont typiquement pas
-  // d'admission_request. Sans ce shortcut, ils atterrissent sur /admission par
-  // défaut (logique demandeur ci-dessous), même connectés avec role=co_mod.
-  if (user.app_metadata?.role === 'co_mod') {
-    return `/${locale}/comod`;
   }
 
   // Defensive .order().limit(1): admission_requests should be unique per user
