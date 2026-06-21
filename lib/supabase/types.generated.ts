@@ -1133,6 +1133,67 @@ export type Database = {
           },
         ];
       };
+      suggestions: {
+        Row: {
+          body: string;
+          created_at: string;
+          deleted_at: string | null;
+          deleted_by: string | null;
+          deletion_reason: string | null;
+          id: string;
+          residence_id: string;
+          state: Database['public']['Enums']['suggestion_state'];
+          updated_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          body: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          residence_id?: string;
+          state?: Database['public']['Enums']['suggestion_state'];
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          deleted_by?: string | null;
+          deletion_reason?: string | null;
+          id?: string;
+          residence_id?: string;
+          state?: Database['public']['Enums']['suggestion_state'];
+          updated_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'suggestions_deleted_by_fkey';
+            columns: ['deleted_by'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'suggestions_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'suggestions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       tags: {
         Row: {
           created_at: string;
@@ -1635,6 +1696,7 @@ export type Database = {
         | 'tip'
         | 'guide_entry'
         | 'useful_number';
+      suggestion_state: 'new' | 'reviewed';
       tip_category: 'offre_voisin' | 'pret_objet' | 'evenement' | 'autre';
       useful_number_category: 'securite' | 'syndic' | 'urgences' | 'sante' | 'autre';
       user_role: 'resident' | 'co_mod' | 'demandeur' | 'public';
@@ -1844,6 +1906,7 @@ export const Constants = {
         'guide_entry',
         'useful_number',
       ],
+      suggestion_state: ['new', 'reviewed'],
       tip_category: ['offre_voisin', 'pret_objet', 'evenement', 'autre'],
       useful_number_category: ['securite', 'syndic', 'urgences', 'sante', 'autre'],
       user_role: ['resident', 'co_mod', 'demandeur', 'public'],

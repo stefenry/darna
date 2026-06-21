@@ -2592,3 +2592,117 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS escalade juridique (Epic 5.5)', () =>
     expect(entry?.deleted_by).toBe(comodId);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Story 6.5 — RLS suggestions : résident INSERT/SELECT own ; co_mod SELECT
+// résidence + UPDATE state. Jamais cross-résidence. Pas de lecture d'autrui.
+// ─────────────────────────────────────────────────────────────────────────────
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS suggestions (Epic 6.5)', () => {
+  let admin: DarnaClient;
+  let sonia: DarnaClient; // résident res1 (auteur)
+  let othmane: DarnaClient; // autre résident res1
+  let karim: DarnaClient; // co_mod res1
+  let eve: DarnaClient; // co_mod res2
+  let suggestionId: string;
+
+  async function makeUser(
+    localUrl: string,
+    key: string,
+    role: 'resident' | 'co_mod',
+    label: string,
+    residenceId: string,
+  ): Promise<DarnaClient> {
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    await admin.auth.admin.updateUserById(created.user.id, {
+      app_metadata: { role, residence_id: residenceId },
+    });
+    await admin.from('users').update({ role, residence_id: residenceId }).eq('id', created.user.id);
+    const client = createClient<Database>(localUrl, key, {
+      auth: { storageKey: `rls-sug-${label}`, persistSession: false },
+    });
+    await establishSession(admin, client, email, label);
+    return client;
+  }
+
+  beforeAll(async () => {
+    const localEnv = parseSupabaseLocalEnv();
+    admin = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+    );
+    await admin.from('residences').upsert({
+      id: RESIDENCE_2_ID,
+      name: 'Test Residence 2',
+      slug: `test2-sug-${Date.now()}`,
+      villa_count: 150,
+    });
+    const url = localEnv.SUPABASE_LOCAL_URL;
+    const key = localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY;
+    sonia = await makeUser(url, key, 'resident', 'sugsonia', DARNA_RESIDENCE_ID);
+    othmane = await makeUser(url, key, 'resident', 'sugothmane', DARNA_RESIDENCE_ID);
+    karim = await makeUser(url, key, 'co_mod', 'sugkarim', DARNA_RESIDENCE_ID);
+    eve = await makeUser(url, key, 'co_mod', 'sugeve', RESIDENCE_2_ID);
+  });
+
+  it('(a) résident insère sa suggestion (body seul, defaults figés)', async () => {
+    const { data, error } = await sonia
+      .from('suggestions')
+      .insert({ body: 'Ajouter un mode sombre' })
+      .select('id, user_id, residence_id, state')
+      .single();
+    expect(error).toBeNull();
+    expect(data?.state).toBe('new');
+    suggestionId = data!.id;
+  });
+
+  it('(b) l’auteur voit sa suggestion ; un autre résident ne la voit PAS', async () => {
+    const { data: own } = await sonia.from('suggestions').select('id').eq('id', suggestionId);
+    expect((own ?? []).length).toBe(1);
+    const { data: other } = await othmane.from('suggestions').select('id').eq('id', suggestionId);
+    expect((other ?? []).length).toBe(0);
+  });
+
+  it('(c) co_mod de la résidence voit la suggestion', async () => {
+    const { data } = await karim.from('suggestions').select('id, body').eq('id', suggestionId);
+    expect((data ?? []).length).toBe(1);
+  });
+
+  it('(d) co_mod d’une AUTRE résidence ne voit rien (isolation)', async () => {
+    const { data } = await eve.from('suggestions').select('id').eq('id', suggestionId);
+    expect((data ?? []).length).toBe(0);
+  });
+
+  it('(e) un résident NE PEUT PAS marquer comme lue (aucune policy update) ', async () => {
+    await sonia.from('suggestions').update({ state: 'reviewed' }).eq('id', suggestionId);
+    const { data } = await admin
+      .from('suggestions')
+      .select('state')
+      .eq('id', suggestionId)
+      .single();
+    expect(data?.state).toBe('new'); // inchangé (RLS bloque l'auteur).
+  });
+
+  it('(f) co_mod marque comme lue (state → reviewed)', async () => {
+    const { error } = await karim
+      .from('suggestions')
+      .update({ state: 'reviewed' })
+      .eq('id', suggestionId);
+    expect(error).toBeNull();
+    const { data } = await admin
+      .from('suggestions')
+      .select('state')
+      .eq('id', suggestionId)
+      .single();
+    expect(data?.state).toBe('reviewed');
+  });
+
+  afterAll(async () => {
+    if (admin && suggestionId) await admin.from('suggestions').delete().eq('id', suggestionId);
+  });
+});

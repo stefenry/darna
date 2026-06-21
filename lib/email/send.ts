@@ -30,6 +30,9 @@ import type { ReportKeptReporterVars } from './templates/report-kept-reporter.fr
 import { escalationLegalTemplate as escalationLegalFr } from './templates/escalation-legal.fr';
 import { escalationLegalTemplate as escalationLegalAr } from './templates/escalation-legal.ar';
 import type { EscalationLegalVars } from './templates/escalation-legal.fr';
+import { suggestionNotifyComodTemplate as suggestionNotifyComodFr } from './templates/suggestion-notify-comod.fr';
+import { suggestionNotifyComodTemplate as suggestionNotifyComodAr } from './templates/suggestion-notify-comod.ar';
+import type { SuggestionNotifyComodVars } from './templates/suggestion-notify-comod.fr';
 
 // AR16 — Boundary unique pour tout envoi e-mail transactionnel applicatif.
 // Note : `scripts/budget-alert.ts` est un script CLI ops (pas runtime app)
@@ -95,6 +98,12 @@ export type SendArgs =
       to: string;
       locale: 'fr' | 'ar';
       vars: EscalationLegalVars;
+    }
+  | {
+      template: 'suggestion-notify-comod';
+      to: string;
+      locale: 'fr' | 'ar';
+      vars: SuggestionNotifyComodVars;
     };
 
 export type SendResult =
@@ -170,5 +179,9 @@ function renderTemplate(args: SendArgs) {
         : reportKeptReporterFr(args.vars);
     case 'escalation-legal':
       return args.locale === 'ar' ? escalationLegalAr(args.vars) : escalationLegalFr(args.vars);
+    case 'suggestion-notify-comod':
+      return args.locale === 'ar'
+        ? suggestionNotifyComodAr(args.vars)
+        : suggestionNotifyComodFr(args.vars);
   }
 }

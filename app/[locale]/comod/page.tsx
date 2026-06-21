@@ -5,7 +5,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { BookOpen, Inbox, Phone, PackageOpen, ShieldAlert } from 'lucide-react';
+import { BookOpen, Inbox, Phone, PackageOpen, ShieldAlert, Lightbulb } from 'lucide-react';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
 
@@ -35,6 +35,7 @@ export default async function ComodHomePage({ params }: Props) {
     { key: 'guide', href: `/${locale}/comod/admin/guide`, Icon: BookOpen },
     { key: 'numeros', href: `/${locale}/comod/admin/numeros-utiles`, Icon: Phone },
     { key: 'pack', href: `/${locale}/comod/admin/pack-accueil`, Icon: PackageOpen },
+    { key: 'suggestions', href: `/${locale}/comod/suggestions`, Icon: Lightbulb },
   ] as const;
 
   return (

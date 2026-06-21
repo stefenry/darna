@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { ChevronRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { routing } from '@/lib/i18n/routing';
 import { SettingsForm } from '../_components/settings-form';
@@ -30,6 +32,7 @@ export default async function ProfilSettingsPage({ params }: Props) {
   setRequestLocale(locale);
 
   const t = await getTranslations('profil.settings');
+  const tSuggestion = await getTranslations('suggestion');
 
   const supabase = await createClient();
   const {
@@ -52,6 +55,14 @@ export default async function ProfilSettingsPage({ params }: Props) {
         initialIdentityMode={profile?.identity_mode === 'identified' ? 'identified' : 'pseudo'}
         initialLanguage={profile?.language === 'ar' ? 'ar' : 'fr'}
       />
+
+      <Link
+        href={`/${locale}/community/profil/parametres/suggestion`}
+        className="flex min-h-touch items-center justify-between gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+      >
+        <span className="text-base font-medium text-neutral-900">{tSuggestion('title')}</span>
+        <ChevronRight className="size-5 shrink-0 text-neutral-400 rtl:rotate-180" aria-hidden />
+      </Link>
     </section>
   );
 }

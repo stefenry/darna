@@ -322,7 +322,8 @@
         "guide": "Guide",
         "numeros": "Numéros utiles",
         "pack": "Pack accueil",
-        "moderation": "Modération"
+        "moderation": "Modération",
+        "suggestions": "Suggestions"
       }
     },
     "admin": {
@@ -974,5 +975,36 @@
   },
   "reactions": {
     "like": "J’aime"
+  },
+  "suggestion": {
+    "title": "Suggérer une évolution",
+    "intro": "Une idée pour améliorer Darna ? Partage-la avec les co-mods. Pas de débat public, pas de vote — juste ton retour.",
+    "back": "Retour aux paramètres",
+    "label": "Ta suggestion",
+    "placeholder": "Décris ton idée…",
+    "submit": "Envoyer",
+    "submitting": "Envoi…",
+    "ack": "Merci, ton retour a été transmis aux co-mods.",
+    "error": {
+      "forbidden": "Action non autorisée.",
+      "rate_limited": "Trop de suggestions envoyées. Réessaie plus tard.",
+      "invalid": "Le texte est vide ou dépasse 1000 caractères.",
+      "failed": "Échec de l’envoi. Réessaie."
+    },
+    "history": {
+      "title": "Mes suggestions",
+      "empty": "Tu n’as pas encore envoyé de suggestion.",
+      "stateNew": "En attente",
+      "stateReviewed": "Lue par les co-mods"
+    },
+    "comod": {
+      "title": "Suggestions",
+      "intro": "Les suggestions d’évolution partagées par les voisins. Auteur pseudonymisé.",
+      "empty": "Aucune suggestion pour l’instant.",
+      "markRead": "Marquer comme lue",
+      "author": "Voisin #{suffix}",
+      "authorDeleted": "Voisin supprimé",
+      "stateReviewed": "Lue"
+    }
   }
 }
