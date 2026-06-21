@@ -141,6 +141,7 @@ describe('CommentsList', () => {
     ],
     commentText: 'Rapide et propre',
     createdAt: '2026-06-01T10:00:00Z',
+    isOwn: false,
   };
   const ANON: ArtisanComment = {
     id: 'c2',
@@ -149,6 +150,7 @@ describe('CommentsList', () => {
     scores: [],
     commentText: 'Bon travail',
     createdAt: '2026-05-20T10:00:00Z',
+    isOwn: false,
   };
   const DELETED: ArtisanComment = {
     id: 'c4',
@@ -157,6 +159,7 @@ describe('CommentsList', () => {
     scores: [],
     commentText: 'Contributeur supprimé',
     createdAt: '2026-05-10T10:00:00Z',
+    isOwn: false,
   };
 
   it('affiche nom si named, pseudonyme stable (FR16) sinon, « Voisin supprimé » si anonymisé', () => {

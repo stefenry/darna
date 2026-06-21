@@ -4,7 +4,7 @@ import {
   mapReportFieldError,
   REPORT_FIELD_ERROR_KEYS,
   REPORT_NOTE_MAXLEN,
-  type ReportFieldKey,
+  type ReportErrorableField,
 } from './report';
 
 const VALID = {
@@ -56,8 +56,8 @@ describe('zSubmitReport', () => {
 });
 
 describe('mapReportFieldError', () => {
-  it('mappe chaque champ vers une clé whitelistée', () => {
-    const fields: ReportFieldKey[] = ['target_type', 'target_id', 'reason', 'note_text'];
+  it('mappe chaque champ faillible vers une clé whitelistée', () => {
+    const fields: ReportErrorableField[] = ['target_type', 'target_id', 'reason'];
     for (const f of fields) {
       const key = mapReportFieldError(f);
       expect((REPORT_FIELD_ERROR_KEYS as readonly string[]).includes(key)).toBe(true);

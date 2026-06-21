@@ -81,7 +81,8 @@ export function CommentsList({
                     initialCount={reactions.get(comment.id)?.count ?? 0}
                     initialReacted={reactions.get(comment.id)?.reacted ?? false}
                   />
-                  <ReportButton targetType="rating" targetId={comment.id} />
+                  {/* 5.2 D1 — pas de « Signaler » sur son propre avis (l'auteur a « Retirer »). */}
+                  {!comment.isOwn && <ReportButton targetType="rating" targetId={comment.id} />}
                 </div>
               </li>
             );

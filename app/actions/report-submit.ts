@@ -13,6 +13,7 @@ import {
   zSubmitReport,
   mapReportFieldError,
   type ReportFieldKey,
+  type ReportErrorableField,
   type ReportFieldErrorKey,
 } from '@/lib/validation/report';
 import { createClient } from '@/lib/supabase/server';
@@ -54,7 +55,8 @@ export async function submitReport(input: {
   if (!parsed.success) {
     const flat = parsed.error.flatten();
     const out: Partial<Record<ReportFieldKey, ReportFieldErrorKey[]>> = {};
-    const fields: ReportFieldKey[] = ['target_type', 'target_id', 'reason', 'note_text'];
+    // note_text ne peut pas échouer (toujours sanitisé/tronqué) → champs faillibles seuls.
+    const fields: ReportErrorableField[] = ['target_type', 'target_id', 'reason'];
     for (const field of fields) {
       if (flat.fieldErrors[field] && flat.fieldErrors[field]!.length > 0) {
         out[field] = [mapReportFieldError(field)];

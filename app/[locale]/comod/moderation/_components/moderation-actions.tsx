@@ -21,6 +21,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
   const [motive, setMotive] = useState<RemovalMotive | ''>('');
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [warn, setWarn] = useState<{ text: string; url: string | null } | null>(null);
   const [isPending, startTransition] = useTransition();
   const firstFieldRef = useRef<HTMLSelectElement | HTMLTextAreaElement>(null);
 
@@ -64,14 +65,24 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
 
   const submitEscalate = () => {
     setError(null);
+    setWarn(null);
     if (!note.trim()) {
       setError(tErr('context_required'));
       return;
     }
     startTransition(async () => {
       const res = await escalateReportLegal({ report_id: reportId, context_note: note });
-      if (res.ok) onDone();
-      else setError(tErr(res.code));
+      if (!res.ok) {
+        setError(tErr(res.code));
+        return;
+      }
+      if (res.warn === 'legal_email_failed') {
+        // Escalade enregistrée mais e-mail au juriste KO : on reste sur la page et
+        // on affiche le lien du dossier à transmettre à la main (pas de faux succès).
+        setWarn({ text: tErr('legal_email_failed'), url: res.dossierUrl ?? null });
+        return;
+      }
+      onDone();
     });
   };
 
@@ -132,7 +143,13 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
   return (
     <div
       role="group"
-      aria-label={mode === 'remove' ? t('actions.remove') : t('actions.keep')}
+      aria-label={
+        mode === 'remove'
+          ? t('actions.remove')
+          : mode === 'escalate'
+            ? t('actions.escalate')
+            : t('actions.keep')
+      }
       onKeyDown={(e) => {
         if (e.key === 'Escape') setMode(null);
       }}
@@ -182,6 +199,25 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
         <p role="alert" className="text-sm text-danger">
           {error}
         </p>
+      )}
+
+      {warn && (
+        <div
+          role="alert"
+          className="flex flex-col gap-1 rounded-[10px] border border-danger bg-bg-card p-3 text-sm text-neutral-800"
+        >
+          <span>{warn.text}</span>
+          {warn.url && (
+            <a
+              href={warn.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-accent-600 underline"
+            >
+              {t('escalateForm.dossierLink')}
+            </a>
+          )}
+        </div>
       )}
 
       <div className="flex items-center gap-2">

@@ -62,23 +62,22 @@ export const zSubmitReport = z.object({
 export type SubmitReportInput = z.infer<typeof zSubmitReport>;
 export type ReportFieldKey = keyof SubmitReportInput;
 
+// Champs réellement faillibles côté Zod. `note_text` est toujours sanitisé +
+// tronqué à 200 (sanitizeUserText) avant le `.max()` → il ne produit JAMAIS
+// d'erreur de validation ; il n'est donc pas mappable (pas de `note_too_long`).
+export type ReportErrorableField = Exclude<ReportFieldKey, 'note_text'>;
+
 // Whitelist des clés d'erreur i18n renvoyées au client (AR17 — jamais le message
 // Zod natif). Le client résout `errors.report.<key>`.
-export const REPORT_FIELD_ERROR_KEYS = [
-  'target_invalid',
-  'reason_invalid',
-  'note_too_long',
-] as const;
+export const REPORT_FIELD_ERROR_KEYS = ['target_invalid', 'reason_invalid'] as const;
 export type ReportFieldErrorKey = (typeof REPORT_FIELD_ERROR_KEYS)[number];
 
-export function mapReportFieldError(field: ReportFieldKey): ReportFieldErrorKey {
+export function mapReportFieldError(field: ReportErrorableField): ReportFieldErrorKey {
   switch (field) {
     case 'target_type':
     case 'target_id':
       return 'target_invalid';
     case 'reason':
       return 'reason_invalid';
-    case 'note_text':
-      return 'note_too_long';
   }
 }

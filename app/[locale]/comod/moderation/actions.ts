@@ -42,7 +42,13 @@ export type ModerationErrorCode =
   | 'legal_contact_missing'
   | 'action_failed';
 
-export type ModerationState = { ok: true } | { ok: false; code: ModerationErrorCode };
+// Avertissement non bloquant : l'action a réussi côté DB mais un effet de bord
+// post-commit a échoué (ex. e-mail au contact juridique) → on le remonte à l'UI
+// plutôt qu'un faux succès silencieux.
+export type ModerationWarnCode = 'legal_email_failed';
+export type ModerationState =
+  | { ok: true; warn?: ModerationWarnCode; dossierUrl?: string | null }
+  | { ok: false; code: ModerationErrorCode };
 
 function mapRpcError(message: string): ModerationErrorCode {
   if (message.includes('not_co_mod') || message.includes('wrong_residence')) return 'forbidden';
@@ -255,8 +261,10 @@ export async function escalateReportLegal(input: {
     .select('reason, note_text')
     .eq('id', report_id)
     .maybeSingle();
+  // Actions antérieures via la VUE moderation_log_public (la table brute n'est plus
+  // lisible côté client — review Epic 5). La vue expose ces actions de gouvernance.
   const { data: prior } = await supabase
-    .from('moderation_log')
+    .from('moderation_log_public')
     .select('action, created_at')
     .eq('target_id', targetId ?? '')
     .in('action', ['content_removed', 'content_kept', 'escalation_triggered'])
@@ -272,14 +280,19 @@ export async function escalateReportLegal(input: {
     targetBody: target?.body ?? null,
     authorPseudonym: authorPseudonymFromId(row?.target_author_id ?? null),
     reporterPseudonym: authorPseudonymFromId(row?.out_reporter_id ?? null) ?? 'anonyme',
-    priorActions: (prior ?? []).map((p) => ({ action: p.action, createdAt: p.created_at })),
+    priorActions: (prior ?? [])
+      .filter((p) => p.action !== null && p.created_at !== null)
+      .map((p) => ({ action: p.action as string, createdAt: p.created_at as string })),
     generatedAtIso: new Date().toISOString(),
   };
   const markdown = generateDossierMarkdown(dossier);
   const dossierUrl = await uploadDossier(report_id, markdown);
 
+  // `sendTransactionalEmail` RETOURNE { ok:false } sur rejet Brevo (ne throw pas
+  // forcément) — on inspecte la valeur, sinon un échec passerait pour un succès.
+  let emailSent = false;
   try {
-    await sendTransactionalEmail({
+    const sent = await sendTransactionalEmail({
       template: 'escalation-legal',
       to: legalEmail,
       locale: 'fr',
@@ -289,6 +302,7 @@ export async function escalateReportLegal(input: {
         dossier_inline: dossierUrl ? null : markdown,
       },
     });
+    emailSent = sent.ok;
   } catch (cause) {
     log({
       level: 'error',
@@ -301,13 +315,26 @@ export async function escalateReportLegal(input: {
   }
 
   log({
-    level: 'info',
+    level: emailSent ? 'info' : 'error',
     event: 'moderation.escalated',
     user_id: guard.user.id,
     residence_id: row?.out_residence_id ?? null,
     request_id: null,
-    payload: { report_id, target_type: targetType, dossier_stored: Boolean(dossierUrl) },
+    payload: {
+      report_id,
+      target_type: targetType,
+      dossier_stored: Boolean(dossierUrl),
+      email_sent: emailSent,
+    },
   });
+
+  // La transition pending_legal est committée (RPC). Si l'e-mail au juriste a
+  // échoué, l'escalade a bien eu lieu mais le contact n'est PAS notifié et le
+  // report n'est plus `open` (donc non rejouable) → on le signale au co_mod avec
+  // le lien du dossier à transmettre manuellement, au lieu d'un faux succès.
+  if (!emailSent) {
+    return { ok: true, warn: 'legal_email_failed', dossierUrl };
+  }
   return { ok: true };
 }
 

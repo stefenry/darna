@@ -16,7 +16,8 @@ const THIRTY_DAYS_SECONDS = 30 * 24 * 3_600;
 export async function uploadDossier(reportId: string, markdown: string): Promise<string | null> {
   try {
     const admin = createAdminClient();
-    // Création de bucket idempotente (ignore "already exists").
+    // Bucket provisionné par migration (20260705090100). Filet idempotent au cas où
+    // la migration Storage n'aurait pas été appliquée (dev local) — no-op sinon.
     await admin.storage.createBucket(BUCKET, { public: false }).catch(() => undefined);
 
     const path = `${reportId}.md`;

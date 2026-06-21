@@ -35,6 +35,9 @@ export type ReportDetail = {
   note: string | null;
   createdAt: string;
   resolvedAt: string | null;
+  // Pour un `closed_kept`, ce champ porte la NOTE LIBRE du co_mod (son raisonnement
+  // de conservation) — pas un motif structuré (la conservation n'a pas de liste
+  // fermée, contrairement au retrait). Visible co_mod-only (RLS). Affiché tel quel.
   resolutionMotive: string | null;
   reporterPseudonym: string;
   target: ResolvedTarget;
@@ -87,10 +90,12 @@ export async function fetchReportDetail(locale: Locale, id: string): Promise<Rep
 
   const target = await resolveTarget(locale, r.target_type, r.target_id);
 
-  // Actions de modération antérieures sur la même cible (content_removed/kept) —
-  // visibles via la policy publique de moderation_log (report_opened exclu).
+  // Actions de modération antérieures sur la même cible (content_removed/kept/
+  // escalation). Lecture via la VUE moderation_log_public : la table brute n'est
+  // plus exposée au client (review Epic 5, anti-contournement de la redaction).
+  // La vue inclut ces actions de gouvernance et masque report_opened + PII.
   const { data: prior } = await supabase
-    .from('moderation_log')
+    .from('moderation_log_public')
     .select('action, created_at, reason_code')
     .eq('target_id', r.target_id)
     .in('action', ['content_removed', 'content_kept', 'escalation_triggered'])
@@ -108,10 +113,12 @@ export async function fetchReportDetail(locale: Locale, id: string): Promise<Rep
     resolutionMotive: r.resolution_motive,
     reporterPseudonym: reporterPseudonym(r.reporter_id),
     target,
-    priorActions: (prior ?? []).map((p) => ({
-      action: p.action,
-      createdAt: p.created_at,
-      reasonCode: p.reason_code,
-    })),
+    priorActions: (prior ?? [])
+      .filter((p) => p.action !== null && p.created_at !== null)
+      .map((p) => ({
+        action: p.action as string,
+        createdAt: p.created_at as string,
+        reasonCode: p.reason_code,
+      })),
   };
 }

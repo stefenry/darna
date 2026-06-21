@@ -67,7 +67,8 @@
         "alert_comment": "commentaire d’alerte",
         "tip": "bon plan",
         "guide_entry": "entrée du guide",
-        "useful_number": "numéro utile"
+        "useful_number": "numéro utile",
+        "pack_entry": "entrée de pack"
       }
     },
     "dataProtection": {
@@ -215,7 +216,6 @@
       "generic": "Le signalement n’a pas pu être envoyé. Réessaie.",
       "target_invalid": "Ce contenu ne peut pas être signalé.",
       "reason_invalid": "Choisis un motif de signalement.",
-      "note_too_long": "La note est trop longue (200 caractères max).",
       "unauthenticated": "Connecte-toi pour signaler un contenu.",
       "duplicate": "Tu as déjà signalé ce contenu ; les co-modérateurs vont l’examiner.",
       "rate_limited": "Trop de signalements en peu de temps. Réessaie dans un moment.",
@@ -230,7 +230,8 @@
       "motive_required": "Choisis un motif de retrait.",
       "not_pending_legal": "Ce signalement n’est pas en attente d’avis juridique.",
       "legal_contact_missing": "Le contact juridique n’est pas configuré. Voir le runbook (LEGAL_CONTACT_EMAIL).",
-      "context_required": "Ajoute un contexte pour le juriste."
+      "context_required": "Ajoute un contexte pour le juriste.",
+      "legal_email_failed": "L’escalade est enregistrée mais l’e-mail au contact juridique n’a pas pu être envoyé. Transmets-lui le dossier manuellement."
     }
   },
   "auth": {
@@ -458,7 +459,8 @@
       "escalateForm": {
         "title": "Escalader vers le contact juridique",
         "contextLabel": "Contexte pour le juriste (obligatoire, 1000 caractères max)",
-        "contextPlaceholder": "Explique pourquoi un avis juridique est nécessaire."
+        "contextPlaceholder": "Explique pourquoi un avis juridique est nécessaire.",
+        "dossierLink": "Ouvrir le dossier à transmettre"
       },
       "legal": {
         "pendingTitle": "En attente d’avis juridique",

@@ -328,10 +328,19 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS cross-résidence (AR32)', () => {
     expect(data).toHaveLength(0);
   });
 
-  it('moderation_log est lisible publiquement (transparence FR33) — eve y accède', async () => {
-    const { data, error } = await eveClient.from('moderation_log').select('*');
-    expect(error).toBeNull();
-    expect(data?.length ?? 0).toBeGreaterThan(0);
+  it('transparence FR33 : lecture publique via la vue ; table brute moderation_log fermée au client (review Epic 5)', async () => {
+    // La VUE de redaction moderation_log_public est l'UNIQUE chemin de lecture
+    // publique (anti-contournement : actor_id / reason_text_anonymized /
+    // report_opened). Elle reste interrogeable sans erreur.
+    const { error: pubErr } = await eveClient
+      .from('moderation_log_public')
+      .select('action')
+      .limit(1);
+    expect(pubErr).toBeNull();
+
+    // La table BRUTE n'est plus lisible directement côté client (grant révoqué).
+    const { data: raw } = await eveClient.from('moderation_log').select('*');
+    expect(raw ?? []).toHaveLength(0);
   });
 
   it("salma (demandeur rés.1) ne peut PAS s'auto-promouvoir co_mod (AC1.3 — REVOKE UPDATE role → 42501)", async () => {
@@ -943,11 +952,11 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS artisans / ratings (AC8)', () => {
     expect(r2.error).not.toBeNull();
   });
 
-  it('moderation_log : action artisan_response_published lisible cross-résidence (FR33 transparence)', async () => {
-    // Le review 2.7 hardening (20260626090000) a retiré artisan_response_published
-    // de la liste restreinte de moderation_log_public_select : c'est une action
-    // de modération publique (FR33 transparence radicale), comme l'admission.
-    // Le test 2.8 initial l'avait classée privée par erreur — corrigé ici.
+  it('moderation_log : artisan_response_published n’est PAS public (vue l’exclut + table brute fermée — review Epic 5)', async () => {
+    // artisan_response_published est une action de cycle de vie artisan (2.8), pas
+    // une décision de gouvernance : la vue moderation_log_public l'exclut et
+    // JOURNAL_ACTIONS (5.4) ne la liste pas → absente de /transparence. Le verrou
+    // review Epic 5 ferme en plus la table brute (la vue est la source unique).
     await admin.from('moderation_log').insert({
       residence_id: DARNA_RESIDENCE_ID,
       actor_id: null,
@@ -955,13 +964,21 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS artisans / ratings (AC8)', () => {
       target_kind: 'artisan',
       target_id: publishedArtisanId,
     });
-    const { data: eveSees, error } = await eveClient
+    // Exclue de la vue publique (y compris pour un co_mod d'une autre résidence).
+    const { data: viaView, error: viewErr } = await eveClient
+      .from('moderation_log_public')
+      .select('id')
+      .eq('target_id', publishedArtisanId)
+      .eq('action', 'artisan_response_published');
+    expect(viewErr).toBeNull();
+    expect(viaView ?? []).toHaveLength(0);
+    // Table brute fermée au client (grant révoqué).
+    const { data: viaRaw } = await eveClient
       .from('moderation_log')
       .select('id')
       .eq('target_id', publishedArtisanId)
       .eq('action', 'artisan_response_published');
-    expect(error).toBeNull();
-    expect(eveSees?.length ?? 0).toBeGreaterThan(0);
+    expect(viaRaw ?? []).toHaveLength(0);
   });
 });
 
@@ -2156,6 +2173,29 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS modération & transparence (Epic 5)',
       .eq('target_id', targetId);
     expect(error).toBeNull();
     expect((data ?? []).every((r) => r.action !== 'report_opened')).toBe(true);
+  });
+
+  it('(k) BLOQUANT review : report_opened NON lisible via la TABLE BRUTE (anon + résident)', async () => {
+    // Le signalement (a) a écrit une ligne report_opened (actor_id = reporter). La
+    // vue l'exclut (j), mais la table brute doit aussi être fermée au client, sinon
+    // `select … from moderation_log where action='report_opened'` fuiterait
+    // l'identité du signalant (review Epic 5 — vue = seul chemin public).
+    const anon = createClient<Database>(
+      parseSupabaseLocalEnv().SUPABASE_LOCAL_URL,
+      parseSupabaseLocalEnv().SUPABASE_LOCAL_PUBLISHABLE_KEY,
+      { auth: { storageKey: 'rls-reports-anon-raw', persistSession: false } },
+    );
+    const { data: anonRaw } = await anon
+      .from('moderation_log')
+      .select('actor_id, action')
+      .eq('target_id', targetId);
+    expect(anonRaw ?? []).toHaveLength(0);
+
+    const { data: residentRaw } = await reporterClient
+      .from('moderation_log')
+      .select('actor_id, action')
+      .eq('target_id', targetId);
+    expect(residentRaw ?? []).toHaveLength(0);
   });
 });
 

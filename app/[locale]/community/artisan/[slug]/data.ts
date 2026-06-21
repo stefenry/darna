@@ -39,6 +39,8 @@ export type ArtisanComment = {
   scores: { axis: RatingAxis; value: number }[];
   commentText: string;
   createdAt: string;
+  /** Avis du contributeur courant (5.2 D1) : on lui cache « Signaler » sur son propre avis. `user_id` n'est JAMAIS sérialisé (FR16). */
+  isOwn: boolean;
 };
 
 /** Note existante du contributeur courant sur un artisan (pré-remplissage du form 2.6 + retrait 2.7). */
@@ -154,6 +156,8 @@ const SCORE_COLUMN: Record<RatingAxis, keyof CommentRow> = {
 /** 10 avis les plus récents (commentés non-vides, non supprimés). RLS-scopée résidence. */
 export async function fetchArtisanComments(artisanId: string): Promise<ArtisanComment[]> {
   const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth?.user?.id ?? null;
   const { data, error } = await supabase
     .from('ratings')
     .select(
@@ -183,6 +187,8 @@ export async function fetchArtisanComments(artisanId: string): Promise<ArtisanCo
       scores,
       commentText: r.comment_text ?? '',
       createdAt: r.created_at,
+      // FR16 — `user_id` reste server-only ; on n'expose que le booléen.
+      isOwn: uid != null && r.user_id === uid,
     };
   });
 }

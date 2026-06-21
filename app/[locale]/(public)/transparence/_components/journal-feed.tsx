@@ -18,6 +18,7 @@ const KNOWN_TARGETS = new Set([
   'tip',
   'guide_entry',
   'useful_number',
+  'pack_entry', // retrait de contenu durable (RPC retire_durable_entry → target_kind=pack_entry)
 ]);
 
 export function JournalFeed({
@@ -97,7 +98,7 @@ export function JournalFeed({
         {entries.map((e) => (
           <li key={e.id} className="flex flex-col gap-1 rounded-[14px] bg-bg-card p-4 shadow-xs">
             <p className="text-base font-medium text-neutral-900">{describe(e)}</p>
-            <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-500">
+            <div className="flex flex-wrap items-center gap-2 text-base text-neutral-600">
               <time dateTime={e.createdAt}>{formatDate(e.createdAt)}</time>
               {e.actorDisplayName && (
                 <>
