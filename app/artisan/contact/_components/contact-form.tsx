@@ -6,7 +6,8 @@
 
 import { useActionState, useEffect, useId, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { requestArtisanContactLink, CONTACT_LINK_INITIAL } from '../actions';
+import { requestArtisanContactLink } from '../actions';
+import { CONTACT_LINK_INITIAL } from '../state';
 
 const INPUT_CLASS =
   'min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';

@@ -35,8 +35,6 @@ export type CreateAlertResult =
 
 export type CreateAlertState = CreateAlertResult | { ok: false; idle: true };
 
-export const CREATE_ALERT_INITIAL: CreateAlertState = { ok: false, idle: true };
-
 function field(formData: FormData, key: string): string {
   const v = formData.get(key);
   return typeof v === 'string' ? v.trim() : '';

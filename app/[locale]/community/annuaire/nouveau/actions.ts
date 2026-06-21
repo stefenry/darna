@@ -67,8 +67,6 @@ export type CreateArtisanResult =
 /** État `useActionState` : idle initial OU résultat de soumission. */
 export type CreateArtisanState = CreateArtisanResult | { ok: false; idle: true };
 
-export const CREATE_ARTISAN_INITIAL: CreateArtisanState = { ok: false, idle: true };
-
 function optional(formData: FormData, key: string): string | undefined {
   const v = formData.get(key);
   const s = typeof v === 'string' ? v.trim() : '';

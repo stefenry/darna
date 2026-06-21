@@ -54,8 +54,6 @@ export type RatingResult =
 /** État `useActionState` : idle initial OU résultat de soumission. */
 export type RatingState = RatingResult | { ok: false; idle: true };
 
-export const RATING_INITIAL: RatingState = { ok: false, idle: true };
-
 /** Lit un score : string "1".."5" si noté, undefined si « Non applicable » (champ absent/vide). */
 function scoreRaw(formData: FormData, key: string): string | undefined {
   const v = formData.get(key);
@@ -257,7 +255,6 @@ export type RetractRatingResult =
         | { code: 'submit_failed'; message_key: 'errors.rating.submit_failed' };
     };
 export type RetractRatingState = RetractRatingResult | { ok: false; idle: true };
-export const RETRACT_RATING_INITIAL: RetractRatingState = { ok: false, idle: true };
 
 async function callRetractRpc(
   rpc: 'retract_own_rating' | 'retract_own_comment',

@@ -24,7 +24,6 @@ const TIMING_EQUALIZE_MS = 150;
 const PHONE_NORMALIZE = /[\s.\-()]+/g;
 
 export type ContactLinkState = { ok: true } | { ok: false; idle: true };
-export const CONTACT_LINK_INITIAL: ContactLinkState = { ok: false, idle: true };
 
 const GENERIC: ContactLinkState = { ok: true };
 

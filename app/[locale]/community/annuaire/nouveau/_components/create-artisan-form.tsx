@@ -9,7 +9,8 @@ import { useActionState, useId, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui/checkbox';
-import { createArtisan, CREATE_ARTISAN_INITIAL } from '../actions';
+import { createArtisan } from '../actions';
+import { CREATE_ARTISAN_INITIAL } from '../state';
 
 type Tag = { key: string; label: string };
 

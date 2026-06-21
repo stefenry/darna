@@ -15,11 +15,8 @@ import {
   USEFUL_NUMBER_CATEGORY_CHOICES,
   type DurableKind,
 } from '@/lib/content/admin-config';
-import {
-  saveDurableEntry,
-  DURABLE_INITIAL,
-  type DurableActionState,
-} from '../_actions/durable-content';
+import { saveDurableEntry, type DurableActionState } from '../_actions/durable-content';
+import { DURABLE_INITIAL } from '../_actions/state';
 import type { DurableEntryValues } from '../_data/durable';
 
 type Props = {

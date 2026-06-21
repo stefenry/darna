@@ -35,8 +35,6 @@ export type CreateTipResult =
 
 export type CreateTipState = CreateTipResult | { ok: false; idle: true };
 
-export const CREATE_TIP_INITIAL: CreateTipState = { ok: false, idle: true };
-
 function field(formData: FormData, key: string): string {
   const v = formData.get(key);
   return typeof v === 'string' ? v.trim() : '';

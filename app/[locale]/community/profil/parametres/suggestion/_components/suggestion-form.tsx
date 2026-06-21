@@ -7,7 +7,8 @@ import { useActionState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { SUGGESTION_MAXLEN } from '@/lib/validation/suggestion';
-import { submitSuggestion, SUGGESTION_INITIAL, type SubmitSuggestionState } from '../actions';
+import { submitSuggestion, type SubmitSuggestionState } from '../actions';
+import { SUGGESTION_INITIAL } from '../state';
 
 export function SuggestionForm() {
   const t = useTranslations('suggestion');

@@ -29,8 +29,6 @@ export type DurableActionState =
       message_key: string;
     };
 
-export const DURABLE_INITIAL: DurableActionState = { ok: true };
-
 type SaveCtx = { kind: DurableKind; id?: string };
 
 function err(

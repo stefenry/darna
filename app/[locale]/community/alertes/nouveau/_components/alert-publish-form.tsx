@@ -10,7 +10,8 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Bug, Dog, Droplet, Megaphone, Package, Search, Zap, type LucideIcon } from 'lucide-react';
 import { ALERT_DURATIONS_HOURS } from '@/lib/content/ephemeral';
-import { createAlert, CREATE_ALERT_INITIAL, type CreateAlertState } from '../actions';
+import { createAlert, type CreateAlertState } from '../actions';
+import { CREATE_ALERT_INITIAL } from '../state';
 
 export type TemplateOption = {
   key: string;

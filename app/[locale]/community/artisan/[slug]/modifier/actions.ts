@@ -54,7 +54,6 @@ export type UpdateArtisanResult =
     };
 
 export type UpdateArtisanState = UpdateArtisanResult | { ok: false; idle: true };
-export const UPDATE_ARTISAN_INITIAL: UpdateArtisanState = { ok: false, idle: true };
 
 export type RetractArtisanResult =
   | { ok: true }
@@ -68,7 +67,6 @@ export type RetractArtisanResult =
         | { code: 'submit_failed'; message_key: 'errors.artisan.edit_submit_failed' };
     };
 export type RetractArtisanState = RetractArtisanResult | { ok: false; idle: true };
-export const RETRACT_ARTISAN_INITIAL: RetractArtisanState = { ok: false, idle: true };
 
 function optional(formData: FormData, key: string): string | undefined {
   const v = formData.get(key);

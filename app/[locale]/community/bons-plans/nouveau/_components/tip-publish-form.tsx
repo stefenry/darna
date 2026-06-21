@@ -7,7 +7,8 @@ import { useActionState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { TIP_CATEGORY_KEYS } from '@/lib/content/ephemeral';
-import { createTip, CREATE_TIP_INITIAL, type CreateTipState } from '../actions';
+import { createTip, type CreateTipState } from '../actions';
+import { CREATE_TIP_INITIAL } from '../state';
 
 export function TipPublishForm({
   locale,

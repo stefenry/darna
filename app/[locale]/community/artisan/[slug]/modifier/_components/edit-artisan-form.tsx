@@ -10,12 +10,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { ArtisanEditData } from '../../data';
-import {
-  updateArtisan,
-  retractArtisan,
-  UPDATE_ARTISAN_INITIAL,
-  RETRACT_ARTISAN_INITIAL,
-} from '../actions';
+import { updateArtisan, retractArtisan } from '../actions';
+import { UPDATE_ARTISAN_INITIAL, RETRACT_ARTISAN_INITIAL } from '../state';
 
 type Tag = { key: string; label: string };
 

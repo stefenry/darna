@@ -22,8 +22,6 @@ export type SubmitSuggestionState =
   | { ok: false; idle: true }
   | { ok: false; code: 'forbidden' | 'rate_limited' | 'invalid' | 'failed' };
 
-export const SUGGESTION_INITIAL: SubmitSuggestionState = { ok: false, idle: true };
-
 function baseUrl(): string {
   return env.client.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, '');
 }

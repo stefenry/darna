@@ -21,13 +21,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { RATING_AXES, type RatingAxis } from '@/lib/artisans/rating';
-import {
-  submitRating,
-  retractOwnRating,
-  retractOwnComment,
-  RATING_INITIAL,
-  RETRACT_RATING_INITIAL,
-} from '../actions';
+import { submitRating, retractOwnRating, retractOwnComment } from '../actions';
+import { RATING_INITIAL, RETRACT_RATING_INITIAL } from '../state';
 import type { MyRating } from '../../data';
 
 const AXIS_FIELD: Record<RatingAxis, keyof MyRating> = {
