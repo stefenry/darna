@@ -25,6 +25,13 @@ export async function resolveRedirect({
     return nextParam;
   }
 
+  // Co_mods (bootstrap via scripts/invite-co-mods.ts) n'ont typiquement pas
+  // d'admission_request. Sans ce shortcut, ils atterrissent sur /admission par
+  // défaut (logique demandeur ci-dessous), même connectés avec role=co_mod.
+  if (user.app_metadata?.role === 'co_mod') {
+    return `/${locale}/comod`;
+  }
+
   // Defensive .order().limit(1): admission_requests should be unique per user
   // (story 1.3 RLS + schema), but if duplicates ever slip through, maybeSingle()
   // throws PGRST116. Pick the most recent row instead.
