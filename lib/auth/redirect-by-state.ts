@@ -18,10 +18,10 @@ export async function resolveRedirect({
   locale,
   nextParam,
 }: Args): Promise<string> {
-  // Co_mod prioritaire : auth-signin / admission-submit posent par défaut
-  // nextParam=/<locale>/admission, qui matche isSafeAdmissionNext et renvoyait
-  // le co_mod sur /admission au login. On respecte uniquement les deep-links
-  // explicites vers /comod ou une entity canonique ; sinon raccourci /comod.
+  // 1. Co_mod prioritaire : auth-signin pose nextParam=/<locale>/admission
+  //    par défaut, qui matche isSafeAdmissionNext et renvoyait le co_mod sur
+  //    /admission au login. On respecte uniquement les deep-links explicites
+  //    vers /comod ou une entity canonique.
   if (user.app_metadata?.role === 'co_mod') {
     if (
       nextParam &&
@@ -34,16 +34,7 @@ export async function resolveRedirect({
     return `/${locale}/comod`;
   }
 
-  // `next` admis : soit une page d'admission (story 1.6), soit une ENTITÉ
-  // canonique (story 6.3 — deep link post-login : `/artisan/<slug>` etc., le
-  // route handler 307-redirige ensuite le résident vers la fiche communautaire).
-  if (nextParam && (isSafeAdmissionNext(nextParam, locale) || isCanonicalEntityPath(nextParam))) {
-    return nextParam;
-  }
-
-  // Defensive .order().limit(1): admission_requests should be unique per user
-  // (story 1.3 RLS + schema), but if duplicates ever slip through, maybeSingle()
-  // throws PGRST116. Pick the most recent row instead.
+  // 2. Lookup admission state pour les résidents/demandeurs.
   const { data, error } = await supabase
     .from('admission_requests')
     .select('state')
@@ -64,9 +55,23 @@ export async function resolveRedirect({
     return `/${locale}/admission`;
   }
 
+  // 3. Résident accepted : shortcut /community/ même si nextParam=/admission
+  //    (default posé par auth-signin). On ne respecte que les entity canoniques
+  //    (deep-links explicites story 6.3).
+  if (data?.state === 'accepted') {
+    if (nextParam && isCanonicalEntityPath(nextParam)) {
+      return nextParam;
+    }
+    return `/${locale}/community/`;
+  }
+
+  // 4. Pour pending / rejected / no_request : respecter nextParam admis si fourni.
+  if (nextParam && (isSafeAdmissionNext(nextParam, locale) || isCanonicalEntityPath(nextParam))) {
+    return nextParam;
+  }
+
   if (!data) return `/${locale}/admission`;
   if (data.state === 'pending') return `/${locale}/admission/pending`;
-  if (data.state === 'accepted') return `/${locale}/community/`;
   if (data.state === 'rejected') return `/${locale}/admission/refused`;
   return `/${locale}/admission`;
 }
