@@ -10,7 +10,7 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin';
 import { detectLocaleFromHeaders } from '@/lib/i18n/detect-locale';
 import { sendTransactionalEmail } from '@/lib/email/send';
-import { isSafeActionLink } from '@/lib/auth/safe-action-link';
+import { buildPkceConfirmUrl } from '@/lib/auth/build-pkce-confirm-url';
 import { checkLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
 import { env } from '@/lib/env';
@@ -130,9 +130,8 @@ export async function submitAdmissionRequest(
   // n'existe pas, Supabase le crée automatiquement et le trigger
   // handle_new_auth_user provisionne public.users role='demandeur' +
   // notifications_prefs (story 1.3). Si existe, on récupère son id.
-  const redirectTo = `${baseUrl()}/auth/confirm?next=${encodeURIComponent(
-    `/${locale}/admission/pending`,
-  )}`;
+  const nextPath = `/${locale}/admission/pending`;
+  const redirectTo = `${baseUrl()}/auth/confirm?next=${encodeURIComponent(nextPath)}`;
 
   let userId: string | null = null;
   let actionLink: string | null = null;
@@ -163,9 +162,11 @@ export async function submitAdmissionRequest(
     }
 
     userId = linkResult.data.user.id;
-    actionLink = isSafeActionLink(linkResult.data.properties?.action_link)
-      ? linkResult.data.properties.action_link
-      : null;
+    actionLink = buildPkceConfirmUrl({
+      baseUrl: baseUrl(),
+      hashedToken: linkResult.data.properties?.hashed_token ?? '',
+      nextPath,
+    });
   } catch (cause) {
     log({
       level: 'error',

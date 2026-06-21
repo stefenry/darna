@@ -7,7 +7,7 @@ import { zEmail } from '@/lib/validation/email';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { detectLocaleFromHeaders } from '@/lib/i18n/detect-locale';
 import { sendTransactionalEmail } from '@/lib/email/send';
-import { isSafeActionLink } from '@/lib/auth/safe-action-link';
+import { buildPkceConfirmUrl } from '@/lib/auth/build-pkce-confirm-url';
 import { checkLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
 import { env } from '@/lib/env';
@@ -51,9 +51,8 @@ export async function signInMagicLink(
     headerList.get('cookie'),
     headerList.get('accept-language'),
   );
-  const redirectTo = `${getBaseUrl()}/auth/confirm?next=${encodeURIComponent(
-    `/${locale}/admission`,
-  )}`;
+  const nextPath = `/${locale}/admission`;
+  const redirectTo = `${getBaseUrl()}/auth/confirm?next=${encodeURIComponent(nextPath)}`;
 
   // AR31 — rate-limit par e-mail. Anti-énumération préservée : on redirige
   // toujours vers check-email, mais sans envoyer de lien si la limite est
@@ -83,7 +82,12 @@ export async function signInMagicLink(
       options: { redirectTo },
     });
 
-    if (error || !isSafeActionLink(data?.properties?.action_link)) {
+    const pkceLink = buildPkceConfirmUrl({
+      baseUrl: getBaseUrl(),
+      hashedToken: data?.properties?.hashed_token ?? '',
+      nextPath,
+    });
+    if (error || !pkceLink) {
       log({
         level: 'error',
         event: 'auth.magic_link_generate_failed',
@@ -98,7 +102,7 @@ export async function signInMagicLink(
         to: parsed.data.email,
         locale,
         vars: {
-          link: data.properties.action_link,
+          link: pkceLink,
           expiresInMinutes: MAGIC_LINK_TTL_MINUTES,
         },
       });

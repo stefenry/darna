@@ -8,7 +8,7 @@ import {
   type ComodErrorKey,
 } from '@/lib/validation/admission-decision';
 import { sendTransactionalEmail } from '@/lib/email/send';
-import { isSafeActionLink } from '@/lib/auth/safe-action-link';
+import { buildPkceConfirmUrl } from '@/lib/auth/build-pkce-confirm-url';
 import { isCanonicalEntityPath } from '@/lib/share/safe-next';
 import { log } from '@/lib/logger';
 import { env } from '@/lib/env';
@@ -245,6 +245,7 @@ async function sendWelcome(requesterUserId: string, villa: number, actorId: stri
   } catch {
     landingPath = null;
   }
+  const nextPath = landingPath ?? '/';
   const confirmUrl = landingPath
     ? `${baseUrl()}/auth/confirm?next=${encodeURIComponent(landingPath)}`
     : `${baseUrl()}/auth/confirm`;
@@ -257,9 +258,11 @@ async function sendWelcome(requesterUserId: string, villa: number, actorId: stri
       options: { redirectTo: confirmUrl },
     });
     if (!error) {
-      actionLink = isSafeActionLink(data?.properties?.action_link)
-        ? data.properties.action_link
-        : null;
+      actionLink = buildPkceConfirmUrl({
+        baseUrl: baseUrl(),
+        hashedToken: data?.properties?.hashed_token ?? '',
+        nextPath,
+      });
     }
   } catch {
     actionLink = null;
