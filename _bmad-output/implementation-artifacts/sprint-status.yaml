@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-23
-last_updated: 2026-06-21T00:00:00Z
+last_updated: 2026-06-21T12:00:00Z
 project: SmartResidence
 project_key: NOKEY
 tracking_system: file-system
@@ -100,12 +100,12 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: Partage WhatsApp, deep linking & engagement léger
-  epic-6: backlog
-  6-1-slugs-canoniques-urls-canoniques-tombstone: backlog
-  6-2-bouton-partager-1-tap-presse-papier-native-share: backlog
-  6-3-capture-contexte-pre-login-pour-visiteur-public: backlog
-  6-4-1-tap-sur-commentaire-alerte-bon-plan-sans: backlog
-  6-5-formulaire-suggestion-d-evolution-produit-lue-par-co-mods-uniquement: backlog
+  epic-6: done
+  6-1-slugs-canoniques-urls-canoniques-tombstone: done
+  6-2-bouton-partager-1-tap-presse-papier-native-share: done
+  6-3-capture-contexte-pre-login-pour-visiteur-public: done
+  6-4-1-tap-sur-commentaire-alerte-bon-plan-sans: done
+  6-5-formulaire-suggestion-d-evolution-produit-lue-par-co-mods-uniquement: done
   epic-6-retrospective: optional
 
   # Epic 7: Notifications, hors-ligne, langues & accessibilité avancée

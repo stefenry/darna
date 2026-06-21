@@ -163,4 +163,26 @@ describe('resolveRedirect', () => {
     });
     expect(result).toBe('/fr/admission');
   });
+
+  it('Story 6.3 — honors a canonical entity nextParam (deep link post-login)', async () => {
+    const supabase = makeSupabase('accepted');
+    const result = await resolveRedirect({
+      supabase,
+      user,
+      locale: 'fr',
+      nextParam: '/artisan/hassan-plombier',
+    });
+    expect(result).toBe('/artisan/hassan-plombier');
+  });
+
+  it('Story 6.3 — rejects a non-canonical entity path (open-redirect guard)', async () => {
+    const supabase = makeSupabase('accepted');
+    const result = await resolveRedirect({
+      supabase,
+      user,
+      locale: 'fr',
+      nextParam: '/artisan/hassan?x=1',
+    });
+    expect(result).toBe('/fr/community/');
+  });
 });

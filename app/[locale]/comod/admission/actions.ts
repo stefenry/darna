@@ -9,6 +9,7 @@ import {
 } from '@/lib/validation/admission-decision';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { isSafeActionLink } from '@/lib/auth/safe-action-link';
+import { isCanonicalEntityPath } from '@/lib/share/safe-next';
 import { log } from '@/lib/logger';
 import { env } from '@/lib/env';
 
@@ -226,14 +227,34 @@ async function sendWelcome(requesterUserId: string, villa: number, actorId: stri
     });
   }
 
-  // Magic-link de bienvenue : sans `next` → resolveRedirect lit state='accepted'
-  // → /community/ (story 1.6).
+  // Magic-link de bienvenue. Story 6.3 — si la demande portait un `landing_path`
+  // (visiteur venu d'une URL canonique d'entité), on le restitue en `next` : le
+  // résident fraîchement accepté atterrit directement sur l'entité (FR39). Sans
+  // landing_path → resolveRedirect lit state='accepted' → /community/ (story 1.6).
+  let landingPath: string | null = null;
+  try {
+    const { data: req } = await admin
+      .from('admission_requests')
+      .select('landing_path')
+      .eq('user_id', requesterUserId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    landingPath =
+      req?.landing_path && isCanonicalEntityPath(req.landing_path) ? req.landing_path : null;
+  } catch {
+    landingPath = null;
+  }
+  const confirmUrl = landingPath
+    ? `${baseUrl()}/auth/confirm?next=${encodeURIComponent(landingPath)}`
+    : `${baseUrl()}/auth/confirm`;
+
   let actionLink: string | null = null;
   try {
     const { data, error } = await admin.auth.admin.generateLink({
       type: 'magiclink',
       email,
-      options: { redirectTo: `${baseUrl()}/auth/confirm` },
+      options: { redirectTo: confirmUrl },
     });
     if (!error) {
       actionLink = isSafeActionLink(data?.properties?.action_link)

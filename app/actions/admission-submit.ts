@@ -14,6 +14,7 @@ import { isSafeActionLink } from '@/lib/auth/safe-action-link';
 import { checkLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
 import { env } from '@/lib/env';
+import { isCanonicalEntityPath } from '@/lib/share/safe-next';
 
 // Story 1.7 — Server Action publique (visiteur anonyme).
 // Flux : Zod validate → admin.createUser (idempotent via fallback) →
@@ -96,6 +97,12 @@ export async function submitAdmissionRequest(
   }
 
   const { villa, tranche, first_name, email } = parsed.data;
+
+  // Story 6.3 — contexte pré-login : chemin canonique d'entité à restituer après
+  // acceptation (validé ici, re-CHECK en DB). Null si absent/non canonique.
+  const nextRaw = formData.get('next');
+  const landingPath =
+    typeof nextRaw === 'string' && isCanonicalEntityPath(nextRaw) ? nextRaw : null;
 
   // AR31 — rate-limit IP (après validation : on ne pénalise pas une saisie
   // invalide, mais on protège le chemin coûteux generateLink + e-mails).
@@ -232,6 +239,7 @@ export async function submitAdmissionRequest(
       tranche,
       first_name,
       contact_channel: 'email',
+      landing_path: landingPath,
     });
 
     if (insert.error) {

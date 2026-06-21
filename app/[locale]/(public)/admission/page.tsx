@@ -8,10 +8,12 @@ import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PageContainer } from '@/components/layout/page-container';
 import { routing } from '@/lib/i18n/routing';
+import { isCanonicalEntityPath } from '@/lib/share/safe-next';
 import { AdmissionForm } from './admission-form';
 
 type Props = {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ next?: string | string[] }>;
 };
 
 function assertLocale(locale: string) {
@@ -27,12 +29,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: t('pageTitle') };
 }
 
-export default async function AdmissionPage({ params }: Props) {
+export default async function AdmissionPage({ params, searchParams }: Props) {
   const { locale } = await params;
   assertLocale(locale);
   setRequestLocale(locale);
 
   const t = await getTranslations('admission.form');
+
+  // Story 6.3 — contexte pré-login : un visiteur arrivant d'une URL canonique
+  // d'entité (`?next=/artisan/<slug>`) sera ramené à cette entité après
+  // acceptation. On ne retient que les chemins canoniques (anti open-redirect).
+  const { next } = await searchParams;
+  const nextRaw = Array.isArray(next) ? next[0] : next;
+  const landingPath = nextRaw && isCanonicalEntityPath(nextRaw) ? nextRaw : null;
 
   return (
     <PageContainer className="py-10" as="main">
@@ -44,7 +53,7 @@ export default async function AdmissionPage({ params }: Props) {
           <p className="text-base text-neutral-700">{t('intro')}</p>
         </header>
 
-        <AdmissionForm locale={locale} cguHref={`/${locale}/legal/cgu`} />
+        <AdmissionForm locale={locale} cguHref={`/${locale}/legal/cgu`} landingPath={landingPath} />
 
         <p className="text-sm text-neutral-500">
           {t('alreadyAccessHint')}{' '}

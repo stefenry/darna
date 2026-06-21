@@ -1,6 +1,7 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js';
 import type { routing } from '@/lib/i18n/routing';
 import { log } from '@/lib/logger';
+import { isCanonicalEntityPath } from '@/lib/share/safe-next';
 
 type Locale = (typeof routing.locales)[number];
 
@@ -17,7 +18,10 @@ export async function resolveRedirect({
   locale,
   nextParam,
 }: Args): Promise<string> {
-  if (nextParam && isSafeAdmissionNext(nextParam, locale)) {
+  // `next` admis : soit une page d'admission (story 1.6), soit une ENTITÉ
+  // canonique (story 6.3 — deep link post-login : `/artisan/<slug>` etc., le
+  // route handler 307-redirige ensuite le résident vers la fiche communautaire).
+  if (nextParam && (isSafeAdmissionNext(nextParam, locale) || isCanonicalEntityPath(nextParam))) {
     return nextParam;
   }
 

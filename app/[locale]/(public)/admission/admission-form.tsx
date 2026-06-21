@@ -14,6 +14,8 @@ import {
 type Props = {
   locale: string;
   cguHref: string;
+  /** Story 6.3 — chemin canonique d'entité à restituer après acceptation. */
+  landingPath?: string | null;
 };
 
 const INITIAL_STATE: SubmitState = { ok: false };
@@ -34,7 +36,7 @@ function errorMessage(
   return t(code);
 }
 
-export function AdmissionForm({ locale, cguHref }: Props) {
+export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
   const t = useTranslations('admission.form');
   const tErrors = useTranslations('errors.admission');
   const tRate = useTranslations('errors.rate_limit');
@@ -71,6 +73,7 @@ export function AdmissionForm({ locale, cguHref }: Props) {
 
   return (
     <form action={formAction} noValidate className="flex flex-col gap-5" aria-busy={isPending}>
+      {landingPath && <input type="hidden" name="next" value={landingPath} />}
       {duplicate && (
         <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
           {tErrors('duplicate_pending')}

@@ -44,6 +44,7 @@ export type Database = {
           email_verified_at: string | null;
           first_name: string;
           id: string;
+          landing_path: string | null;
           residence_id: string;
           state: Database['public']['Enums']['admission_state'];
           tranche: string | null;
@@ -63,6 +64,7 @@ export type Database = {
           email_verified_at?: string | null;
           first_name: string;
           id?: string;
+          landing_path?: string | null;
           residence_id: string;
           state?: Database['public']['Enums']['admission_state'];
           tranche?: string | null;
@@ -82,6 +84,7 @@ export type Database = {
           email_verified_at?: string | null;
           first_name?: string;
           id?: string;
+          landing_path?: string | null;
           residence_id?: string;
           state?: Database['public']['Enums']['admission_state'];
           tranche?: string | null;

@@ -157,7 +157,15 @@ describe('submitAdmissionRequest Server Action', () => {
     expect(insertMock).toHaveBeenCalledOnce();
     const insertArg = insertMock.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(Object.keys(insertArg).sort()).toEqual(
-      ['user_id', 'residence_id', 'villa', 'tranche', 'first_name', 'contact_channel'].sort(),
+      [
+        'user_id',
+        'residence_id',
+        'villa',
+        'tranche',
+        'first_name',
+        'contact_channel',
+        'landing_path',
+      ].sort(),
     );
     expect(insertArg.user_id).toBe('user-uuid-1');
     expect(insertArg.residence_id).toBe('00000000-0000-0000-0000-000000000001');
@@ -165,6 +173,8 @@ describe('submitAdmissionRequest Server Action', () => {
     expect(insertArg.tranche).toBe('C');
     expect(insertArg.first_name).toBe('Salma');
     expect(insertArg.contact_channel).toBe('email');
+    // Story 6.3 — pas de `?next=` dans ce test → landing_path null (pas d'entité).
+    expect(insertArg.landing_path).toBeNull();
 
     // Au moins 1 magic-link + 1+ notify co-mod
     const sendCalls = sendTransactionalEmailMock.mock.calls.map(
