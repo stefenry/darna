@@ -3,9 +3,13 @@
 // Étendu 2026-06-17 (review P10) : variantes hasInvoice, jauge NA, CTA tel:
 // invalide, date invalide.
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
+
+vi.mock('@/app/actions/toggle-reaction', () => ({
+  toggleReaction: vi.fn(() => Promise.resolve({ ok: true, reacted: true, count: 1 })),
+}));
 import type { ReactNode } from 'react';
 import frMessages from '@/messages/fr.json';
 import { ArtisanHeader } from '@/app/[locale]/community/artisan/[slug]/_components/artisan-header';
@@ -156,7 +160,7 @@ describe('CommentsList', () => {
   };
 
   it('affiche nom si named, pseudonyme stable (FR16) sinon, « Voisin supprimé » si anonymisé', () => {
-    wrap(<CommentsList locale="fr" comments={[NAMED, ANON, DELETED]} />);
+    wrap(<CommentsList locale="fr" comments={[NAMED, ANON, DELETED]} reactions={new Map()} />);
     expect(screen.getByText('Yassine')).toBeDefined();
     expect(screen.getByText('Voisin anonyme #A3F2')).toBeDefined();
     expect(screen.getByText('Voisin supprimé')).toBeDefined();
@@ -165,13 +169,15 @@ describe('CommentsList', () => {
   });
 
   it('état vide', () => {
-    wrap(<CommentsList locale="fr" comments={[]} />);
+    wrap(<CommentsList locale="fr" comments={[]} reactions={new Map()} />);
     expect(screen.getByText('Aucun avis pour l’instant.')).toBeDefined();
   });
 
   it('createdAt invalide → pas de bloc <time>', () => {
     const BROKEN: ArtisanComment = { ...ANON, id: 'c3', createdAt: 'pas-une-date' };
-    const { container } = wrap(<CommentsList locale="fr" comments={[BROKEN]} />);
+    const { container } = wrap(
+      <CommentsList locale="fr" comments={[BROKEN]} reactions={new Map()} />,
+    );
     expect(container.querySelector('time')).toBeNull();
   });
 });

@@ -9,6 +9,8 @@ import { timeRemaining } from '@/lib/content/ephemeral';
 import { canonicalMetadata } from '@/lib/share/metadata';
 import { canonicalUrl } from '@/lib/share/canonical';
 import { ShareButton } from '@/components/content/share-button';
+import { ReactionButton } from '@/components/content/reaction-button';
+import { fetchReactionState } from '../../_data/reactions';
 import { fetchAlertBySlug } from '../data';
 import { RetireOwnButton } from '../_components/retire-own-button';
 import { ReportButton } from '@/components/content/report-button';
@@ -58,6 +60,7 @@ export default async function AlertDetailPage({ params }: Props) {
   if (res.kind === 'not-found') notFound();
   const { entry } = res;
   const t = await getTranslations('community.alertes');
+  const reaction = await fetchReactionState('alert', entry.id);
 
   return (
     <article className="flex flex-col gap-5">
@@ -91,12 +94,20 @@ export default async function AlertDetailPage({ params }: Props) {
 
       <p className="whitespace-pre-wrap text-base leading-relaxed text-neutral-800">{entry.body}</p>
 
-      <ShareButton
-        kind="alert"
-        id={entry.id}
-        url={canonicalUrl('alert', entry.slug)}
-        title={entry.title}
-      />
+      <div className="flex flex-wrap items-center gap-2">
+        <ReactionButton
+          targetType="alert"
+          targetId={entry.id}
+          initialCount={reaction.count}
+          initialReacted={reaction.reacted}
+        />
+        <ShareButton
+          kind="alert"
+          id={entry.id}
+          url={canonicalUrl('alert', entry.slug)}
+          title={entry.title}
+        />
+      </div>
 
       {entry.isOwn ? (
         <div className="border-t border-neutral-200 pt-4">

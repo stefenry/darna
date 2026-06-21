@@ -1860,6 +1860,61 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS contenu éphémère (Epic 4)', () => 
       .single();
     expect(after?.share_count).toBe(before?.share_count ?? 0);
   });
+
+  it('(o) 6.4 réaction 👍 : le résident insère la sienne, vue agrégée = 1', async () => {
+    const { error } = await aliceClient
+      .from('reactions')
+      .insert({ target_type: 'alert', target_id: activeAlertId });
+    expect(error).toBeNull();
+    // L'auteur voit sa propre réaction (select_own).
+    const { data: own } = await aliceClient
+      .from('reactions')
+      .select('id, user_id')
+      .eq('target_type', 'alert')
+      .eq('target_id', activeAlertId);
+    expect((own ?? []).length).toBe(1);
+    expect(own?.[0]?.user_id).toBe(aliceId);
+    // Compte agrégé public (sans révéler qui).
+    const { data: c } = await aliceClient
+      .from('reaction_counts')
+      .select('count')
+      .eq('target_type', 'alert')
+      .eq('target_id', activeAlertId)
+      .maybeSingle();
+    expect(c?.count).toBe(1);
+  });
+
+  it('(p) 6.4 privacy : un autre résident NE voit PAS la ligne d’autrui, mais voit le compte', async () => {
+    const { data: rows } = await doraClient
+      .from('reactions')
+      .select('id')
+      .eq('target_type', 'alert')
+      .eq('target_id', activeAlertId);
+    expect((rows ?? []).length).toBe(0); // select_own → aucune ligne d'alice.
+    const { data: c } = await doraClient
+      .from('reaction_counts')
+      .select('count')
+      .eq('target_type', 'alert')
+      .eq('target_id', activeAlertId)
+      .maybeSingle();
+    expect(c?.count).toBe(1); // mais le compte agrégé est visible.
+  });
+
+  it('(q) 6.4 toggle off : le résident retire sa réaction → compte 0', async () => {
+    const { error } = await aliceClient
+      .from('reactions')
+      .delete()
+      .eq('target_type', 'alert')
+      .eq('target_id', activeAlertId);
+    expect(error).toBeNull();
+    const { data: c } = await aliceClient
+      .from('reaction_counts')
+      .select('count')
+      .eq('target_type', 'alert')
+      .eq('target_id', activeAlertId)
+      .maybeSingle();
+    expect(c ?? null).toBeNull(); // plus aucune ligne agrégée.
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

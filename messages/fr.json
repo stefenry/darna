@@ -971,5 +971,8 @@
       "share": "Partager",
       "copied": "Lien copié"
     }
+  },
+  "reactions": {
+    "like": "J’aime"
   }
 }

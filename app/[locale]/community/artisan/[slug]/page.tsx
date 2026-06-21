@@ -11,6 +11,7 @@ import type { Locale } from '@/lib/i18n/config';
 import { canonicalMetadata } from '@/lib/share/metadata';
 import { canonicalUrl } from '@/lib/share/canonical';
 import { ShareButton } from '@/components/content/share-button';
+import { fetchReactionStates } from '../../_data/reactions';
 import {
   fetchArtisanBySlug,
   fetchArtisanComments,
@@ -61,6 +62,10 @@ export default async function ArtisanPage({ params }: Props) {
     fetchArtisanResponses(artisan.id),
     getTranslations({ locale, namespace: 'community.artisan.comments' }),
   ]);
+  const commentReactions = await fetchReactionStates(
+    'rating',
+    comments.map((c) => c.id),
+  );
 
   return (
     <article className="flex flex-col gap-6 pb-32">
@@ -77,7 +82,7 @@ export default async function ArtisanPage({ params }: Props) {
           {myRating ? tc('rateUpdate') : tc('rate')}
         </Link>
       )}
-      <CommentsList locale={locale} comments={comments} />
+      <CommentsList locale={locale} comments={comments} reactions={commentReactions} />
       <ArtisanResponses responses={responses} artisanName={artisan.displayName} locale={locale} />
       <ShareButton
         kind="artisan"

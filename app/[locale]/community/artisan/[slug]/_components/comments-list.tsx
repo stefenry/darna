@@ -5,6 +5,8 @@
 import { useTranslations } from 'next-intl';
 import type { ArtisanComment } from '../data';
 import { ReportButton } from '@/components/content/report-button';
+import { ReactionButton } from '@/components/content/reaction-button';
+import type { ReactionState } from '../../../_data/reactions';
 
 // FR16 — nommé → display_name ; pseudonyme → « Voisin anonyme #XXXX » stable ;
 // contributeur anonymisé (purge RGPD, suffixe null) → « Voisin supprimé ».
@@ -23,7 +25,15 @@ function formatDate(s: string, locale: string): string {
   return d.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-export function CommentsList({ locale, comments }: { locale: string; comments: ArtisanComment[] }) {
+export function CommentsList({
+  locale,
+  comments,
+  reactions,
+}: {
+  locale: string;
+  comments: ArtisanComment[];
+  reactions: Map<string, ReactionState>;
+}) {
   const t = useTranslations('community.artisan.comments');
   const tAxes = useTranslations('community.annuaire.axes');
 
@@ -64,7 +74,15 @@ export function CommentsList({ locale, comments }: { locale: string; comments: A
                   </div>
                 )}
                 <p className="text-base text-neutral-700">{comment.commentText}</p>
-                <ReportButton targetType="rating" targetId={comment.id} />
+                <div className="flex items-center justify-between gap-2">
+                  <ReactionButton
+                    targetType="rating"
+                    targetId={comment.id}
+                    initialCount={reactions.get(comment.id)?.count ?? 0}
+                    initialReacted={reactions.get(comment.id)?.reacted ?? false}
+                  />
+                  <ReportButton targetType="rating" targetId={comment.id} />
+                </div>
               </li>
             );
           })}

@@ -980,6 +980,48 @@ export type Database = {
           },
         ];
       };
+      reactions: {
+        Row: {
+          created_at: string;
+          id: string;
+          residence_id: string;
+          target_id: string;
+          target_type: Database['public']['Enums']['reaction_target_type'];
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          residence_id?: string;
+          target_id: string;
+          target_type: Database['public']['Enums']['reaction_target_type'];
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          residence_id?: string;
+          target_id?: string;
+          target_type?: Database['public']['Enums']['reaction_target_type'];
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'reactions_residence_id_fkey';
+            columns: ['residence_id'];
+            isOneToOne: false;
+            referencedRelation: 'residences';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reactions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       reports: {
         Row: {
           created_at: string;
@@ -1374,6 +1416,14 @@ export type Database = {
           },
         ];
       };
+      reaction_counts: {
+        Row: {
+          count: number | null;
+          target_id: string | null;
+          target_type: Database['public']['Enums']['reaction_target_type'] | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       accept_admission: {
@@ -1562,6 +1612,7 @@ export type Database = {
         | 'content_kept'
         | 'escalation_triggered';
       rating_visibility: 'pseudonym' | 'named';
+      reaction_target_type: 'rating' | 'alert' | 'tip';
       report_reason:
         | 'diffamation'
         | 'info_erronee'
@@ -1774,6 +1825,7 @@ export const Constants = {
         'escalation_triggered',
       ],
       rating_visibility: ['pseudonym', 'named'],
+      reaction_target_type: ['rating', 'alert', 'tip'],
       report_reason: ['diffamation', 'info_erronee', 'harcelement', 'spam', 'hors_charte', 'autre'],
       report_state: [
         'open',
