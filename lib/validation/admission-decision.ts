@@ -35,5 +35,6 @@ export const COMOD_ERROR_KEYS = [
   'errors.comod.already_decided',
   'errors.comod.wrong_residence',
   'errors.comod.decision_failed',
+  'errors.comod.self_validation',
 ] as const;
 export type ComodErrorKey = (typeof COMOD_ERROR_KEYS)[number];

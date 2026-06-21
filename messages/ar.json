@@ -47,6 +47,7 @@
       "already_decided": "",
       "wrong_residence": "",
       "decision_failed": "",
+      "self_validation": "",
       "content": {
         "fr_required": "",
         "phone_invalid": "",

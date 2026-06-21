@@ -121,6 +121,7 @@
       "already_decided": "Un voisin a déjà traité cette demande.",
       "wrong_residence": "Cette demande ne relève pas de ta résidence.",
       "decision_failed": "La décision n'a pas pu être enregistrée. Réessaie.",
+      "self_validation": "Tu ne peux pas valider ta propre demande d'admission. Un autre co-mod doit s'en occuper.",
       "content": {
         "fr_required": "Le champ français est requis.",
         "phone_invalid": "Numéro de téléphone invalide (format +212…).",

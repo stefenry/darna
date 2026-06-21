@@ -50,6 +50,8 @@ function mapRpcError(message: string | undefined): DecisionState {
       return { ok: false, code: 'forbidden', message_key: 'errors.comod.wrong_residence' };
     case 'not_co_mod':
       return { ok: false, code: 'forbidden', message_key: 'errors.comod.forbidden' };
+    case 'self_validation':
+      return { ok: false, code: 'forbidden', message_key: 'errors.comod.self_validation' };
     default:
       return { ok: false, code: 'decision_failed', message_key: 'errors.comod.decision_failed' };
   }
