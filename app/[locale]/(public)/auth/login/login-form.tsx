@@ -34,6 +34,20 @@ export function LoginForm() {
 
   return (
     <div className="flex flex-col gap-8">
+      {linkState.sent && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-[14px] bg-accent-50 p-4 text-sm text-accent-700 shadow-xs"
+        >
+          <p className="font-medium">{t('sentTitle')}</p>
+          <p className="mt-1 text-accent-700/80">
+            {linkState.emailMasked
+              ? t('sentBodyWithEmail', { email: linkState.emailMasked })
+              : t('sentBody')}
+          </p>
+        </div>
+      )}
       <form
         action={linkFormAction}
         noValidate

@@ -31,7 +31,21 @@
   "transparency": {
     "title": "Transparence",
     "stub": "Cette page présentera les compteurs publics et le journal de modération. En construction.",
+    "counters": {
+      "heading": "Darna en chiffres",
+      "subtitle": "Des compteurs agrégés, calculés côté serveur. Aucune donnée personnelle, aucun traceur.",
+      "labels": {
+        "villas_inscrites": "Villas inscrites",
+        "artisans_publies": "Artisans publiés",
+        "avis_postes": "Notes & avis postés",
+        "alertes_emises": "Alertes émises",
+        "bons_plans_publies": "Bons plans publiés",
+        "actions_moderation": "Actions de modération",
+        "partages_externes": "Partages externes"
+      }
+    },
     "journal": {
+      "heading": "Journal de modération",
       "intro": "Toutes les actions de modération de Darna, en clair et dans l’ordre chronologique. La gouvernance est horizontale et auditable par tous.",
       "empty": "Aucune action de modération pour ces critères.",
       "loadMore": "Charger plus",
@@ -255,7 +269,10 @@
       "codeLabel": "Code reçu par e-mail",
       "codeSubmit": "Me connecter avec ce code",
       "codeSubmitting": "Vérification…",
-      "codeErrorInvalid": "Code invalide ou expiré. Demande un nouveau code."
+      "codeErrorInvalid": "Code invalide ou expiré. Demande un nouveau code.",
+      "sentTitle": "Code envoyé ✓",
+      "sentBody": "Si l'adresse est connue, tu vas recevoir un e-mail dans quelques secondes avec un code à 6 chiffres et un lien.",
+      "sentBodyWithEmail": "Si {email} est connu, tu vas recevoir un e-mail avec un code à 6 chiffres et un lien."
     },
     "checkEmail": {
       "pageTitle": "Ouvre ta boîte mail 📬",

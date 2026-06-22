@@ -160,7 +160,10 @@
       "codeLabel": "",
       "codeSubmit": "",
       "codeSubmitting": "",
-      "codeErrorInvalid": ""
+      "codeErrorInvalid": "",
+      "sentTitle": "",
+      "sentBody": "",
+      "sentBodyWithEmail": ""
     },
     "checkEmail": {
       "pageTitle": "",

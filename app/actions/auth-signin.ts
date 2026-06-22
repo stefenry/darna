@@ -18,8 +18,26 @@ const EmailForm = z.object({
 
 export type SignInState = {
   ok: boolean;
+  // Flag « code envoyé » consommé par le LoginForm pour afficher un message
+  // de confirmation sans changer de page (UX bêta : pas de saut vers
+  // /auth/check-email, l'user saisit directement le code reçu dans le 2e form
+  // de la même page).
+  sent?: true;
+  // E-mail masqué partiellement à afficher dans la confirmation (anti-PII
+  // dans le DOM côté client : on ne renvoie pas l'e-mail en clair).
+  emailMasked?: string;
   fieldErrors?: { email?: string[] };
 };
+
+function maskEmail(email: string): string {
+  const at = email.indexOf('@');
+  if (at <= 0) return '***';
+  const local = email.slice(0, at);
+  const domain = email.slice(at);
+  const first = local.charAt(0);
+  const visible = local.length <= 2 ? first : first + local.charAt(1);
+  return `${visible}${'*'.repeat(Math.max(3, local.length - visible.length))}${domain}`;
+}
 
 const MAGIC_LINK_TTL_MINUTES = 15;
 // AR31 — 3 magic-links / 15 min / e-mail.
@@ -165,8 +183,11 @@ export async function signInMagicLink(
   // retenter via le bouton "Renvoyer" plus tard sans retaper son e-mail.
   await setLoginEmailCookie(parsed.data.email);
 
-  // Anti-enumeration: always redirect to check-email regardless of outcome.
-  redirect(`/${locale}/auth/check-email`);
+  // Anti-enumeration : on retourne TOUJOURS le même état (sent:true) quelle
+  // que soit l'issue réelle (envoi OK, rate-limit, ou erreur). L'UI affiche
+  // un message de confirmation sur la même page, l'user peut directement
+  // saisir le code reçu dans le 2e form.
+  return { ok: true, sent: true, emailMasked: maskEmail(parsed.data.email) };
 }
 
 /**
