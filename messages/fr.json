@@ -912,6 +912,20 @@
       "instructionsChrome": "Sur Chrome ou Edge, ouvrez le menu ⋮ puis « Installer Darna »."
     }
   },
+  "a11y": {
+    "skipToContent": "Aller au contenu principal"
+  },
+  "offline": {
+    "pageTitle": "Hors ligne",
+    "title": "Aucune connexion détectée",
+    "body": "Darna a besoin d'une connexion pour cette première visite.",
+    "hint": "Les pages déjà consultées (annuaire, guide, numéros utiles) restent accessibles hors ligne.",
+    "retry": "Réessayer"
+  },
+  "pwa": {
+    "updateAvailable": "Une nouvelle version de Darna est prête.",
+    "refresh": "Rafraîchir"
+  },
   "consent": {
     "title": "Votre fiche sur Darna",
     "intro": "{name}, un voisin de votre résidence vous recommande sur l’annuaire d’artisans Darna.",
