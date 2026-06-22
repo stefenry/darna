@@ -28,6 +28,7 @@ export type ArtisanDetail = {
   tags: { key: string; label: string }[];
   axes: AxisScore[];
   isOwner: boolean;
+  state: ArtisanState;
 };
 
 export type ArtisanComment = {
@@ -129,6 +130,7 @@ async function _fetchArtisanBySlug(locale: Locale, slug: string): Promise<FetchA
       tags,
       axes: toAxisScores(agg ?? null),
       isOwner: uid != null && row.created_by === uid,
+      state: row.state,
     },
   };
 }
