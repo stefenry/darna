@@ -342,6 +342,20 @@
     "nav": {
       "community": "Espace résident"
     },
+    "artisan": {
+      "pendingTitle": "Fiche en attente de consentement SMS",
+      "pendingHint": "Si tu as déjà contacté l'artisan offline et qu'il accepte d'être listé, tu peux publier sans attendre le SMS.",
+      "publishCta": "Publier sans consentement",
+      "publishing": "Publication…",
+      "confirm": "Confirmer la publication sans consentement SMS ?",
+      "errors": {
+        "forbidden": "Réservé aux co-modérateurs.",
+        "not_found": "Fiche introuvable.",
+        "not_pending": "Cette fiche n'est pas en attente de consentement.",
+        "wrong_residence": "Cette fiche n'appartient pas à ta résidence.",
+        "failed": "La publication a échoué. Réessaie."
+      }
+    },
     "home": {
       "title": "Espace co-modération",
       "intro": "Gère l'admission et le contenu durable de la résidence.",
@@ -351,7 +365,30 @@
         "numeros": "Numéros utiles",
         "pack": "Pack accueil",
         "moderation": "Modération",
-        "suggestions": "Suggestions"
+        "suggestions": "Suggestions",
+        "transparence": "Export audit"
+      }
+    },
+    "transparence": {
+      "pageTitle": "Export du journal de modération",
+      "intro": "Exporte le journal de modération sur une période donnée pour produire un rapport d'audit CNDP. Le fichier ne contient aucune donnée personnelle : pseudonymes et identifiants structurels uniquement.",
+      "fromLabel": "Depuis le",
+      "toLabel": "Jusqu'au",
+      "formatLabel": "Format",
+      "cta": "Exporter",
+      "generating": "Génération…",
+      "ready": "Ton export est prêt.",
+      "download": "Télécharger le fichier",
+      "urlExpiry": "Le lien est valable 24 heures.",
+      "downloaded": "Téléchargement lancé. Vérifie tes fichiers.",
+      "error": "L'export n'a pas pu être généré. Réessaie.",
+      "forbidden": "Cette action est réservée aux co-modérateurs.",
+      "columns": {
+        "created_at": "Date",
+        "event_key": "Type d'événement",
+        "actor_pseudonym": "Auteur (pseudonyme)",
+        "target_type": "Type de cible",
+        "motive_key": "Motif"
       }
     },
     "admin": {
@@ -833,6 +870,30 @@
     }
   },
   "profil": {
+    "export": {
+      "title": "Exporter mes données",
+      "intro": "Télécharge l'ensemble de tes données personnelles et de tes contributions dans un fichier JSON structuré. C'est ton droit à la portabilité (RGPD article 20).",
+      "itemsTitle": "Ce que contient l'export",
+      "items": {
+        "profile": "Ton profil (villa, tranche, langue, visibilité)",
+        "artisans": "Les fiches artisans que tu as créées",
+        "ratings": "Tes notes",
+        "comments": "Tes commentaires",
+        "alerts": "Tes alertes",
+        "tips": "Tes bons plans",
+        "suggestions": "Tes suggestions d'évolution",
+        "reactions": "Tes réactions",
+        "reports": "Tes signalements",
+        "notifPrefs": "Tes préférences de notifications"
+      },
+      "cta": "Exporter mes données",
+      "generating": "Génération en cours…",
+      "ready": "Ton export est prêt.",
+      "download": "Télécharger mon export (JSON)",
+      "urlExpiry": "Le lien est valable 24 heures. Un e-mail t'a aussi été envoyé.",
+      "downloaded": "Téléchargement lancé. Vérifie tes fichiers.",
+      "error": "L'export n'a pas pu être généré. Réessaie dans un instant."
+    },
     "pageTitle": "Mon profil",
     "villaLabel": "Villa",
     "trancheLabel": "Tranche",

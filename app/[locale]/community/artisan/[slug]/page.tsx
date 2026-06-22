@@ -24,7 +24,9 @@ import { CommentsList } from './_components/comments-list';
 import { ArtisanResponses } from './_components/artisan-responses';
 import { CallButton } from './_components/call-button';
 import { ContributorPanel } from './_components/contributor-panel';
+import { ComodPublishButton } from './_components/comod-publish-button';
 import { ReportButton } from '@/components/content/report-button';
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,9 +69,19 @@ export default async function ArtisanPage({ params }: Props) {
     comments.map((c) => c.id),
   );
 
+  // Bêta : pas de SMS provider opérationnel, le co_mod peut publier sans
+  // attendre le consent. On lit le rôle depuis app_metadata (JWT).
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+  const isComod = authData.user?.app_metadata?.role === 'co_mod';
+  const showComodPublish = isComod && artisan.state === 'pending_consent';
+
   return (
     <article className="flex flex-col gap-6 pb-32">
       <ArtisanHeader locale={locale} artisan={artisan} />
+      {showComodPublish && (
+        <ComodPublishButton artisanId={artisan.id} locale={locale as 'fr' | 'ar'} />
+      )}
       {artisan.isOwner && <ContributorPanel locale={locale} slug={slug} />}
       <RatingGaugesFull axes={artisan.axes} />
       {/* Review 2.6 P6 — hide CTA "Noter" si l'utilisateur est le créateur
