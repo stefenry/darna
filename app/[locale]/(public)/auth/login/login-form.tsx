@@ -87,7 +87,23 @@ export function LoginForm() {
         aria-busy={codePending}
       >
         <p className="text-sm text-neutral-700">{t('codeHelp')}</p>
-        <input type="hidden" name="email" value={email} />
+        <label className="flex flex-col gap-2 text-sm">
+          <span className="font-medium text-neutral-900">{t('emailLabel')}</span>
+          <input
+            type="email"
+            name="email"
+            required
+            autoComplete="email"
+            inputMode="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            placeholder={t('emailPlaceholder')}
+            defaultValue={email}
+            aria-invalid={codeEmailError ? true : undefined}
+            className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
+          />
+        </label>
         <label className="flex flex-col gap-2 text-sm">
           <span className="font-medium text-neutral-900">{t('codeLabel')}</span>
           <input
@@ -112,7 +128,7 @@ export function LoginForm() {
 
         <button
           type="submit"
-          disabled={codePending || email.length === 0}
+          disabled={codePending}
           className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
         >
           {codePending ? t('codeSubmitting') : t('codeSubmit')}
