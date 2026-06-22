@@ -74,9 +74,22 @@ export default async function AnnuairePage({ params, searchParams }: Props) {
 
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
-        <p className="text-base text-neutral-700">{t('intro')}</p>
+      <header className="flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
+              {t('title')}
+            </h1>
+            <p className="text-base text-neutral-700">{t('intro')}</p>
+          </div>
+          <a
+            href={`/${safeLocale}/community/annuaire/nouveau`}
+            className="inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-[14px] bg-accent-500 px-4 text-sm font-semibold text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600"
+          >
+            <span aria-hidden>+</span>
+            <span>{t('addCta')}</span>
+          </a>
+        </div>
       </header>
 
       {residenceId && <CacheStamp residenceId={residenceId} locale={safeLocale} />}

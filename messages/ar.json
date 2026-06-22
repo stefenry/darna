@@ -379,6 +379,7 @@
     "annuaire": {
       "title": "",
       "intro": "",
+      "addCta": "",
       "resultsCount": "",
       "resultsMore": "",
       "search": {
@@ -710,6 +711,20 @@
       "instructionsTitle": "",
       "instructionsChrome": ""
     }
+  },
+  "a11y": {
+    "skipToContent": "تخطّ إلى المحتوى الرئيسي"
+  },
+  "offline": {
+    "pageTitle": "غير متصل",
+    "title": "لا يوجد اتصال",
+    "body": "يحتاج دارنا إلى اتصال بالإنترنت لهذه الزيارة الأولى.",
+    "hint": "الصفحات التي سبق أن زرتها (الدليل، الإرشادات، الأرقام المفيدة) تبقى متاحة دون اتصال.",
+    "retry": "إعادة المحاولة"
+  },
+  "pwa": {
+    "updateAvailable": "نسخة جديدة من دارنا جاهزة.",
+    "refresh": "تحديث"
   },
   "consent": {
     "title": "بطاقتك على دارنا",

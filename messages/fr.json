@@ -560,6 +560,7 @@
     "annuaire": {
       "title": "Annuaire des artisans",
       "intro": "Trouvez un artisan recommandé par vos voisins.",
+      "addCta": "Ajouter",
       "resultsCount": "{count, plural, =0 {Aucun artisan} one {# artisan correspondant} other {# artisans correspondants}}",
       "resultsMore": "plus de résultats disponibles",
       "search": {
@@ -586,6 +587,7 @@
         "invoiceOnRequest": "Facture sur demande"
       },
       "filters": {
+        "toggleLabel": "Filtres",
         "competence": "Compétence",
         "price": "Prix",
         "invoice": "Facture émise",
