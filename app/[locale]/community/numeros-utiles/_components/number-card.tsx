@@ -21,7 +21,14 @@ export function NumberCard({ number }: { number: UsefulNumber }) {
     <div className="flex flex-col gap-2 rounded-[14px] bg-white p-4 shadow-xs">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-0.5">
-          <h3 className="text-base font-semibold text-neutral-900">{number.label}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-semibold text-neutral-900">{number.label}</h3>
+            {number.untranslated && (
+              <span className="shrink-0 rounded-sm bg-bg-soft px-2 py-0.5 text-xs font-medium text-neutral-500">
+                {t('notTranslatedBadge')}
+              </span>
+            )}
+          </div>
           <span dir="ltr" className="w-fit text-sm tabular-nums tracking-wide text-neutral-600">
             {formatPhone(number.phoneE164)}
           </span>

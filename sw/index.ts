@@ -3,7 +3,22 @@
 // La prod (`pnpm build && pnpm start`) marche normalement.
 import { defaultCache } from '@serwist/next/worker';
 import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from 'serwist';
-import { CacheFirst, ExpirationPlugin, NetworkOnly, Serwist, StaleWhileRevalidate } from 'serwist';
+import {
+  BackgroundSyncPlugin,
+  CacheFirst,
+  ExpirationPlugin,
+  NetworkFirst,
+  NetworkOnly,
+  Serwist,
+  StaleWhileRevalidate,
+} from 'serwist';
+import {
+  isAnnuaireDataPath,
+  isCommunityWritePath,
+  isDurableContentPath,
+  isEphemeralFeedPath,
+  isTokenSurfacePath,
+} from '../lib/offline/sw-matchers';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -30,10 +45,38 @@ const supportsNavigationPreload =
 // annuaire*` mais le cache est partitionné automatiquement par URL complète.
 // `maxEntries` élevé pour absorber les variations résidence/locale + futures.
 const annuaireCache: RuntimeCaching = {
-  matcher: ({ url, sameOrigin }) => sameOrigin && url.pathname === '/api/annuaire',
+  matcher: ({ url, sameOrigin }) => sameOrigin && isAnnuaireDataPath(url.pathname),
   handler: new CacheFirst({
     cacheName: 'annuaire-data',
     plugins: [new ExpirationPlugin({ maxAgeSeconds: 24 * 60 * 60, maxEntries: 32 })],
+  }),
+};
+
+// Story 7.3 — feeds éphémères (alertes, bons plans) en NetworkFirst : ils
+// changent vite (fraîcheur prioritaire), mais un fallback cache borné permet la
+// lecture hors-ligne du dernier état connu. networkTimeout court pour basculer
+// vite sur le cache en connexion dégradée.
+const ephemeralFeedCache: RuntimeCaching = {
+  matcher: ({ url, sameOrigin }) => sameOrigin && isEphemeralFeedPath(url.pathname),
+  handler: new NetworkFirst({
+    cacheName: 'ephemeral-feed',
+    networkTimeoutSeconds: 3,
+    plugins: [new ExpirationPlugin({ maxAgeSeconds: 60 * 60, maxEntries: 32 })],
+  }),
+};
+
+// Story 7.3 — écritures communautaires (Server Actions POST) tentées hors-ligne :
+// mises en file via la Background Sync API et rejouées à la reconnexion. Le
+// `matcher` cible les POST same-origin sous /[locale]/community/. La requête
+// échoue côté client (l'UI affiche « action enregistrée, sera envoyée à la
+// reconnexion » via la bannière offline), mais la mutation serveur est rejouée
+// dès le retour du réseau. `maxRetentionTime` borne la file à 24h.
+const communityWriteSync: RuntimeCaching = {
+  matcher: ({ url, request, sameOrigin }) =>
+    sameOrigin && request.method === 'POST' && isCommunityWritePath(url.pathname),
+  method: 'POST',
+  handler: new NetworkOnly({
+    plugins: [new BackgroundSyncPlugin('darna-community-writes', { maxRetentionTime: 24 * 60 })],
   }),
 };
 
@@ -57,8 +100,7 @@ const annuaireCache: RuntimeCaching = {
 // Trade-off accepté : un offline > 5 min revient en revalidation réseau, mais
 // l'AC5 (< 100 ms offline) reste satisfait sur le hit cached pendant la fenêtre.
 const durableContentCache: RuntimeCaching = {
-  matcher: ({ url, sameOrigin }) =>
-    sameOrigin && /\/community\/(guide|numeros-utiles)(\/|$|\?)/.test(url.pathname + url.search),
+  matcher: ({ url, sameOrigin }) => sameOrigin && isDurableContentPath(url.pathname + url.search),
   handler: new StaleWhileRevalidate({
     cacheName: 'durable-content',
     plugins: [new ExpirationPlugin({ maxAgeSeconds: 5 * 60, maxEntries: 64 })],
@@ -78,20 +120,40 @@ const durableContentCache: RuntimeCaching = {
 // `/respond/[token]`, `/artisan/contact`. Passe BEFORE defaultCache (NetworkFirst
 // HTML same-origin) qui sinon stockerait le HTML localement (leak token + nom).
 const tokenSurfaceBypass: RuntimeCaching = {
-  matcher: ({ url, sameOrigin }) =>
-    sameOrigin &&
-    (url.pathname.startsWith('/consent/') ||
-      url.pathname.startsWith('/respond/') ||
-      url.pathname === '/artisan/contact'),
+  matcher: ({ url, sameOrigin }) => sameOrigin && isTokenSurfacePath(url.pathname),
   handler: new NetworkOnly(),
 };
 
+// Story 7.3 — page de repli hors-ligne. Précachée via `additionalPrecacheEntries`
+// (next.config.ts) ; servie quand une navigation (document) échoue ET n'est pas
+// déjà en cache (ex. toute première visite sans réseau). MVP FR-only : un seul
+// shell FR couvre les deux locales.
+const OFFLINE_FALLBACK_URL = '/fr/offline';
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST ?? [],
+  // AC4 — activation gracieuse : le nouveau SW prend la main immédiatement
+  // (skipWaiting + clientsClaim) SANS forcer de hard reload ; un toast client
+  // (ServiceWorkerUpdater) propose un rafraîchissement doux.
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: supportsNavigationPreload,
-  runtimeCaching: [tokenSurfaceBypass, durableContentCache, annuaireCache, ...defaultCache],
+  runtimeCaching: [
+    tokenSurfaceBypass,
+    communityWriteSync,
+    durableContentCache,
+    ephemeralFeedCache,
+    annuaireCache,
+    ...defaultCache,
+  ],
+  fallbacks: {
+    entries: [
+      {
+        url: OFFLINE_FALLBACK_URL,
+        matcher: ({ request }) => request.destination === 'document',
+      },
+    ],
+  },
 });
 
 serwist.addEventListeners();

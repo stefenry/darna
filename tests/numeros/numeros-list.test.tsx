@@ -25,6 +25,7 @@ const NUMBER: UsefulNumber = {
   label: 'Poste de garde',
   phoneE164: '+212600000001',
   notes: '24/7',
+  untranslated: false,
 };
 
 describe('NumberCard', () => {
@@ -41,6 +42,16 @@ describe('NumberCard', () => {
   it('omet la note quand absente', () => {
     wrap(<NumberCard number={{ ...NUMBER, notes: null }} />);
     expect(screen.queryByText('24/7')).toBeNull();
+  });
+
+  it('affiche le badge « Non traduit » quand le label retombe sur le FR (Story 7.5)', () => {
+    wrap(<NumberCard number={{ ...NUMBER, untranslated: true }} />);
+    expect(screen.getByText('Non traduit')).toBeDefined();
+  });
+
+  it('masque le badge quand le contenu est traduit', () => {
+    wrap(<NumberCard number={NUMBER} />);
+    expect(screen.queryByText('Non traduit')).toBeNull();
   });
 });
 

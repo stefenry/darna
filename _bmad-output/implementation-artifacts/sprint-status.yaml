@@ -109,12 +109,12 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: Notifications, hors-ligne, langues & accessibilité avancée
-  epic-7: backlog
-  7-1-preferences-notifications-opt-in-3-categories: backlog
-  7-2-delivrance-notifications-e-mail-bilingues-avec-opt-in-respecte: backlog
+  epic-7: in-progress
+  7-1-preferences-notifications-opt-in-3-categories: done
+  7-2-delivrance-notifications-e-mail-bilingues-avec-opt-in-respecte: done
   7-3-service-worker-offline-lecture-sur-annuaire-guide-pack-numeros: backlog
-  7-4-bascule-langue-fr-ar-depuis-parametres-avec-memorisation: backlog
-  7-5-detection-accept-language-fallback-fr-fallback-contenu-manquant: backlog
+  7-4-bascule-langue-fr-ar-depuis-parametres-avec-memorisation: done
+  7-5-detection-accept-language-fallback-fr-fallback-contenu-manquant: done
   7-6-navigation-clavier-complete-prefers-reduced-motion-respecte: backlog
   epic-7-retrospective: optional
 

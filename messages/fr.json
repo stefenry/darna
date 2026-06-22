@@ -141,7 +141,8 @@
       "settings_failed": "Tes préférences n'ont pas pu être enregistrées. Réessaie.",
       "delete_failed": "La suppression n'a pas pu aboutir. Réessaie.",
       "display_name_required": "Choisis un prénom (1 caractère minimum).",
-      "display_name_too_long": "Prénom trop long (50 caractères maximum)."
+      "display_name_too_long": "Prénom trop long (50 caractères maximum).",
+      "notifications_failed": "Tes préférences de notification n'ont pas pu être enregistrées. Réessaie."
     },
     "cron": {
       "unauthorized": "Non autorisé.",
@@ -537,7 +538,8 @@
       "call": "Appeler {label}",
       "callAction": "Appeler",
       "unavailable": "Numéro indisponible",
-      "empty": "Aucun numéro pour le moment."
+      "empty": "Aucun numéro pour le moment.",
+      "notTranslatedBadge": "Non traduit"
     },
     "packAccueil": {
       "banner": {
@@ -835,6 +837,17 @@
       "displayNameHint": "Visible des autres voisins si tu actives l'affichage de ton identité ci-dessous.",
       "visibilityToggleLabel": "Afficher mon identité (au lieu d'un pseudonyme)",
       "languageLabel": "Langue",
+      "saved": "Préférences enregistrées."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "intro": "Choisis ce qui arrive dans ta boîte mail. On ne t'enverra jamais de pub.",
+      "alertsLabel": "Alertes urgentes (coupures, sécurité)",
+      "alertsDesc": "Les annonces importantes pour la résidence.",
+      "directoryLabel": "Nouvelles entrées dans l'annuaire",
+      "directoryDesc": "Un récap des artisans ajoutés ces 7 derniers jours.",
+      "activityLabel": "Activité sur tes contributions",
+      "activityDesc": "Réponses, commentaires et modération sur ce que tu publies.",
       "saved": "Préférences enregistrées."
     },
     "delete": {

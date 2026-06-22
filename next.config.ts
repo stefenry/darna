@@ -10,6 +10,10 @@ const withSerwist = withSerwistInit({
   swDest: 'public/sw.js',
   cacheOnNavigation: true,
   disable: process.env.NODE_ENV === 'development',
+  // Story 7.3 — précache la page de repli hors-ligne pour qu'elle soit servie
+  // même à la toute première visite sans réseau (référencée par `fallbacks`
+  // dans sw/index.ts). Bump le `revision` quand le contenu de la page change.
+  additionalPrecacheEntries: [{ url: '/fr/offline', revision: '7-3-offline-v1' }],
 });
 
 // AR30 / NFL10 — CSP stricte (story 1.10a). connect-src whitelist : Supabase

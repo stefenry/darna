@@ -2,7 +2,8 @@
 //
 // Lecture via client session uniquement : `useful_numbers_resident_select_residence`
 // (3.1) scope la résidence + exclut `deleted_at`. Jamais de createAdminClient.
-// Fallback FR (FR48) résolu ici — pas de badge sur la note (D5, complément court).
+// Fallback FR (FR48) résolu ici. Story 7.5 : flag `untranslated` (label AR vide)
+// → indicateur partagé sur la carte (la note reste sans badge, complément court).
 
 import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
@@ -18,6 +19,8 @@ export type UsefulNumber = {
   label: string;
   phoneE164: string;
   notes: string | null;
+  // Story 7.5 — en AR, le label retombe sur le FR faute de traduction → indicateur.
+  untranslated: boolean;
 };
 
 export type UsefulNumberGroup = {
@@ -61,6 +64,7 @@ async function _fetchUsefulNumbers(locale: Locale): Promise<UsefulNumberGroup[]>
       label,
       phoneE164: row.phone_e164,
       notes: notes?.trim() ? notes : null,
+      untranslated: isAr && !row.label_ar?.trim(),
     };
     const list = byCategory.get(row.category_key);
     if (list) list.push(number);

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { detectLocale } from '@/lib/i18n/detect-locale';
+import { applyLocaleFromProfile } from '@/lib/i18n/locale-cookie';
 import { resolveRedirect } from '@/lib/auth/redirect-by-state';
 import { markAdmissionEmailVerified } from '@/lib/auth/mark-admission-email-verified';
 import { isAccountDeleted } from '@/lib/auth/is-account-deleted';
@@ -114,10 +115,14 @@ export async function GET(request: NextRequest) {
   // (story 1.8) — pas pour rediriger ici.
   await markAdmissionEmailVerified({ userId: user.id });
 
+  // Story 7.4 — appareil/navigateur neuf : aligne le cookie NEXT_LOCALE sur la
+  // langue mémorisée (profiles.language) et redirige dans cette locale.
+  const effectiveLocale = await applyLocaleFromProfile(supabase, user.id, locale);
+
   const destination = await resolveRedirect({
     supabase,
     user,
-    locale,
+    locale: effectiveLocale,
     nextParam,
   });
   redirect(destination);

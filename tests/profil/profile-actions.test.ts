@@ -40,6 +40,13 @@ vi.mock('@/lib/logger', () => ({
   log: (entry: unknown) => logMock(entry),
 }));
 
+// Story 7.4 — updateProfileSettings pose le cookie NEXT_LOCALE (next/headers).
+// On stub le helper pour rester en env node sans contexte de requête.
+const setLocaleCookieMock = vi.fn();
+vi.mock('@/lib/i18n/locale-cookie', () => ({
+  setLocaleCookie: (locale: string) => setLocaleCookieMock(locale),
+}));
+
 import { updateProfileSettings, deleteAccount } from '@/app/[locale]/community/profil/actions';
 
 const USER = { id: 'user-uuid-1' };
@@ -50,19 +57,22 @@ describe('updateProfileSettings', () => {
     updateEqMock.mockReset();
     updateSpy.mockReset();
     logMock.mockReset();
+    setLocaleCookieMock.mockReset();
     updateEqMock.mockResolvedValue({ data: [{ user_id: USER.id }], error: null });
   });
   afterEach(() => vi.restoreAllMocks());
 
-  it('persists identity_mode + language via the session client (RLS self)', async () => {
+  it('persists identity_mode + language via the session client (RLS self) and sets the locale cookie', async () => {
     requireResidentMock.mockResolvedValue({ ok: true, user: USER });
-    const res = await updateProfileSettings({ identity_mode: 'identified', language: 'fr' });
+    const res = await updateProfileSettings({ identity_mode: 'identified', language: 'ar' });
     expect(res.ok).toBe(true);
     expect(updateSpy).toHaveBeenCalledOnce();
     const payload = updateSpy.mock.calls[0]?.[0] as Record<string, unknown>;
     expect(payload.identity_mode).toBe('identified');
-    expect(payload.language).toBe('fr');
+    expect(payload.language).toBe('ar');
     expect(updateEqMock).toHaveBeenCalledWith('user_id', USER.id);
+    // Story 7.4 — la langue choisie est persistée dans le cookie NEXT_LOCALE.
+    expect(setLocaleCookieMock).toHaveBeenCalledWith('ar');
   });
 
   it('returns forbidden without updating when not authenticated', async () => {

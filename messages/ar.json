@@ -67,7 +67,8 @@
       "settings_failed": "",
       "delete_failed": "",
       "display_name_required": "",
-      "display_name_too_long": ""
+      "display_name_too_long": "",
+      "notifications_failed": ""
     },
     "cron": {
       "unauthorized": "",
@@ -356,7 +357,8 @@
       "call": "",
       "callAction": "",
       "unavailable": "",
-      "empty": ""
+      "empty": "",
+      "notTranslatedBadge": "غير مترجم"
     },
     "packAccueil": {
       "banner": {
@@ -634,6 +636,17 @@
       "displayNameHint": "",
       "visibilityToggleLabel": "",
       "languageLabel": "",
+      "saved": ""
+    },
+    "notifications": {
+      "title": "",
+      "intro": "",
+      "alertsLabel": "",
+      "alertsDesc": "",
+      "directoryLabel": "",
+      "directoryDesc": "",
+      "activityLabel": "",
+      "activityDesc": "",
       "saved": ""
     },
     "delete": {
