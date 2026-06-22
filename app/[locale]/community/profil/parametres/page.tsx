@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { routing } from '@/lib/i18n/routing';
 import { SettingsForm } from '../_components/settings-form';
+import { NotificationPrefsForm } from '../_components/notification-prefs-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,17 +41,31 @@ export default async function ProfilSettingsPage({ params }: Props) {
   } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/admission`);
 
-  const [{ data: profile }, { data: userRow }] = await Promise.all([
+  const [{ data: profile }, { data: userRow }, { data: prefs }] = await Promise.all([
     supabase
       .from('profiles')
       .select('identity_mode, language')
       .eq('user_id', user.id)
       .maybeSingle(),
     supabase.from('users').select('display_name').eq('id', user.id).maybeSingle(),
+    supabase
+      .from('notifications_prefs')
+      .select(
+        'alerts_urgentes_enabled, nouvelles_entrees_annuaire_enabled, activite_contributions_enabled',
+      )
+      .eq('user_id', user.id)
+      .maybeSingle(),
   ]);
 
+  // Défauts FR40 si la row manque (provisioning trigger 1.3 normalement garant).
+  const initialPrefs = {
+    alerts_urgentes_enabled: prefs?.alerts_urgentes_enabled ?? true,
+    nouvelles_entrees_annuaire_enabled: prefs?.nouvelles_entrees_annuaire_enabled ?? false,
+    activite_contributions_enabled: prefs?.activite_contributions_enabled ?? true,
+  };
+
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-8">
       <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
         {t('pageTitle')}
       </h1>
@@ -59,6 +74,8 @@ export default async function ProfilSettingsPage({ params }: Props) {
         initialLanguage={profile?.language === 'ar' ? 'ar' : 'fr'}
         initialDisplayName={userRow?.display_name ?? ''}
       />
+
+      <NotificationPrefsForm initialPrefs={initialPrefs} />
 
       <Link
         href={`/${locale}/community/profil/parametres/suggestion`}

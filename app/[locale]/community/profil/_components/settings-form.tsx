@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
+import { usePathname, useRouter as useIntlRouter } from '@/lib/i18n/navigation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { updateProfileSettings } from '../actions';
 
@@ -18,6 +19,11 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
   const t = useTranslations('profil.settings');
   const tErr = useTranslations('errors.profil');
   const router = useRouter();
+  // Story 7.4 — navigation locale-aware : changer de langue déplace vers le
+  // préfixe /fr ou /ar, ce qui re-rend le layout avec le bon dir/lang.
+  const intlRouter = useIntlRouter();
+  const pathname = usePathname();
+  const currentLocale = useLocale();
   const [identified, setIdentified] = useState(initialIdentityMode === 'identified');
   const [language, setLanguage] = useState<'fr' | 'ar'>(initialLanguage);
   const [displayName, setDisplayName] = useState(initialDisplayName);
@@ -26,7 +32,12 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  function save(nextIdentified: boolean, nextLanguage: 'fr' | 'ar', nextDisplayName?: string) {
+  function save(
+    nextIdentified: boolean,
+    nextLanguage: 'fr' | 'ar',
+    nextDisplayName?: string,
+    navigateLocale?: 'fr' | 'ar',
+  ) {
     if (isPending) return;
     setSaved(false);
     setError(null);
@@ -39,7 +50,12 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
       if (res.ok) {
         setSaved(true);
         if (nextDisplayName !== undefined) setSavedDisplayName(nextDisplayName);
-        router.refresh();
+        if (navigateLocale && navigateLocale !== currentLocale) {
+          // Bascule de langue → recharge la page dans la nouvelle locale (dir/lang).
+          intlRouter.replace(pathname, { locale: navigateLocale });
+        } else {
+          router.refresh();
+        }
       } else {
         const errKey = res.message_key.startsWith('errors.profil.')
           ? res.message_key.replace('errors.profil.', '')
@@ -103,7 +119,7 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
           onChange={(e) => {
             const next = e.target.value === 'ar' ? 'ar' : 'fr';
             setLanguage(next);
-            save(identified, next);
+            save(identified, next, undefined, next);
           }}
           className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
         >

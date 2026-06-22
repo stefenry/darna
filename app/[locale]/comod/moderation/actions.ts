@@ -5,13 +5,14 @@
 // report + audit moderation_log) est dans les RPC SECURITY DEFINER moderate_*
 // (migration 20260702090000) — la Server Action orchestre auth + Zod + e-mail.
 //
-// Notification auteur/reporter : on récupère l'e-mail via le client admin
-// (auth.admin.getUserById) puis on envoie en FR (MVP FR-only). Locale par profil
-// différée. Échec Brevo non bloquant (la décision est déjà committée par le RPC).
+// Notification auteur/reporter (catégorie `activite_contributions`) : routée via
+// `notifyResident` (Story 7.2) qui respecte l'opt-in du destinataire (FR40) et
+// résout sa locale par profil (fallback FR). Échec Brevo non bloquant (la
+// décision est déjà committée par le RPC). L'escalade juridique (contact externe,
+// non résident, non opt-in-able) garde l'envoi direct via send.ts.
 
 import { requireComod } from '@/lib/auth/require-comod';
 import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
 import {
   zRemoveContent,
   zKeepContent,
@@ -19,6 +20,7 @@ import {
   zResolveLegal,
 } from '@/lib/validation/moderation';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { notifyResident } from '@/lib/notifications/dispatch';
 import { TARGET_LABELS_FR, MOTIVE_LABELS_FR } from '@/lib/moderation/labels';
 import { resolveTarget } from '@/lib/moderation/target-content';
 import {
@@ -58,17 +60,6 @@ function mapRpcError(message: string): ModerationErrorCode {
   return 'action_failed';
 }
 
-async function emailFor(userId: string | null): Promise<string | null> {
-  if (!userId) return null;
-  try {
-    const admin = createAdminClient();
-    const { data } = await admin.auth.admin.getUserById(userId);
-    return data?.user?.email ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export async function removeReportedContent(input: {
   report_id: string;
   motive: string;
@@ -103,29 +94,22 @@ export async function removeReportedContent(input: {
 
   const row = Array.isArray(data) ? data[0] : null;
   const targetType = (row?.out_target_type ?? null) as ReportTargetType | null;
-  const authorEmail = await emailFor(row?.target_author_id ?? null);
 
-  if (authorEmail && targetType) {
-    try {
-      await sendTransactionalEmail({
+  // Notif auteur (activite_contributions) : opt-in + locale gérés par le dispatcher.
+  if (targetType) {
+    await notifyResident({
+      userId: row?.target_author_id ?? null,
+      category: 'activite_contributions',
+      build: ({ to, locale }) => ({
         template: 'content-removed-author',
-        to: authorEmail,
-        locale: 'fr',
+        to,
+        locale,
         vars: {
           content_label: TARGET_LABELS_FR[targetType],
           motive_label: MOTIVE_LABELS_FR[motive as RemovalMotive],
         },
-      });
-    } catch (cause) {
-      log({
-        level: 'error',
-        event: 'moderation.author_notify_threw',
-        user_id: guard.user.id,
-        residence_id: null,
-        request_id: null,
-        payload: { errorName: cause instanceof Error ? cause.name : 'unknown' },
-      });
-    }
+      }),
+    });
   }
 
   log({
@@ -170,35 +154,27 @@ export async function keepReportedContent(input: {
   }
 
   const row = Array.isArray(data) ? data[0] : null;
-  const reporterEmail = await emailFor(row?.out_reporter_id ?? null);
 
   // Pour le libellé, on récupère le target_type du report (lecture co_mod RLS).
-  let targetType: ReportTargetType | null = null;
   const { data: reportRow } = await supabase
     .from('reports')
     .select('target_type')
     .eq('id', report_id)
     .maybeSingle();
-  targetType = (reportRow?.target_type ?? null) as ReportTargetType | null;
+  const targetType = (reportRow?.target_type ?? null) as ReportTargetType | null;
 
-  if (reporterEmail && targetType) {
-    try {
-      await sendTransactionalEmail({
+  // Notif reporter (activite_contributions) : opt-in + locale gérés par le dispatcher.
+  if (targetType) {
+    await notifyResident({
+      userId: row?.out_reporter_id ?? null,
+      category: 'activite_contributions',
+      build: ({ to, locale }) => ({
         template: 'report-kept-reporter',
-        to: reporterEmail,
-        locale: 'fr',
+        to,
+        locale,
         vars: { content_label: TARGET_LABELS_FR[targetType] },
-      });
-    } catch (cause) {
-      log({
-        level: 'error',
-        event: 'moderation.reporter_notify_threw',
-        user_id: guard.user.id,
-        residence_id: null,
-        request_id: null,
-        payload: { errorName: cause instanceof Error ? cause.name : 'unknown' },
-      });
-    }
+      }),
+    });
   }
 
   log({
