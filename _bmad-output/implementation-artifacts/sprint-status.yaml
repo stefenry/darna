@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-23
-last_updated: 2026-06-21T18:00:00Z
+last_updated: 2026-06-22T21:00:00Z
 project: SmartResidence
 project_key: NOKEY
 tracking_system: file-system
@@ -109,13 +109,13 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: Notifications, hors-ligne, langues & accessibilité avancée
-  epic-7: in-progress
+  epic-7: done
   7-1-preferences-notifications-opt-in-3-categories: done
   7-2-delivrance-notifications-e-mail-bilingues-avec-opt-in-respecte: done
-  7-3-service-worker-offline-lecture-sur-annuaire-guide-pack-numeros: backlog
+  7-3-service-worker-offline-lecture-sur-annuaire-guide-pack-numeros: done
   7-4-bascule-langue-fr-ar-depuis-parametres-avec-memorisation: done
   7-5-detection-accept-language-fallback-fr-fallback-contenu-manquant: done
-  7-6-navigation-clavier-complete-prefers-reduced-motion-respecte: backlog
+  7-6-navigation-clavier-complete-prefers-reduced-motion-respecte: done
   epic-7-retrospective: optional
 
   # Epic 8: Conformité opérationnelle, exports RGPD & compteurs publics

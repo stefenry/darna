@@ -44,7 +44,7 @@ export default async function AdmissionPage({ params, searchParams }: Props) {
   const landingPath = nextRaw && isCanonicalEntityPath(nextRaw) ? nextRaw : null;
 
   return (
-    <PageContainer className="py-10" as="main">
+    <PageContainer id="main-content" className="py-10" as="main">
       <section className="flex flex-col gap-6">
         <header className="flex flex-col gap-2">
           <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">

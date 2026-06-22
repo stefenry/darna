@@ -48,7 +48,7 @@ export default async function ComodLayout({ children, params }: Props) {
   const t = await getTranslations('comod.nav');
 
   return (
-    <PageContainer className="py-6" as="main">
+    <PageContainer id="main-content" className="py-6" as="main">
       <div className="mb-6 flex items-center justify-end">
         <Link
           href={`/${locale}/community`}
