@@ -34,8 +34,27 @@ export async function resolveRedirect({
     return `/${locale}/comod`;
   }
 
-  // 2. Lookup admission state pour les résidents/demandeurs.
-  const { data, error } = await supabase
+  // 2. Lookup public.users.role — source de vérité (vs admission_requests qui
+  //    est un historique : un user accepté puis refusé sur une 2e demande
+  //    garde role=resident, mais admission_requests.latest = rejected).
+  const { data: userRow } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle<{ role: 'demandeur' | 'resident' | 'co_mod' }>();
+
+  // 3. Résident : shortcut /community/ même si nextParam=/admission (default
+  //    posé par auth-signin). On ne respecte que les entity canoniques (story 6.3).
+  if (userRow?.role === 'resident') {
+    if (nextParam && isCanonicalEntityPath(nextParam)) {
+      return nextParam;
+    }
+    return `/${locale}/community/`;
+  }
+
+  // 4. Demandeur ou sans row : lookup la dernière admission_request pour
+  //    différencier pending/rejected/no_request.
+  const { data: adm, error } = await supabase
     .from('admission_requests')
     .select('state')
     .eq('user_id', user.id)
@@ -55,24 +74,14 @@ export async function resolveRedirect({
     return `/${locale}/admission`;
   }
 
-  // 3. Résident accepted : shortcut /community/ même si nextParam=/admission
-  //    (default posé par auth-signin). On ne respecte que les entity canoniques
-  //    (deep-links explicites story 6.3).
-  if (data?.state === 'accepted') {
-    if (nextParam && isCanonicalEntityPath(nextParam)) {
-      return nextParam;
-    }
-    return `/${locale}/community/`;
-  }
-
-  // 4. Pour pending / rejected / no_request : respecter nextParam admis si fourni.
+  // 5. Respecter nextParam admis si fourni explicitement.
   if (nextParam && (isSafeAdmissionNext(nextParam, locale) || isCanonicalEntityPath(nextParam))) {
     return nextParam;
   }
 
-  if (!data) return `/${locale}/admission`;
-  if (data.state === 'pending') return `/${locale}/admission/pending`;
-  if (data.state === 'rejected') return `/${locale}/admission/refused`;
+  if (!adm) return `/${locale}/admission`;
+  if (adm.state === 'pending') return `/${locale}/admission/pending`;
+  if (adm.state === 'rejected') return `/${locale}/admission/refused`;
   return `/${locale}/admission`;
 }
 
