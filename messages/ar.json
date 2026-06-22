@@ -65,7 +65,9 @@
       "forbidden": "",
       "confirm_mismatch": "",
       "settings_failed": "",
-      "delete_failed": ""
+      "delete_failed": "",
+      "display_name_required": "",
+      "display_name_too_long": ""
     },
     "cron": {
       "unauthorized": "",
@@ -627,6 +629,9 @@
     "deleteCta": "",
     "settings": {
       "pageTitle": "",
+      "displayNameLabel": "",
+      "displayNamePlaceholder": "",
+      "displayNameHint": "",
       "visibilityToggleLabel": "",
       "languageLabel": "",
       "saved": ""

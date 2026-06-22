@@ -4,11 +4,11 @@
 // Note min. Application IMMÉDIATE (pas de bouton « Appliquer ») : chaque toggle
 // met à jour l'URL. Chip actif = fond plein accent-500 + badge ✓ ; re-tap = retrait.
 //
-// Review F8 — le badge ✓ (check inline) sur les chips actifs sert d'indicateur
-// "sélectionné" persistant : (1) couleur n'est plus seule porteuse (a11y), (2)
-// retap = retrait reste découvrable. Décompte d'artisans par filtre = phase 2
-// (perf 4 count queries).
-// Review F33 — MIN_RATINGS aligné avec le schema (qui n'accepte plus que 2/3/4).
+// 2026-06-22 — refactor sections + flex-wrap (feedback bêta Stephane) : les
+// chips étaient tous sur une seule ligne overflow-x-auto, donc les chips de
+// droite (notes, facture) restaient invisibles sur mobile à moins de scroller
+// horizontalement. Maintenant : 4 sections empilées verticalement, chacune en
+// flex-wrap, avec un label en tête. Plus de scroll horizontal silencieux.
 
 import { Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -29,40 +29,56 @@ export function FiltersBar({ tags }: { tags: Tag[] }) {
   const activeMin = searchParams.get('min_rating');
 
   return (
-    <div
-      role="group"
-      aria-label={t('competence')}
-      className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6"
-    >
-      {tags.map((tag) => (
+    <div className="flex flex-col gap-4">
+      <FilterSection label={t('competence')}>
+        {tags.map((tag) => (
+          <FilterChip
+            key={tag.key}
+            label={tag.label}
+            active={activeTag === tag.key}
+            onClick={() => toggleParam('tag', tag.key)}
+          />
+        ))}
+      </FilterSection>
+
+      <FilterSection label={t('price')}>
+        {PRICE_VALUES.map((price) => (
+          <FilterChip
+            key={price}
+            label={price}
+            active={activePrice === price}
+            onClick={() => toggleParam('price', price)}
+          />
+        ))}
+      </FilterSection>
+
+      <FilterSection label={t('invoice')}>
         <FilterChip
-          key={tag.key}
-          label={tag.label}
-          active={activeTag === tag.key}
-          onClick={() => toggleParam('tag', tag.key)}
+          label={t('invoice')}
+          active={activeFacture === 'oui'}
+          onClick={() => toggleParam('facture', 'oui')}
         />
-      ))}
-      {PRICE_VALUES.map((price) => (
-        <FilterChip
-          key={price}
-          label={price}
-          active={activePrice === price}
-          onClick={() => toggleParam('price', price)}
-        />
-      ))}
-      <FilterChip
-        label={t('invoice')}
-        active={activeFacture === 'oui'}
-        onClick={() => toggleParam('facture', 'oui')}
-      />
-      {MIN_RATING_VALUES.map((stars) => (
-        <FilterChip
-          key={stars}
-          label={t('minRatingValue', { stars })}
-          active={activeMin === String(stars)}
-          onClick={() => toggleParam('min_rating', String(stars))}
-        />
-      ))}
+      </FilterSection>
+
+      <FilterSection label={t('minRating')}>
+        {MIN_RATING_VALUES.map((stars) => (
+          <FilterChip
+            key={stars}
+            label={t('minRatingValue', { stars })}
+            active={activeMin === String(stars)}
+            onClick={() => toggleParam('min_rating', String(stars))}
+          />
+        ))}
+      </FilterSection>
+    </div>
+  );
+}
+
+function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div role="group" aria-label={label} className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">{label}</span>
+      <div className="flex flex-wrap gap-2">{children}</div>
     </div>
   );
 }
@@ -82,7 +98,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={cn(chipClassName({ active, interactive: true }), 'shrink-0 whitespace-nowrap')}
+      className={cn(chipClassName({ active, interactive: true }), 'whitespace-nowrap')}
     >
       {active && <Check className="-ms-0.5 size-3.5" aria-label={t('activeBadge')} role="img" />}
       {label}

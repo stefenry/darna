@@ -139,7 +139,9 @@
       "forbidden": "Tu dois être connecté pour faire ça.",
       "confirm_mismatch": "Tape exactement SUPPRIMER pour confirmer.",
       "settings_failed": "Tes préférences n'ont pas pu être enregistrées. Réessaie.",
-      "delete_failed": "La suppression n'a pas pu aboutir. Réessaie."
+      "delete_failed": "La suppression n'a pas pu aboutir. Réessaie.",
+      "display_name_required": "Choisis un prénom (1 caractère minimum).",
+      "display_name_too_long": "Prénom trop long (50 caractères maximum)."
     },
     "cron": {
       "unauthorized": "Non autorisé.",
@@ -828,6 +830,9 @@
     "deleteCta": "Supprimer mon compte",
     "settings": {
       "pageTitle": "Paramètres",
+      "displayNameLabel": "Prénom",
+      "displayNamePlaceholder": "Comment veux-tu être appelé(e) ?",
+      "displayNameHint": "Visible des autres voisins si tu actives l'affichage de ton identité ci-dessous.",
       "visibilityToggleLabel": "Afficher mon identité (au lieu d'un pseudonyme)",
       "languageLabel": "Langue",
       "saved": "Préférences enregistrées."
