@@ -22,7 +22,9 @@ export function magicLinkTemplate(vars: MagicLinkVars): RenderedTemplate {
     ? Math.max(1, Math.floor(vars.expiresInMinutes))
     : 15;
   const expiresInMinutes = ttl;
-  const code = typeof vars.code === 'string' && /^\d{6}$/.test(vars.code) ? vars.code : null;
+  // Supabase default OTP length = 6 chiffres mais configurable 6-10. On accepte
+  // tout token numérique 6-10 chiffres pour rester safe vs config Supabase.
+  const code = typeof vars.code === 'string' && /^\d{6,10}$/.test(vars.code) ? vars.code : null;
 
   const subject = 'Connecte-toi à Darna en un clic';
 

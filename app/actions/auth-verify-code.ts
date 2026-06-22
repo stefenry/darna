@@ -21,7 +21,8 @@ import { log } from '@/lib/logger';
 
 const Form = z.object({
   email: zEmail,
-  code: z.string().regex(/^\d{6}$/, 'codeErrorInvalid'),
+  // Supabase default = 6 chiffres mais configurable 6-10 ; on accepte la plage.
+  code: z.string().regex(/^\d{6,10}$/, 'codeErrorInvalid'),
 });
 
 export type VerifyCodeState = {

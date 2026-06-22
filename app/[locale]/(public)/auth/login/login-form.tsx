@@ -96,8 +96,8 @@ export function LoginForm() {
             required
             inputMode="numeric"
             autoComplete="one-time-code"
-            pattern="\d{6}"
-            maxLength={6}
+            pattern="\d{6,10}"
+            maxLength={10}
             placeholder="123456"
             aria-invalid={codeError || codeEmailError ? true : undefined}
             aria-describedby={codeError ? 'code-error' : undefined}
