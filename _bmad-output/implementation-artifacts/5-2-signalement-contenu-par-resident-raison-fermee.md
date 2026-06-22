@@ -1,6 +1,6 @@
 # Story 5.2: Signalement contenu par résident (raison fermée)
 
-Status: review
+Status: done
 
 > ⚠️ **2 points structurants** : (1) Le bouton « Signaler » est un **composant générique** `ReportButton` (targetType/targetId) monté sur les **6 surfaces** existantes (artisan, avis/rating, alerte, bon plan, entrée guide, numéro utile). (2) L'idempotence + le rate-limit reposent sur le schéma 5.1 (index UNIQUE partiel → 23505 ⇒ `duplicate`) et `checkLimit('report:{uid}', 3, 3600)` ; l'audit `report_opened` est écrit par le **trigger** 5.1 (pas par la Server Action).
 
@@ -88,6 +88,13 @@ so that **the co-mods can review and act within 24h.**
 - `app/[locale]/community/guide/[slug]/page.tsx` + `data.ts` (UPDATE)
 - `app/[locale]/community/numeros-utiles/_components/number-card.tsx` (UPDATE)
 
+### Review Findings
+
+Code review Epic 5 (revue des correctifs `8e34da3`, 2026-06-21) — AC-conforme (hiding self-report UI validé). Différé :
+
+- [x] [Review][Defer] Self-report non gardé côté serveur [`app/actions/report-submit.ts`] — bouton masqué côté UI, mais l'action ne rejette pas un signalement de sa propre cible (requête forgée). Bénin, pré-existant. Garde serveur `target.author != reporter` différée.
+
 ### Change Log
 
 - 2026-06-20 — Story 5.2 implémentée (signalement contenu résident, raison fermée, 6 surfaces).
+- 2026-06-21 — Code review : AC-conforme, 1 item mineur différé.

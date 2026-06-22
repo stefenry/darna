@@ -1,6 +1,6 @@
 # Story 5.4: Journal public sur `/transparence`
 
-Status: review
+Status: done
 
 > ⚠️ **2 points structurants** : (1) Le journal lit la vue **`moderation_log_public`** (5.1, lecture anon) — la redaction PII (display_name co_mod only, cibles `user_deleted` masquées) est garantie en base, pas dans l'UI. (2) On restreint en plus aux **actions de gouvernance** (`JOURNAL_ACTIONS`) : le cycle de vie du contenu (publication/expiration/retrait-auteur) n'est pas une décision de modération.
 

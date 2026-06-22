@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-05-23
-last_updated: 2026-06-21T12:00:00Z
+last_updated: 2026-06-21T18:00:00Z
 project: SmartResidence
 project_key: NOKEY
 tracking_system: file-system
@@ -91,12 +91,12 @@ development_status:
   epic-4-retrospective: optional
 
   # Epic 5: Modération réactive & Transparence radicale
-  epic-5: in-progress
-  5-1-schema-reports-extension-moderation-log-rls-transparence: review
-  5-2-signalement-contenu-par-resident-raison-fermee: review
-  5-3-interface-co-mod-queue-signalements-retrait-notification-auteur: review
-  5-4-journal-public-sur-transparence: review
-  5-5-workflow-escalade-juridique: review
+  epic-5: done
+  5-1-schema-reports-extension-moderation-log-rls-transparence: done
+  5-2-signalement-contenu-par-resident-raison-fermee: done
+  5-3-interface-co-mod-queue-signalements-retrait-notification-auteur: done
+  5-4-journal-public-sur-transparence: done
+  5-5-workflow-escalade-juridique: done
   epic-5-retrospective: optional
 
   # Epic 6: Partage WhatsApp, deep linking & engagement léger

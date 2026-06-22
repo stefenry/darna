@@ -1,6 +1,6 @@
 # Story 5.5: Workflow escalade juridique
 
-Status: review
+Status: done
 
 > ⚠️ **2 points structurants** : (1) Le dossier est stocké via **Supabase Storage** (URL signée 30j) et non R2 — R2 (AR29) est un scaffold env non provisionné au MVP ; fallback **inline** dans l'e-mail si le storage échoue. (2) Le dossier est **PII-safe par construction** (`dossier.ts`) : pseudonymes tronqués, snippet de contenu, données structurelles — jamais de nom/e-mail/téléphone.
 
@@ -81,6 +81,14 @@ so that **I can prepare a complete dossier and reach the pre-identified legal co
 - `app/[locale]/comod/moderation/_components/legal-resolution.tsx` (NEW)
 - `app/[locale]/comod/moderation/actions.ts`, `_components/moderation-actions.tsx`, `[id]/page.tsx`, `lib/validation/moderation.ts`, `lib/email/send.ts`, `messages/fr.json`, `lib/supabase/types.generated.ts`, `tests/rls.test.ts` (UPDATE)
 
+### Review Findings
+
+Code review Epic 5 (revue des correctifs `8e34da3`, 2026-06-21) — AC-conforme (échec e-mail surfacé + scrub PII tierce validés). Différé :
+
+- [x] [Review][Defer] Impasse en cas de double échec [`app/[locale]/comod/moderation/actions.ts`] — e-mail Brevo soft-fail ET upload dossier `null` → warning sans lien, escalade committée (`pending_legal`) sans recours UI. Faible probabilité. Action « régénérer/renvoyer » différée.
+- [x] [Review][Defer] Réglage du seuil de scrub PII [`lib/moderation/dossier.ts`] — tension under/over-redaction (numéro < 8 chiffres passe, `user@host` non masqué ; réf ≥ 8 chiffres masquée). Couche défense-en-profondeur. Affinage regex différé.
+
 ### Change Log
 
 - 2026-06-20 — Story 5.5 implémentée (workflow escalade juridique + dossier + résolution out-of-band).
+- 2026-06-21 — Code review : AC-conforme, 2 items mineurs différés.

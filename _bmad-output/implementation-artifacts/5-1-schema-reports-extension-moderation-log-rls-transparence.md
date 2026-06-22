@@ -1,6 +1,6 @@
 # Story 5.1: Schéma reports + extension moderation_log + RLS transparence
 
-Status: review
+Status: done
 
 > ⚠️ **3 points structurants** (détaillés en Dev Notes) : (1) **Mapping conceptuel** — l'AC parle de `event_key`/`motive_key`/`payload_json` ; le schéma existant (`moderation_log`, Epic 1) utilise `action` (enum), `reason_code`, `reason_text_anonymized`. On **étend l'existant** (ADD VALUE + nouvelle colonne `payload_json jsonb`), on ne renomme rien. (2) `report_opened` n'est **PAS** public (révélerait l'activité de signalement) → exclu de la vue `moderation_log_public` ; seul le co_mod travaille la table `reports`. (3) La transparence publique passe par une **vue SECURITY DEFINER `moderation_log_public`** qui whiteliste colonnes + actions et n'expose le `display_name` que des acteurs `co_mod` (qui acceptent l'identification par rôle).
 
@@ -86,6 +86,13 @@ Fondation Epic 5 : table `reports` (enums fermés `report_target_type`/`report_r
 - `lib/supabase/types.generated.ts` (regen)
 - `tests/rls.test.ts` (Epic 5 block)
 
+### Review Findings
+
+Code review Epic 5 (revue des correctifs `8e34da3`, 2026-06-21) — AC-conforme. Différé :
+
+- [x] [Review][Defer] Policy RLS orpheline après lockdown [`supabase/migrations/20260705090000_review_5_moderation_log_lockdown.sql`] — `moderation_log_consent_residence_select` survit (morte, grant SELECT révoqué → inoffensive). Nettoyage cosmétique différé.
+
 ### Change Log
 
 - 2026-06-20 — Story 5.1 implémentée (schéma reports + extension moderation_log + RLS transparence).
+- 2026-06-21 — Code review : AC-conforme, 1 item mineur différé.

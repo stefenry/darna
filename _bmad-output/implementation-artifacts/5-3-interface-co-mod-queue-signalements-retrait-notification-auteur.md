@@ -1,6 +1,6 @@
 # Story 5.3: Interface co-mod queue signalements + retrait + notification auteur
 
-Status: review
+Status: done
 
 > ⚠️ **3 points structurants** : (1) Le retrait soft-delete une cible **polymorphe** (6 tables) + transitionne le report + écrit l'audit, **atomiquement**, via 2 RPC SECURITY DEFINER (`moderate_remove_content` / `moderate_keep_content`) — re-check co_mod+résidence interne, garde anti-race `state='open'`. (2) Le contenu cible est résolu par `resolveTarget` (snippet queue / corps détail). (3) **Présence live différée** : la moitié « un autre co_mod consulte » de l'AC concurrence nécessite du Realtime (hors MVP) ; la partie substantielle (anti double-modération + résolution visible) est couverte par la garde `state='open'` du RPC + l'affichage de la résolution sur le détail.
 
