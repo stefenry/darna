@@ -840,7 +840,8 @@
       "displayNameHint": "Visible des autres voisins si tu actives l'affichage de ton identité ci-dessous.",
       "villaLabel": "Villa",
       "trancheLabel": "Tranche",
-      "visibilityToggleLabel": "Afficher mon identité (au lieu d'un pseudonyme)",
+      "visibilityToggleLabel": "Afficher mon identité",
+      "visibilityToggleDesc": "Sinon, un pseudonyme du type « Voisin·e #FR16 » est utilisé sur tes contributions.",
       "languageLabel": "Langue",
       "saved": "Préférences enregistrées."
     },
