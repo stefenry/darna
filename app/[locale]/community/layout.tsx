@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Settings, ShieldCheck } from 'lucide-react';
+import { Home, Settings, ShieldCheck } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PageContainer } from '@/components/layout/page-container';
 import { routing } from '@/lib/i18n/routing';
@@ -38,24 +38,33 @@ export default async function CommunityLayout({ children, params }: Props) {
   const isComod = guard.user.app_metadata?.role === 'co_mod';
 
   return (
-    <PageContainer className="py-6" as="main">
-      <div className="mb-6 flex items-center justify-end gap-2">
-        {isComod && (
-          <Link
-            href={`/${locale}/comod`}
-            aria-label={t('comod')}
-            className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
-          >
-            <ShieldCheck className="size-5" aria-hidden />
-          </Link>
-        )}
+    <PageContainer id="main-content" className="py-6" as="main">
+      <div className="mb-6 flex items-center justify-between gap-2">
         <Link
-          href={`/${locale}/community/profil`}
-          aria-label={t('settings')}
+          href={`/${locale}/community`}
+          aria-label={t('home')}
           className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
         >
-          <Settings className="size-5" aria-hidden />
+          <Home className="size-5" aria-hidden />
         </Link>
+        <div className="flex items-center gap-2">
+          {isComod && (
+            <Link
+              href={`/${locale}/comod`}
+              aria-label={t('comod')}
+              className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+            >
+              <ShieldCheck className="size-5" aria-hidden />
+            </Link>
+          )}
+          <Link
+            href={`/${locale}/community/profil`}
+            aria-label={t('settings')}
+            className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+          >
+            <Settings className="size-5" aria-hidden />
+          </Link>
+        </div>
       </div>
       {children}
     </PageContainer>

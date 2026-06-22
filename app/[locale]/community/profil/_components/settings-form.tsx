@@ -7,15 +7,31 @@ import { usePathname, useRouter as useIntlRouter } from '@/lib/i18n/navigation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { updateProfileSettings } from '../actions';
 
+type Tranche = 'A' | 'B' | 'C' | 'D' | 'E';
+
 type Props = {
   initialIdentityMode: 'pseudo' | 'identified';
   initialLanguage: 'fr' | 'ar';
   initialDisplayName: string;
+  initialVilla: number | null;
+  initialTranche: string | null;
 };
 
 const NAME_SAVE_DEBOUNCE_MS = 800;
+const VILLA_SAVE_DEBOUNCE_MS = 600;
+const TRANCHES: Tranche[] = ['A', 'B', 'C', 'D', 'E'];
 
-export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisplayName }: Props) {
+function asTranche(v: string | null): Tranche | '' {
+  return (TRANCHES as readonly string[]).includes(v ?? '') ? (v as Tranche) : '';
+}
+
+export function SettingsForm({
+  initialIdentityMode,
+  initialLanguage,
+  initialDisplayName,
+  initialVilla,
+  initialTranche,
+}: Props) {
   const t = useTranslations('profil.settings');
   const tErr = useTranslations('errors.profil');
   const router = useRouter();
@@ -28,6 +44,11 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
   const [language, setLanguage] = useState<'fr' | 'ar'>(initialLanguage);
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [savedDisplayName, setSavedDisplayName] = useState(initialDisplayName);
+  const [villa, setVilla] = useState<string>(initialVilla != null ? String(initialVilla) : '');
+  const [savedVilla, setSavedVilla] = useState<string>(
+    initialVilla != null ? String(initialVilla) : '',
+  );
+  const [tranche, setTranche] = useState<Tranche | ''>(asTranche(initialTranche));
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -37,6 +58,8 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
     nextLanguage: 'fr' | 'ar',
     nextDisplayName?: string,
     navigateLocale?: 'fr' | 'ar',
+    nextVilla?: number,
+    nextTranche?: Tranche,
   ) {
     if (isPending) return;
     setSaved(false);
@@ -46,10 +69,13 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
         identity_mode: nextIdentified ? 'identified' : 'pseudo',
         language: nextLanguage,
         ...(nextDisplayName !== undefined ? { display_name: nextDisplayName } : {}),
+        ...(nextVilla !== undefined ? { villa: nextVilla } : {}),
+        ...(nextTranche !== undefined ? { tranche: nextTranche } : {}),
       });
       if (res.ok) {
         setSaved(true);
         if (nextDisplayName !== undefined) setSavedDisplayName(nextDisplayName);
+        if (nextVilla !== undefined) setSavedVilla(String(nextVilla));
         if (navigateLocale && navigateLocale !== currentLocale) {
           // Bascule de langue → recharge la page dans la nouvelle locale (dir/lang).
           intlRouter.replace(pathname, { locale: navigateLocale });
@@ -77,6 +103,18 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [displayName]);
 
+  // Debounce auto-save de la villa.
+  useEffect(() => {
+    if (villa.trim() === savedVilla.trim()) return;
+    const n = Number(villa);
+    if (!Number.isInteger(n) || n < 1 || n > 150) return;
+    const timer = setTimeout(() => {
+      save(identified, language, undefined, undefined, n);
+    }, VILLA_SAVE_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [villa]);
+
   return (
     <div className="flex flex-col gap-6">
       <label className="flex flex-col gap-2 text-sm">
@@ -93,6 +131,49 @@ export function SettingsForm({ initialIdentityMode, initialLanguage, initialDisp
         />
         <span className="text-xs text-neutral-500">{t('displayNameHint')}</span>
       </label>
+
+      <div className="grid grid-cols-[1fr_auto] gap-3">
+        <label className="flex flex-col gap-2 text-sm">
+          <span className="font-medium text-neutral-900">{t('villaLabel')}</span>
+          <input
+            type="number"
+            name="villa"
+            min={1}
+            max={150}
+            inputMode="numeric"
+            value={villa}
+            disabled={isPending}
+            onChange={(e) => setVilla(e.target.value)}
+            placeholder="1–150"
+            className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
+          />
+        </label>
+        <label className="flex flex-col gap-2 text-sm">
+          <span className="font-medium text-neutral-900">{t('trancheLabel')}</span>
+          <select
+            name="tranche"
+            value={tranche}
+            disabled={isPending}
+            onChange={(e) => {
+              const next = e.target.value as Tranche;
+              if (TRANCHES.includes(next)) {
+                setTranche(next);
+                save(identified, language, undefined, undefined, undefined, next);
+              }
+            }}
+            className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
+          >
+            <option value="" disabled>
+              —
+            </option>
+            {TRANCHES.map((opt) => (
+              <option key={opt} value={opt}>
+                {opt}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       <div className="flex items-start gap-3">
         <Checkbox

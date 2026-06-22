@@ -44,7 +44,7 @@ export default async function ProfilSettingsPage({ params }: Props) {
   const [{ data: profile }, { data: userRow }, { data: prefs }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('identity_mode, language')
+      .select('identity_mode, language, villa, tranche')
       .eq('user_id', user.id)
       .maybeSingle(),
     supabase.from('users').select('display_name').eq('id', user.id).maybeSingle(),
@@ -73,6 +73,8 @@ export default async function ProfilSettingsPage({ params }: Props) {
         initialIdentityMode={profile?.identity_mode === 'identified' ? 'identified' : 'pseudo'}
         initialLanguage={profile?.language === 'ar' ? 'ar' : 'fr'}
         initialDisplayName={userRow?.display_name ?? ''}
+        initialVilla={profile?.villa ?? null}
+        initialTranche={profile?.tranche ?? null}
       />
 
       <NotificationPrefsForm initialPrefs={initialPrefs} />

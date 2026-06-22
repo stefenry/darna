@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { zVillaNumber } from './villa-number';
+import { zTranche } from './admission';
 
 // Story 1.9 — Zod pour les Server Actions profil (paramètres + suppression).
 // Miroir exact des CHECK DB profiles.identity_mode ('pseudo'|'identified') et
@@ -13,6 +15,8 @@ export const zProfileSettings = z.object({
     .min(1, 'errors.profil.display_name_required')
     .max(50, 'errors.profil.display_name_too_long')
     .optional(),
+  villa: zVillaNumber.optional(),
+  tranche: zTranche.optional(),
 });
 export type ProfileSettings = z.infer<typeof zProfileSettings>;
 

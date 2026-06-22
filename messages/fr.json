@@ -494,6 +494,7 @@
       }
     },
     "nav": {
+      "home": "Accueil",
       "settings": "Mon profil",
       "comod": "Espace co-mod"
     },
@@ -837,6 +838,8 @@
       "displayNameLabel": "Prénom",
       "displayNamePlaceholder": "Comment veux-tu être appelé(e) ?",
       "displayNameHint": "Visible des autres voisins si tu actives l'affichage de ton identité ci-dessous.",
+      "villaLabel": "Villa",
+      "trancheLabel": "Tranche",
       "visibilityToggleLabel": "Afficher mon identité (au lieu d'un pseudonyme)",
       "languageLabel": "Langue",
       "saved": "Préférences enregistrées."

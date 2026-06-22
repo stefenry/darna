@@ -25,6 +25,8 @@ export async function updateProfileSettings(input: {
   identity_mode: string;
   language: string;
   display_name?: string;
+  villa?: number;
+  tranche?: string;
 }): Promise<ProfilActionState> {
   const guard = await requireResident();
   if (!guard.ok) {
@@ -45,13 +47,23 @@ export async function updateProfileSettings(input: {
 
   const supabase = await createClient();
   const now = new Date().toISOString();
+  const profileUpdate: {
+    identity_mode: string;
+    language: string;
+    updated_at: string;
+    villa?: number;
+    tranche?: string;
+  } = {
+    identity_mode: parsed.data.identity_mode,
+    language: parsed.data.language,
+    updated_at: now,
+  };
+  if (parsed.data.villa !== undefined) profileUpdate.villa = parsed.data.villa;
+  if (parsed.data.tranche !== undefined) profileUpdate.tranche = parsed.data.tranche;
+
   const { data: updatedRows, error } = await supabase
     .from('profiles')
-    .update({
-      identity_mode: parsed.data.identity_mode,
-      language: parsed.data.language,
-      updated_at: now,
-    })
+    .update(profileUpdate)
     .eq('user_id', guard.user.id)
     .select('user_id');
 

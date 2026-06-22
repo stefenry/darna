@@ -313,6 +313,7 @@
       }
     },
     "nav": {
+      "home": "",
       "settings": "",
       "comod": ""
     },
@@ -635,6 +636,8 @@
       "displayNameLabel": "",
       "displayNamePlaceholder": "",
       "displayNameHint": "",
+      "villaLabel": "",
+      "trancheLabel": "",
       "visibilityToggleLabel": "",
       "languageLabel": "",
       "saved": ""
