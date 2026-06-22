@@ -104,6 +104,8 @@ export async function signInMagicLink(
         vars: {
           link: pkceLink,
           expiresInMinutes: MAGIC_LINK_TTL_MINUTES,
+          code:
+            typeof data?.properties?.email_otp === 'string' ? data.properties.email_otp : undefined,
         },
       });
 

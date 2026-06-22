@@ -246,7 +246,13 @@
       "submit": "M'envoyer le lien",
       "submitting": "Envoi…",
       "noAccountHint": "Pas encore demandé l'accès à Darna ?",
-      "noAccountCta": "Faire une demande d'admission"
+      "noAccountCta": "Faire une demande d'admission",
+      "codeDivider": "ou si tu as l'app installée",
+      "codeHelp": "Tu as reçu un e-mail avec un code à 6 chiffres ? Saisis-le ici pour rester connecté dans l'app.",
+      "codeLabel": "Code reçu par e-mail",
+      "codeSubmit": "Me connecter",
+      "codeSubmitting": "Vérification…",
+      "codeErrorInvalid": "Code invalide ou expiré. Demande un nouveau code."
     },
     "checkEmail": {
       "pageTitle": "Ouvre ta boîte mail 📬",

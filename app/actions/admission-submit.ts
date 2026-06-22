@@ -135,6 +135,7 @@ export async function submitAdmissionRequest(
 
   let userId: string | null = null;
   let actionLink: string | null = null;
+  let emailOtp: string | undefined;
 
   try {
     const linkResult = await admin.auth.admin.generateLink({
@@ -167,6 +168,10 @@ export async function submitAdmissionRequest(
       hashedToken: linkResult.data.properties?.hashed_token ?? '',
       nextPath,
     });
+    emailOtp =
+      typeof linkResult.data.properties?.email_otp === 'string'
+        ? linkResult.data.properties.email_otp
+        : undefined;
   } catch (cause) {
     log({
       level: 'error',
@@ -306,6 +311,7 @@ export async function submitAdmissionRequest(
         vars: {
           link: actionLink,
           expiresInMinutes: MAGIC_LINK_TTL_MINUTES,
+          code: emailOtp,
         },
       });
     } catch (cause) {

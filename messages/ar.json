@@ -151,7 +151,13 @@
       "submit": "",
       "submitting": "",
       "noAccountHint": "",
-      "noAccountCta": ""
+      "noAccountCta": "",
+      "codeDivider": "",
+      "codeHelp": "",
+      "codeLabel": "",
+      "codeSubmit": "",
+      "codeSubmitting": "",
+      "codeErrorInvalid": ""
     },
     "checkEmail": {
       "pageTitle": "",
