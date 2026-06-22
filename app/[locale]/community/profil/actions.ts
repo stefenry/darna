@@ -8,6 +8,7 @@ import {
   zNotificationPrefs,
   type ProfilErrorKey,
 } from '@/lib/validation/profile';
+import { setLocaleCookie } from '@/lib/i18n/locale-cookie';
 import { log } from '@/lib/logger';
 
 // Story 1.9 — Server Actions profil. Tout passe par le client SSR session
@@ -98,6 +99,10 @@ export async function updateProfileSettings(input: {
     });
   }
 
+  // Story 7.4 — persiste la langue choisie dans le cookie NEXT_LOCALE pour que la
+  // préférence soit appliquée par le middleware aux prochaines requêtes/sessions.
+  await setLocaleCookie(parsed.data.language);
+
   log({
     level: 'info',
     event: 'profil.settings_updated',
@@ -155,26 +160,16 @@ export async function updateNotificationPrefs(input: {
   }
 
   if (!updatedRows || updatedRows.length === 0) {
-    // Pas de row : provisioning trigger raté (rare). On la crée pour ne pas
-    // laisser le résident sans contrôle (idempotent, RLS self-insert).
-    const { error: insertError } = await supabase.from('notifications_prefs').insert({
+    // La row est provisionnée à l'inscription (trigger 1.3) : 0 ligne mise à
+    // jour = anomalie (row manquante ou RLS). On log sans bloquer l'UX.
+    log({
+      level: 'warn',
+      event: 'profil.notifications_no_row',
       user_id: guard.user.id,
-      residence_id: guard.user.residence_id,
-      alerts_urgentes_enabled: parsed.data.alerts_urgentes_enabled,
-      nouvelles_entrees_annuaire_enabled: parsed.data.nouvelles_entrees_annuaire_enabled,
-      activite_contributions_enabled: parsed.data.activite_contributions_enabled,
+      residence_id: null,
+      request_id: null,
+      payload: {},
     });
-    if (insertError) {
-      log({
-        level: 'error',
-        event: 'profil.notifications_insert_failed',
-        user_id: guard.user.id,
-        residence_id: null,
-        request_id: null,
-        payload: { errorCode: insertError.code ?? 'unknown' },
-      });
-      return { ok: false, code: 'failed', message_key: 'errors.profil.notifications_failed' };
-    }
   }
 
   log({
