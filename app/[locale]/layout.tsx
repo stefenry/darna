@@ -19,13 +19,32 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'metadata' });
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  // Illustration de marque (image générée Darna) pour les aperçus de partage.
+  // Déposer le fichier dans public/brand/darna-hero.png.
+  const heroImage = { url: '/brand/darna-hero.png', width: 1200, height: 1200, alt: 'Darna' };
   return {
+    metadataBase: siteUrl ? new URL(siteUrl) : undefined,
     title: t('title'),
     description: t('description'),
     appleWebApp: {
       capable: true,
       statusBarStyle: 'default',
       title: 'Darna',
+    },
+    openGraph: {
+      type: 'website',
+      siteName: 'Darna',
+      locale: locale === 'ar' ? 'ar_MA' : 'fr_FR',
+      title: t('title'),
+      description: t('description'),
+      images: [heroImage],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('description'),
+      images: [heroImage.url],
     },
   };
 }
