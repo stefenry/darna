@@ -79,6 +79,24 @@ export async function updateProfileSettings(input: {
     return { ok: false, code: 'failed', message_key: 'errors.profil.settings_failed' };
   }
 
+  // 0 ligne mise à jour SANS error PostgREST = la row profiles n'existe pas
+  // (résident provisionné avant le fix accept_admission, cf. migration
+  // 20260706090001) ou RLS filtre. L'UPDATE no-op silencieusement → on NE
+  // renvoie PAS ok (sinon l'UI affiche « enregistré » alors que les modifs
+  // villa/tranche/langue/identity_mode sont perdues). Le backfill profiles
+  // répare la row côté DB ; ici on remonte un échec explicite.
+  if (!updatedRows || updatedRows.length === 0) {
+    log({
+      level: 'error',
+      event: 'profil.settings_no_row',
+      user_id: guard.user.id,
+      residence_id: null,
+      request_id: null,
+      payload: {},
+    });
+    return { ok: false, code: 'failed', message_key: 'errors.profil.settings_failed' };
+  }
+
   // Story 2026-06-22 — display_name est dans public.users (pas profiles). Le
   // grant column UPDATE + la policy users_resident_update_self autorisent
   // l'édition self.
@@ -98,17 +116,6 @@ export async function updateProfileSettings(input: {
       });
       return { ok: false, code: 'failed', message_key: 'errors.profil.settings_failed' };
     }
-  }
-
-  if (!updatedRows || updatedRows.length === 0) {
-    log({
-      level: 'warn',
-      event: 'profil.settings_no_row',
-      user_id: guard.user.id,
-      residence_id: null,
-      request_id: null,
-      payload: {},
-    });
   }
 
   // Story 7.4 — persiste la langue choisie dans le cookie NEXT_LOCALE pour que la
@@ -173,15 +180,17 @@ export async function updateNotificationPrefs(input: {
 
   if (!updatedRows || updatedRows.length === 0) {
     // La row est provisionnée à l'inscription (trigger 1.3) : 0 ligne mise à
-    // jour = anomalie (row manquante ou RLS). On log sans bloquer l'UX.
+    // jour = anomalie (row manquante ou RLS). On remonte un échec explicite
+    // plutôt que de mentir « enregistré » à l'utilisateur (UI optimiste rollback).
     log({
-      level: 'warn',
+      level: 'error',
       event: 'profil.notifications_no_row',
       user_id: guard.user.id,
       residence_id: null,
       request_id: null,
       payload: {},
     });
+    return { ok: false, code: 'failed', message_key: 'errors.profil.notifications_failed' };
   }
 
   log({

@@ -89,7 +89,15 @@ export default async function TipDetailPage({ params }: Props) {
         <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-500">
           <span>{remainingLabel(t, entry.expiresAt)}</span>
           <span aria-hidden>·</span>
-          <span>{t('detail.author')}</span>
+          <span>
+            {tBp('author.sharedBy', {
+              author: entry.authorName
+                ? entry.authorName
+                : entry.authorPseudonymSuffix
+                  ? tBp('author.pseudonym', { suffix: entry.authorPseudonymSuffix })
+                  : tBp('author.deleted'),
+            })}
+          </span>
           {entry.untranslated && (
             <span className="rounded-sm bg-bg-soft px-2 py-0.5 text-xs font-medium text-neutral-500">
               {t('notTranslatedBadge')}

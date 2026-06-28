@@ -2,6 +2,7 @@ import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type { Locale } from '@/lib/i18n/config';
 import { pickLocalized, type TipCategoryKey } from '@/lib/content/ephemeral';
+import { resolveTipAuthorLabels } from '@/lib/content/author-label';
 
 // Story 4.4 — lecture du feed unifié + détail alerte. RLS filtre déjà au scope
 // résidence ; on RAJOUTE explicitement `deleted_at is null` + `expires_at > now()`
@@ -17,6 +18,9 @@ export type FeedItem = {
   createdAt: string;
   expiresAt: string;
   category: TipCategoryKey | null;
+  // Auteur (bons plans uniquement — null pour les alertes, volontairement neutres).
+  authorName: string | null;
+  authorPseudonymSuffix: string | null;
 };
 
 export type AlertDetail = {
@@ -47,13 +51,17 @@ async function _fetchFeed(locale: Locale): Promise<FeedItem[]> {
       .order('created_at', { ascending: false }),
     supabase
       .from('tips')
-      .select('id, slug, title_fr, title_ar, created_at, expires_at, category_key')
+      .select('id, slug, title_fr, title_ar, created_at, expires_at, category_key, created_by')
       .is('deleted_at', null)
       .gt('expires_at', nowIso)
       .order('created_at', { ascending: false }),
   ]);
   if (alertsRes.error) throw alertsRes.error;
   if (tipsRes.error) throw tipsRes.error;
+
+  // Auteur des bons plans uniquement (1 requête admin batch). Les alertes restent
+  // sans auteur (volontairement neutres : « il se passe X dans la résidence »).
+  const authorLabels = await resolveTipAuthorLabels((tipsRes.data ?? []).map((t) => t.created_by));
 
   const items: FeedItem[] = [
     ...(alertsRes.data ?? []).map((a) => {
@@ -67,10 +75,13 @@ async function _fetchFeed(locale: Locale): Promise<FeedItem[]> {
         createdAt: a.created_at,
         expiresAt: a.expires_at,
         category: null,
+        authorName: null,
+        authorPseudonymSuffix: null,
       };
     }),
     ...(tipsRes.data ?? []).map((t) => {
       const loc = pickLocalized(locale, t.title_fr, t.title_ar);
+      const author = (t.created_by && authorLabels.get(t.created_by)) || null;
       return {
         kind: 'tip' as const,
         id: t.id,
@@ -80,6 +91,8 @@ async function _fetchFeed(locale: Locale): Promise<FeedItem[]> {
         createdAt: t.created_at,
         expiresAt: t.expires_at,
         category: t.category_key as TipCategoryKey,
+        authorName: author?.authorName ?? null,
+        authorPseudonymSuffix: author?.pseudonymSuffix ?? null,
       };
     }),
   ];

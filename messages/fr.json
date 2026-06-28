@@ -361,12 +361,35 @@
       "intro": "Gère l'admission et le contenu durable de la résidence.",
       "tiles": {
         "admission": "File d'admission",
+        "residents": "Résidents",
         "guide": "Guide",
         "numeros": "Numéros utiles",
         "pack": "Pack accueil",
         "moderation": "Modération",
         "suggestions": "Suggestions",
         "transparence": "Export audit"
+      }
+    },
+    "residents": {
+      "title": "Résidents par villa",
+      "intro": "Les résidents validés, groupés par villa.",
+      "reloginNote": "Après une promotion, la personne devra se reconnecter pour activer son accès co-mod.",
+      "empty": "Aucun résident pour le moment.",
+      "villaLabel": "Villa {n}",
+      "villaCount": "{count, plural, one {# résident} other {# résidents}}",
+      "trancheLabel": "Tranche {t}",
+      "comodBadge": "Co-mod",
+      "promote": "Promouvoir co-mod",
+      "confirmQuestion": "Promouvoir {name} ?",
+      "confirmCta": "Confirmer",
+      "cancel": "Annuler",
+      "promoted": "Promu·e — doit se reconnecter",
+      "error": {
+        "forbidden": "Action réservée aux co-modérateurs.",
+        "invalid": "Résident introuvable.",
+        "cross_residence": "Ce résident n'appartient pas à votre résidence.",
+        "already_comod": "Déjà co-modérateur.",
+        "failed": "La promotion a échoué. Réessaie."
       }
     },
     "transparence": {
@@ -829,6 +852,11 @@
         "pret_objet": "Prêt d'objet",
         "evenement": "Événement",
         "autre": "Autre"
+      },
+      "author": {
+        "sharedBy": "Par {author}",
+        "pseudonym": "Voisin anonyme #{suffix}",
+        "deleted": "Voisin supprimé"
       },
       "new": {
         "title": "Nouveau bon plan",

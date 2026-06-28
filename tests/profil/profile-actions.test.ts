@@ -102,6 +102,22 @@ describe('updateProfileSettings', () => {
     }
     expect(updateSpy).toHaveBeenCalledOnce();
   });
+
+  // Régression 2026-06-28 — un UPDATE qui matche 0 ligne (row profiles absente :
+  // résident provisionné avant le fix accept_admission 20260706090001) NE DOIT
+  // PAS renvoyer ok (sinon l'UI ment « enregistré » et les modifs sont perdues).
+  it('returns failed (not ok) when the profiles UPDATE matches zero rows', async () => {
+    requireResidentMock.mockResolvedValue({ ok: true, user: USER });
+    updateEqMock.mockResolvedValue({ data: [], error: null });
+    const res = await updateProfileSettings({ identity_mode: 'pseudo', language: 'fr' });
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.code).toBe('failed');
+      expect(res.message_key).toBe('errors.profil.settings_failed');
+    }
+    // Le cookie de langue ne doit pas être posé si rien n'a été sauvegardé.
+    expect(setLocaleCookieMock).not.toHaveBeenCalled();
+  });
 });
 
 describe('deleteAccount', () => {

@@ -60,7 +60,21 @@ export async function FeedCard({ item, locale }: { item: FeedItem; locale: Local
           )}
         </div>
         <span className="truncate text-base font-semibold text-neutral-900">{item.title}</span>
-        <span className="text-sm text-neutral-500">{remainingLabel(t, item.expiresAt)}</span>
+        <span className="text-sm text-neutral-500">
+          {remainingLabel(t, item.expiresAt)}
+          {!isAlert && (
+            <>
+              {' · '}
+              {tCat('author.sharedBy', {
+                author: item.authorName
+                  ? item.authorName
+                  : item.authorPseudonymSuffix
+                    ? tCat('author.pseudonym', { suffix: item.authorPseudonymSuffix })
+                    : tCat('author.deleted'),
+              })}
+            </>
+          )}
+        </span>
       </div>
       <ChevronRight className="size-5 shrink-0 text-neutral-400 rtl:rotate-180" aria-hidden />
     </Link>

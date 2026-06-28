@@ -2,6 +2,7 @@ import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type { Locale } from '@/lib/i18n/config';
 import { pickLocalized, type TipCategoryKey } from '@/lib/content/ephemeral';
+import { resolveTipAuthorLabel } from '@/lib/content/author-label';
 
 // Story 4.4 — détail bon plan (`/bons-plans/[slug]`). Même garde RLS que les
 // alertes : non supprimé, scopé résidence, expiré masqué sauf auteur/co_mod.
@@ -16,6 +17,8 @@ export type TipDetail = {
   createdAt: string;
   expiresAt: string;
   isOwn: boolean;
+  authorName: string | null;
+  authorPseudonymSuffix: string | null;
 };
 
 export type TipDetailResult = { kind: 'found'; entry: TipDetail } | { kind: 'not-found' };
@@ -41,6 +44,7 @@ async function _fetchTipBySlug(locale: Locale, slug: string): Promise<TipDetailR
 
   const title = pickLocalized(locale, data.title_fr, data.title_ar);
   const body = pickLocalized(locale, data.body_fr, data.body_ar);
+  const author = await resolveTipAuthorLabel(data.created_by);
   return {
     kind: 'found',
     entry: {
@@ -53,6 +57,8 @@ async function _fetchTipBySlug(locale: Locale, slug: string): Promise<TipDetailR
       createdAt: data.created_at,
       expiresAt: data.expires_at,
       isOwn: !!user && data.created_by === user.id,
+      authorName: author.authorName,
+      authorPseudonymSuffix: author.pseudonymSuffix,
     },
   };
 }

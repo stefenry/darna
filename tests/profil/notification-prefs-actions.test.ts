@@ -107,6 +107,19 @@ describe('updateNotificationPrefs (Story 7.1)', () => {
     }
   });
 
+  // Régression 2026-06-28 — 0 ligne mise à jour (row notifications_prefs absente
+  // / RLS) ne doit PAS renvoyer ok : l'UI optimiste doit rollback + afficher l'erreur.
+  it('returns failed (not ok) when the UPDATE matches zero rows', async () => {
+    requireResidentMock.mockResolvedValue({ ok: true, user: USER });
+    updateEqMock.mockResolvedValue({ data: [], error: null });
+    const res = await updateNotificationPrefs(ALL_ON);
+    expect(res.ok).toBe(false);
+    if (!res.ok) {
+      expect(res.code).toBe('failed');
+      expect(res.message_key).toBe('errors.profil.notifications_failed');
+    }
+  });
+
   it('logs the updated prefs without any PII', async () => {
     requireResidentMock.mockResolvedValue({ ok: true, user: USER });
     await updateNotificationPrefs(ALL_ON);
