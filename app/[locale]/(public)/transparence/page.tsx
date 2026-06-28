@@ -3,7 +3,11 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PageContainer } from '@/components/layout/page-container';
 import { fetchJournalPage } from '@/lib/transparency/journal';
 import { JOURNAL_FILTERS } from '@/lib/transparency/events';
+import { getTransparencyCounters } from '@/lib/transparency/counters';
+import { loadDataProtection } from '@/lib/transparency/data-protection';
+import { MarkdownRender } from '@/components/content/markdown-render';
 import { JournalFeed } from './_components/journal-feed';
+import { Counters } from './_components/counters';
 
 // Story 5.4 — journal public de modération (transparence radicale FR33). RSC,
 // route publique (anon + authenticated). Lecture de moderation_log_public.
@@ -40,14 +44,23 @@ export default async function TransparencePage({ params, searchParams }: Props) 
     to: normalizeDate(sp.to, true),
   };
 
-  const page = await fetchJournalPage(filters);
+  const [page, counters, dataProtection] = await Promise.all([
+    fetchJournalPage(filters),
+    getTransparencyCounters(),
+    loadDataProtection(locale),
+  ]);
 
   return (
-    <PageContainer className="py-12" as="main">
+    <PageContainer id="main-content" className="py-12" as="main">
       <header className="flex flex-col gap-2">
         <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
         <p className="text-base text-neutral-700">{t('journal.intro')}</p>
       </header>
+
+      {/* Story 8.1 — compteurs publics agrégés (no-PII), au-dessus du journal. */}
+      <Counters locale={locale} counters={counters} />
+
+      <h2 className="mt-12 text-lg font-semibold text-neutral-900">{t('journal.heading')}</h2>
 
       {/* Filtres (server-side via GET). */}
       <form method="get" className="mt-6 flex flex-wrap items-end gap-3">
@@ -101,10 +114,22 @@ export default async function TransparencePage({ params, searchParams }: Props) 
         />
       </section>
 
-      {/* Placeholder Story 8.2 — section bilingue « Comment vos données sont protégées ». */}
-      <section className="mt-12 rounded-[14px] bg-bg-soft p-5">
-        <h2 className="text-lg font-semibold text-neutral-900">{t('dataProtection.title')}</h2>
-        <p className="mt-2 text-base text-neutral-700">{t('dataProtection.body')}</p>
+      {/* Story 8.2 — section bilingue « Comment vos données sont protégées »
+          (contenu éditorial versionné en git, FR/AR, langage clair sans jargon). */}
+      <section
+        aria-labelledby="data-protection-heading"
+        className="mt-12 rounded-[14px] bg-bg-soft p-5"
+      >
+        <h2 id="data-protection-heading" className="text-lg font-semibold text-neutral-900">
+          {t('dataProtection.title')}
+        </h2>
+        {dataProtection ? (
+          <div className="mt-2">
+            <MarkdownRender source={dataProtection} />
+          </div>
+        ) : (
+          <p className="mt-2 text-base text-neutral-700">{t('dataProtection.body')}</p>
+        )}
       </section>
     </PageContainer>
   );

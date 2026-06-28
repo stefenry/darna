@@ -1619,6 +1619,7 @@ export type Database = {
       };
       show_limit: { Args: never; Returns: number };
       show_trgm: { Args: { '': string }; Returns: string[] };
+      transparency_counters: { Args: never; Returns: Json };
     };
     Enums: {
       admission_contact_channel: 'email' | 'sms';

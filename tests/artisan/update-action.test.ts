@@ -98,10 +98,8 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }));
 
-import {
-  updateArtisan,
-  UPDATE_ARTISAN_INITIAL,
-} from '@/app/[locale]/community/artisan/[slug]/modifier/actions';
+import { updateArtisan } from '@/app/[locale]/community/artisan/[slug]/modifier/actions';
+import { UPDATE_ARTISAN_INITIAL } from '@/app/[locale]/community/artisan/[slug]/modifier/state';
 
 const USER = { id: 'user-1' };
 

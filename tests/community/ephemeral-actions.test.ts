@@ -41,11 +41,10 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }));
 
-import {
-  createAlert,
-  CREATE_ALERT_INITIAL,
-} from '@/app/[locale]/community/alertes/nouveau/actions';
-import { createTip, CREATE_TIP_INITIAL } from '@/app/[locale]/community/bons-plans/nouveau/actions';
+import { createAlert } from '@/app/[locale]/community/alertes/nouveau/actions';
+import { CREATE_ALERT_INITIAL } from '@/app/[locale]/community/alertes/nouveau/state';
+import { createTip } from '@/app/[locale]/community/bons-plans/nouveau/actions';
+import { CREATE_TIP_INITIAL } from '@/app/[locale]/community/bons-plans/nouveau/state';
 import { retractOwnEphemeral } from '@/app/[locale]/community/_actions/ephemeral-retract';
 
 const USER = { id: 'user-1' };

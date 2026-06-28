@@ -35,6 +35,12 @@ const CSP = [
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
+  // Story 8.2 — la page /transparence lit le texte éditorial via fs.readFile
+  // (content/transparence/*.md). Inclut explicitement ces fichiers dans le bundle
+  // serverless (le tracing ne les détecte pas via un chemin construit à l'exécution).
+  outputFileTracingIncludes: {
+    '/[locale]/transparence': ['./content/transparence/**'],
+  },
   async headers() {
     return [
       {

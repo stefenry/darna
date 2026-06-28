@@ -38,10 +38,8 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }));
 
-import {
-  submitSuggestion,
-  SUGGESTION_INITIAL,
-} from '@/app/[locale]/community/profil/parametres/suggestion/actions';
+import { submitSuggestion } from '@/app/[locale]/community/profil/parametres/suggestion/actions';
+import { SUGGESTION_INITIAL } from '@/app/[locale]/community/profil/parametres/suggestion/state';
 import { markSuggestionReviewed } from '@/app/[locale]/comod/suggestions/actions';
 
 function form(body: string): FormData {

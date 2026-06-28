@@ -26,7 +26,8 @@ vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({ rpc: (n: string, a: unknown) => rpcMock(n, a) }),
 }));
 
-import { requestArtisanContactLink, CONTACT_LINK_INITIAL } from '@/app/artisan/contact/actions';
+import { requestArtisanContactLink } from '@/app/artisan/contact/actions';
+import { CONTACT_LINK_INITIAL } from '@/app/artisan/contact/state';
 
 function fd(phone: string): FormData {
   const f = new FormData();

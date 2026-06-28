@@ -34,6 +34,7 @@ export default async function ProfilSettingsPage({ params }: Props) {
 
   const t = await getTranslations('profil.settings');
   const tSuggestion = await getTranslations('suggestion');
+  const tExport = await getTranslations('profil.export');
 
   const supabase = await createClient();
   const {
@@ -84,6 +85,14 @@ export default async function ProfilSettingsPage({ params }: Props) {
         className="flex min-h-touch items-center justify-between gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
       >
         <span className="text-base font-medium text-neutral-900">{tSuggestion('title')}</span>
+        <ChevronRight className="size-5 shrink-0 text-neutral-400 rtl:rotate-180" aria-hidden />
+      </Link>
+
+      <Link
+        href={`/${locale}/community/profil/export`}
+        className="flex min-h-touch items-center justify-between gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+      >
+        <span className="text-base font-medium text-neutral-900">{tExport('title')}</span>
         <ChevronRight className="size-5 shrink-0 text-neutral-400 rtl:rotate-180" aria-hidden />
       </Link>
     </section>

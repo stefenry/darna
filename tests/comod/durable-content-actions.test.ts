@@ -47,8 +47,8 @@ vi.mock('@/lib/supabase/server', () => ({
 import {
   saveDurableEntry,
   retireDurableEntry,
-  DURABLE_INITIAL,
 } from '@/app/[locale]/comod/admin/_actions/durable-content';
+import { DURABLE_INITIAL } from '@/app/[locale]/comod/admin/_actions/state';
 
 const COMOD = { id: 'comod-1', app_metadata: { role: 'co_mod', residence_id: 'res-1' } };
 

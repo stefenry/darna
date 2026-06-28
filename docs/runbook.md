@@ -85,3 +85,38 @@ bucket R2 + les secrets, déployer l'Edge Function, dérouler cette checklist su
 > Principe : Darna est un commun à faible criticité (lecture annuaire/guide/alertes). Aucune
 > donnée bancaire. La priorité incident est la **confidentialité** (fuite RLS → §2 + audit
 > `moderation_log`) puis la **disponibilité**.
+
+---
+
+## 6. Rétention des données (Story 8.5 — FR55, NFR20, NFR55)
+
+La purge des **logs serveur à 30 jours** ne nécessite **aucun cron applicatif** : elle est assurée
+nativement par la rétention Vercel. Les logs applicatifs partent dans les logs Vercel via
+`console.log(JSON.stringify(entry))` (cf. `lib/logger.ts`) ; Vercel les fait tourner et les
+supprime automatiquement passé la fenêtre de rétention.
+
+**À vérifier (avant la bêta, puis à chaque audit) :**
+
+1. **Vercel → Project Settings → Log retention** = **30 jours** (défaut du plan free ; le confirmer
+   explicitement). Aucune action récurrente ensuite — la rotation est automatique.
+2. **Aucune table `logs` en base** : le seul journal persistant est `moderation_log`, qui est une
+   **piste d'audit permanente par conception** (NFR17) — explicitement **hors** périmètre NFR20
+   (on ne purge jamais l'audit de modération). Vérifier qu'aucune migration n'introduit de table
+   de logs applicatifs.
+3. **GlitchTip** : rétention des erreurs configurée à **≤ 90 jours** (bornes RGPD pour des erreurs
+   pouvant contenir de la PII résiduelle) — réglée dans le dashboard GlitchTip.
+
+### Tableau récapitulatif — rétention & juridiction
+
+| Donnée                         | Rétention                          | Juridiction    | Mécanisme                            |
+| ------------------------------ | ---------------------------------- | -------------- | ------------------------------------ |
+| Logs serveur (Vercel)          | **30 jours**                       | UE (France)    | Rotation native Vercel (auto)        |
+| Erreurs (GlitchTip)            | **≤ 90 jours**                     | UE (Allemagne) | Réglage dashboard GlitchTip          |
+| `moderation_log` (audit)       | **Permanent** (par conception)     | UE (Allemagne) | Aucune purge — NFR17, hors NFR20     |
+| Snapshots DB (Supabase)        | **7 jours** (PITR)                 | UE (Allemagne) | Supabase managé                      |
+| Dumps hebdo (R2)               | **12 semaines** (rolling, ≤12 obj) | UE             | Cron `weekly-backup` (§4)            |
+| Exports RGPD / audit (Storage) | **24 heures**                      | UE (Allemagne) | URL signée 24h + lifecycle (8.3/8.4) |
+| Comptes soft-deleted           | **7 jours** puis purge dure        | UE             | Cron `purge-expired` (Story 1.9)     |
+
+> Toutes les données sont hébergées **exclusivement en Union européenne**, conforme à la loi
+> marocaine 09-08 art. 43 (cf. section publique « Comment vos données sont protégées », Story 8.2).

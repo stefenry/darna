@@ -56,10 +56,8 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }));
 
-import {
-  submitRating,
-  RATING_INITIAL,
-} from '@/app/[locale]/community/artisan/[slug]/noter/actions';
+import { submitRating } from '@/app/[locale]/community/artisan/[slug]/noter/actions';
+import { RATING_INITIAL } from '@/app/[locale]/community/artisan/[slug]/noter/state';
 
 const USER = { id: 'user-1' };
 

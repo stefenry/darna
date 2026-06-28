@@ -30,6 +30,7 @@ function wrap(ui: ReactNode) {
 const ARTISAN: ArtisanDetail = {
   id: 'a1',
   slug: 'hassan-plombier',
+  state: 'published',
   displayName: 'Hassan Plombier',
   priceRelative: '$$',
   hasInvoice: 'oui',

@@ -30,6 +30,8 @@ import { escalationLegalTemplate as escalationFr } from '@/lib/email/templates/e
 import { escalationLegalTemplate as escalationAr } from '@/lib/email/templates/escalation-legal.ar';
 import { suggestionNotifyComodTemplate as suggestionFr } from '@/lib/email/templates/suggestion-notify-comod.fr';
 import { suggestionNotifyComodTemplate as suggestionAr } from '@/lib/email/templates/suggestion-notify-comod.ar';
+import { exportReadyTemplate as exportReadyFr } from '@/lib/email/templates/export-ready.fr';
+import { exportReadyTemplate as exportReadyAr } from '@/lib/email/templates/export-ready.ar';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTpl = (vars: any) => { subject: string; htmlContent: string; textContent: string };
@@ -100,6 +102,12 @@ const CASES: { name: string; fr: AnyTpl; ar: AnyTpl; vars: unknown }[] = [
     fr: suggestionFr,
     ar: suggestionAr,
     vars: { excerpt: 'Une idée', queue_url: 'https://darna.example/q' },
+  },
+  {
+    name: 'export-ready',
+    fr: exportReadyFr,
+    ar: exportReadyAr,
+    vars: { download_url: 'https://darna.example/export.json' },
   },
 ];
 
