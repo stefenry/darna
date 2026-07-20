@@ -116,7 +116,7 @@ describe('submitAdmissionRequest Server Action', () => {
     generateLinkMock.mockResolvedValue({
       data: {
         user: { id: 'user-uuid-1' },
-        properties: { action_link: 'https://darna.example/auth/confirm' },
+        properties: { hashed_token: 'pkce-hashed-token-x' },
       },
       error: null,
     });
@@ -139,7 +139,7 @@ describe('submitAdmissionRequest Server Action', () => {
     generateLinkMock.mockResolvedValue({
       data: {
         user: { id: 'user-uuid-1' },
-        properties: { action_link: 'https://darna.example/auth/confirm?t=xyz' },
+        properties: { hashed_token: 'pkce-hashed-token-x' },
       },
       error: null,
     });
@@ -201,7 +201,7 @@ describe('submitAdmissionRequest Server Action', () => {
     generateLinkMock.mockResolvedValue({
       data: {
         user: { id: 'user-uuid-1' },
-        properties: { action_link: 'https://darna.example/auth/confirm' },
+        properties: { hashed_token: 'pkce-hashed-token-x' },
       },
       error: null,
     });
@@ -259,7 +259,7 @@ describe('submitAdmissionRequest Server Action', () => {
     generateLinkMock.mockResolvedValue({
       data: {
         user: { id: 'user-uuid-1' },
-        properties: { action_link: 'https://darna.example/auth/confirm' },
+        properties: { hashed_token: 'pkce-hashed-token-x' },
       },
       error: null,
     });

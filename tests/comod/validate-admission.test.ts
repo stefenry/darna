@@ -66,8 +66,10 @@ describe('validateAdmission Server Action', () => {
       error: null,
     });
     updateUserByIdMock.mockResolvedValue({ data: {}, error: null });
+    // Depuis buildPkceConfirmUrl (2026-06-21), le code construit l'URL PKCE
+    // depuis `hashed_token` — plus depuis `action_link` (legacy verify Supabase).
     generateLinkMock.mockResolvedValue({
-      data: { properties: { action_link: 'https://darna.example/auth/confirm?t=x' } },
+      data: { properties: { hashed_token: 'pkce-hashed-token-x' } },
       error: null,
     });
     sendTransactionalEmailMock.mockResolvedValue({ ok: true, messageId: 'm-1' });
