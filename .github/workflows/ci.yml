@@ -83,6 +83,9 @@ jobs:
           exit 1
 
       - name: Run Lighthouse CI
+        # Sans secrets Vercel, l'étape précédente sort en « skip » sans poser
+        # preview_url — ne pas lancer lhci avec une URL vide (staticDistDir error).
+        if: steps.vercel-preview.outputs.preview_url != ''
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.event.pull_request.head.sha }}
         run: |
@@ -113,7 +116,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1 # TODO: pin to full commit SHA for supply-chain hardening
         with:
-          version: 2.22.4 # pinned — do not use 'latest'; bump intentionally
+          version: 2.109.1 # pinned — do not use 'latest'; bump intentionally
 
       - name: Start Supabase local stack
         run: supabase start
@@ -150,6 +153,8 @@ jobs:
       UPSTASH_REDIS_REST_URL: http://localhost:8079
       UPSTASH_REDIS_REST_TOKEN: tok_stub
       CRON_SECRET: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      CONSENT_TOKEN_SECRET: cccccccccccccccccccccccccccccccccccccccc
+      PSEUDONYM_SECRET: pppppppppppppppppppppppppppppppppppppppp
       LEGAL_CONTACT_EMAIL: legal@darna.local
       INITIAL_COMOD_EMAILS: co1@darna.local,co2@darna.local
     steps:
