@@ -130,7 +130,7 @@ export function renderInterstitial(input: InterstitialInput): string {
   .lead { margin: 0; color: #6E6A5C; font-size: 15px; }
   .cta {
     display: inline-flex; align-items: center; justify-content: center; min-height: 48px;
-    padding: 0 24px; border-radius: 14px; background: #5B9C66; color: #fff;
+    padding: 0 24px; border-radius: 14px; background: #3B6944; color: #fff;
     font-weight: 600; text-decoration: none;
   }
   .cta:hover { background: #4A8255; }

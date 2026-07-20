@@ -27,7 +27,7 @@ Ce lien est valable 24 heures, puis il expire automatiquement (le fichier est su
   const htmlContent = `<!doctype html><html lang="fr"><body style="font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.6;color:#1f1f1f;max-width:560px;margin:0 auto;padding:24px">
 <p>Ton export est prêt 📦</p>
 <p>Tu peux télécharger l'ensemble de tes données et contributions Darna au format JSON :</p>
-<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Télécharger mon export</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Télécharger mon export</a></p>
 <p style="font-size:14px;color:#6b6b6b">Ou copie-colle ce lien dans ton navigateur :<br/><span style="word-break:break-all">${escapeHtml(link)}</span></p>
 <p style="font-size:14px;color:#6b6b6b">Ce lien est valable 24 heures, puis il expire automatiquement (le fichier est supprimé).</p>
 <p style="font-size:14px;color:#6b6b6b">— L'équipe Darna</p>

@@ -25,7 +25,7 @@ export function artisanConsentAcceptedTemplate(vars: ArtisanConsentAcceptedVars)
     ? `\n\nهل أنت الحرفي؟ يمكنك الرد أو طلب تصحيح (بدون حساب): ${contactUrl}`
     : '';
   const contactHtml = contactUrl
-    ? `<p style="font-size:14px;color:#6b6b6b">هل أنت الحرفي؟ <a href="${escapeHtml(contactUrl)}" style="color:#5B9C66">رُدّ أو اطلب تصحيحًا</a>.</p>`
+    ? `<p style="font-size:14px;color:#6b6b6b">هل أنت الحرفي؟ <a href="${escapeHtml(contactUrl)}" style="color:#3B6944">رُدّ أو اطلب تصحيحًا</a>.</p>`
     : '';
 
   const textContent = `خبر سار!
@@ -41,7 +41,7 @@ ${url}
   const htmlContent = `<!doctype html><html lang="ar" dir="rtl"><body style="font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.6;color:#1f1f1f;max-width:560px;margin:0 auto;padding:24px">
 <p>خبر سار!</p>
 <p>أكّد <strong>${escapeHtml(name)}</strong> بطاقته في دليل دارنا. أصبحت الآن مرئية لجيرانك.</p>
-<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">عرض البطاقة</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">عرض البطاقة</a></p>
 <p style="font-size:14px;color:#6b6b6b">شكرًا على مساهمتك.</p>
 ${contactHtml}
 <p style="font-size:14px;color:#6b6b6b">— فريق دارنا</p>

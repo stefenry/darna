@@ -44,7 +44,7 @@ ${queueUrl}
 <li>Motif : <strong>${escapeHtml(reasonLabel)}</strong></li>
 ${noteHtmlBlock}
 </ul>
-<p style="margin:24px 0"><a href="${escapeHtml(queueUrl)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Ouvrir la file de modération</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(queueUrl)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Ouvrir la file de modération</a></p>
 <p style="font-size:14px;color:#6b6b6b">Le SLA communautaire est de 24h max. Tu pourras retirer ou conserver le contenu en motivant ta décision.</p>
 <p style="font-size:14px;color:#6b6b6b">— L'équipe Darna</p>
 </body></html>`;

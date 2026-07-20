@@ -34,7 +34,7 @@ Ce dossier ne contient aucune donnée personnelle identifiante (minimisation CND
 — L'équipe Darna`;
 
   const linkBlockHtml = url
-    ? `<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Ouvrir le dossier (valable 30 jours)</a></p>`
+    ? `<p style="margin:24px 0"><a href="${escapeHtml(url)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Ouvrir le dossier (valable 30 jours)</a></p>`
     : `<pre style="white-space:pre-wrap;background:#f5f5f5;padding:16px;border-radius:10px;font-size:13px">${escapeHtml(inline ?? '')}</pre>`;
   const htmlContent = `<!doctype html><html lang="fr"><body style="font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.6;color:#1f1f1f;max-width:640px;margin:0 auto;padding:24px">
 <p>Bonjour,</p>

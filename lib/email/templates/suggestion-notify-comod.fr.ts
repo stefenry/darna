@@ -30,8 +30,8 @@ ${queueUrl}
   const htmlContent = `<!doctype html><html lang="fr"><body style="font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.6;color:#1f1f1f;max-width:560px;margin:0 auto;padding:24px">
 <p>Salut 👋</p>
 <p>Un voisin vient de partager une suggestion d'évolution sur Darna :</p>
-<blockquote style="border-inline-start:3px solid #5B9C66;margin:16px 0;padding:4px 16px;color:#38362E">${escapeHtml(excerpt)}</blockquote>
-<p style="margin:24px 0"><a href="${escapeHtml(queueUrl)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Lire les suggestions</a></p>
+<blockquote style="border-inline-start:3px solid #3B6944;margin:16px 0;padding:4px 16px;color:#38362E">${escapeHtml(excerpt)}</blockquote>
+<p style="margin:24px 0"><a href="${escapeHtml(queueUrl)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Lire les suggestions</a></p>
 <p style="font-size:14px;color:#6b6b6b">— L'équipe Darna</p>
 </body></html>`;
 
