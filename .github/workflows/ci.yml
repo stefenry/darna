@@ -20,7 +20,7 @@ jobs:
 
       - run: corepack enable
 
-      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94d9d67 # v4.2.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -43,7 +43,7 @@ jobs:
 
       - run: corepack enable
 
-      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94d9d67 # v4.2.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -83,6 +83,9 @@ jobs:
           exit 1
 
       - name: Run Lighthouse CI
+        # Sans secrets Vercel, l'étape précédente sort en « skip » sans poser
+        # preview_url — ne pas lancer lhci avec une URL vide (staticDistDir error).
+        if: steps.vercel-preview.outputs.preview_url != ''
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.event.pull_request.head.sha }}
         run: |
@@ -103,7 +106,7 @@ jobs:
 
       - run: corepack enable
 
-      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94d9d67 # v4.2.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
@@ -113,7 +116,7 @@ jobs:
 
       - uses: supabase/setup-cli@v1 # TODO: pin to full commit SHA for supply-chain hardening
         with:
-          version: 2.22.4 # pinned — do not use 'latest'; bump intentionally
+          version: 2.109.1 # pinned — do not use 'latest'; bump intentionally
 
       - name: Start Supabase local stack
         run: supabase start
@@ -150,6 +153,12 @@ jobs:
       UPSTASH_REDIS_REST_URL: http://localhost:8079
       UPSTASH_REDIS_REST_TOKEN: tok_stub
       CRON_SECRET: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+      CONSENT_TOKEN_SECRET: cccccccccccccccccccccccccccccccccccccccc
+      PSEUDONYM_SECRET: pppppppppppppppppppppppppppppppppppppppp
+      # `next build` tourne en NODE_ENV=production → SMS_PROVIDER=log est
+      # interdit (lib/env.ts P4). Stub brevo, aucun SMS réel envoyé par le scan.
+      SMS_PROVIDER: brevo
+      BREVO_SMS_SENDER: DarnaCI
       LEGAL_CONTACT_EMAIL: legal@darna.local
       INITIAL_COMOD_EMAILS: co1@darna.local,co2@darna.local
     steps:
@@ -161,7 +170,7 @@ jobs:
 
       - run: corepack enable
 
-      - uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94d9d67 # v4.2.0
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}

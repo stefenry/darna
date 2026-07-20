@@ -14,6 +14,8 @@ vi.mock('next/navigation', () => ({
   redirect: (path: string) => redirectMock(path),
 }));
 
+const cookieSetMock = vi.fn();
+
 vi.mock('next/headers', () => ({
   headers: async () =>
     new Headers({
@@ -23,6 +25,10 @@ vi.mock('next/headers', () => ({
       'accept-language': 'fr-FR,fr;q=0.9',
       cookie: 'NEXT_LOCALE=fr',
     }),
+  cookies: async () => ({
+    set: (...args: unknown[]) => cookieSetMock(...args),
+    get: () => undefined,
+  }),
 }));
 
 vi.mock('@/lib/supabase/admin', () => ({
@@ -60,6 +66,7 @@ function makeFormData(email: unknown) {
 describe('signInMagicLink Server Action', () => {
   beforeEach(() => {
     redirectMock.mockClear();
+    cookieSetMock.mockClear();
     generateLinkMock.mockReset();
     sendTransactionalEmailMock.mockReset();
     logMock.mockReset();
@@ -86,19 +93,22 @@ describe('signInMagicLink Server Action', () => {
     expect(generateLinkMock).not.toHaveBeenCalled();
   });
 
-  it('redirects to /fr/auth/check-email on success', async () => {
+  // Depuis la confirmation in-page (UX bêta 2026-06), signInMagicLink ne
+  // redirige plus vers /auth/check-email : elle retourne { ok, sent, emailMasked }
+  // et pose le cookie darna_login_email pour le bouton « Renvoyer un code ».
+  it('returns sent:true with masked email on success (in-page confirmation, no redirect)', async () => {
     generateLinkMock.mockResolvedValue({
       data: {
-        properties: { action_link: 'https://darna.example/auth/confirm?token_hash=abc' },
+        properties: { hashed_token: 'pkce-hashed-token-abc', email_otp: '123456' },
         user: { id: 'user-uuid-1' },
       },
       error: null,
     });
     sendTransactionalEmailMock.mockResolvedValue({ ok: true, messageId: 'msg-1' });
 
-    await expect(signInMagicLink(initial, makeFormData('salma@example.com'))).rejects.toThrow(
-      'NEXT_REDIRECT',
-    );
+    const result = await signInMagicLink(initial, makeFormData('salma@example.com'));
+    expect(result).toEqual({ ok: true, sent: true, emailMasked: 'sa***@example.com' });
+    expect(redirectMock).not.toHaveBeenCalled();
 
     expect(generateLinkMock).toHaveBeenCalledOnce();
     const genCall = generateLinkMock.mock.calls[0];
@@ -115,43 +125,47 @@ describe('signInMagicLink Server Action', () => {
       to: 'salma@example.com',
       locale: 'fr',
     });
-    expect(redirectMock).toHaveBeenCalledWith('/fr/auth/check-email');
+    // Le lien envoyé est l'URL PKCE construite depuis hashed_token, avec le code OTP.
+    const vars = (sendCall[0] as { vars: { link: string; code?: string } }).vars;
+    expect(vars.link).toContain('token_hash=pkce-hashed-token-abc');
+    expect(vars.code).toBe('123456');
+    // Cookie « Renvoyer un code » posé (httpOnly).
+    expect(cookieSetMock).toHaveBeenCalledWith(
+      'darna_login_email',
+      'salma@example.com',
+      expect.objectContaining({ httpOnly: true }),
+    );
   });
 
-  it('redirects to check-email WITHOUT sending when rate-limited (story 1.10b, anti-enumeration preserved)', async () => {
+  it('returns the SAME sent:true state WITHOUT sending when rate-limited (story 1.10b, anti-enumeration preserved)', async () => {
     checkLimitMock.mockResolvedValue({ success: false, reset: Date.now() + 1000 });
 
-    await expect(signInMagicLink(initial, makeFormData('salma@example.com'))).rejects.toThrow(
-      'NEXT_REDIRECT',
-    );
+    const result = await signInMagicLink(initial, makeFormData('salma@example.com'));
+    expect(result).toEqual({ ok: true, sent: true, emailMasked: 'sa***@example.com' });
 
     expect(generateLinkMock).not.toHaveBeenCalled();
     expect(sendTransactionalEmailMock).not.toHaveBeenCalled();
-    expect(redirectMock).toHaveBeenCalledWith('/fr/auth/check-email');
     const limited = logMock.mock.calls
       .map((c) => c[0] as { event: string })
       .find((e) => e.event === 'auth.rate_limited');
     expect(limited).toBeDefined();
   });
 
-  it('still redirects to /fr/auth/check-email when generateLink fails (anti-enumeration)', async () => {
+  it('still returns sent:true when generateLink fails (anti-enumeration)', async () => {
     generateLinkMock.mockResolvedValue({
       data: null,
       error: { code: 'user_not_found', message: 'No user' },
     });
 
-    await expect(signInMagicLink(initial, makeFormData('unknown@example.com'))).rejects.toThrow(
-      'NEXT_REDIRECT',
-    );
-
+    const result = await signInMagicLink(initial, makeFormData('unknown@example.com'));
+    expect(result).toMatchObject({ ok: true, sent: true });
     expect(sendTransactionalEmailMock).not.toHaveBeenCalled();
-    expect(redirectMock).toHaveBeenCalledWith('/fr/auth/check-email');
   });
 
-  it('still redirects on Brevo send failure (no PII leak in logs)', async () => {
+  it('still returns sent:true on Brevo send failure (no PII leak in logs)', async () => {
     generateLinkMock.mockResolvedValue({
       data: {
-        properties: { action_link: 'https://darna.example/auth/confirm' },
+        properties: { hashed_token: 'pkce-hashed-token-abc' },
         user: { id: 'user-uuid-1' },
       },
       error: null,
@@ -162,11 +176,8 @@ describe('signInMagicLink Server Action', () => {
       error: 'Brevo timeout',
     });
 
-    await expect(signInMagicLink(initial, makeFormData('salma@example.com'))).rejects.toThrow(
-      'NEXT_REDIRECT',
-    );
-
-    expect(redirectMock).toHaveBeenCalledWith('/fr/auth/check-email');
+    const result = await signInMagicLink(initial, makeFormData('salma@example.com'));
+    expect(result).toMatchObject({ ok: true, sent: true });
     // Logger called but no `email` field in payload (logger strips PII regardless,
     // but we double-check the entry passed in).
     for (const call of logMock.mock.calls) {
