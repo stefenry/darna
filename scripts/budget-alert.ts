@@ -6,7 +6,8 @@ interface ProviderCost {
 }
 
 const BUDGET_THRESHOLD = Number(process.env.BUDGET_THRESHOLD_MVP || '15');
-const ALERT_EMAIL = process.env.ALERT_EMAIL || 'henry.stephane@gmail.com';
+// Pas de défaut : l'adresse vit dans le secret GitHub ALERT_EMAIL (pas de PII committée).
+const ALERT_EMAIL = process.env.ALERT_EMAIL ?? '';
 
 async function fetchJson<T>(url: string, headers: Record<string, string>): Promise<T> {
   const res = await fetch(url, { headers, signal: AbortSignal.timeout(30_000) });
@@ -103,13 +104,14 @@ async function sendBrevoAlert(subject: string, body: string): Promise<void> {
   }
 }
 
+// R2 volontairement absent : non provisionné au MVP (scaffold, ADR 0007) —
+// le provider est sauté tant que R2_ACCOUNT_ID/R2_API_TOKEN n'existent pas.
 const REQUIRED_ENV = [
   'SUPABASE_PROJECT_REF',
   'SUPABASE_ACCESS_TOKEN',
   'VERCEL_TOKEN',
-  'R2_ACCOUNT_ID',
-  'R2_API_TOKEN',
   'BREVO_API_KEY',
+  'ALERT_EMAIL',
 ] as const;
 
 async function main(): Promise<void> {
@@ -119,10 +121,15 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  const r2Configured = Boolean(process.env.R2_ACCOUNT_ID && process.env.R2_API_TOKEN);
+  if (!r2Configured) {
+    console.log('R2 not provisioned (ADR 0007 scaffold) — skipping R2 cost check.');
+  }
+
   const providers = await Promise.allSettled([
     getSupabaseCost(),
     getVercelCost(),
-    getR2Cost(),
+    ...(r2Configured ? [getR2Cost()] : []),
     getBrevoCost(),
   ]);
 
