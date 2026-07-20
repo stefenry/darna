@@ -5,9 +5,9 @@ import AxeBuilder from '@axe-core/playwright';
 // (epic 1). Les pages authentifiées (profil / comod) nécessitent une session →
 // couvertes quand le wiring magic-link mock e2e arrivera (V1.5).
 //
-// Au MVP, le job CI `a11y` est `continue-on-error: true` (warning, pas bloquant) ;
-// il deviendra bloquant avant la bêta (architecture.md:1527-1528). Localement,
-// `pnpm e2e` échoue si une violation existe — c'est informatif.
+// Le job CI `a11y` est BLOQUANT (le continue-on-error MVP a été retiré une fois
+// les contrastes WCAG AA corrigés — architecture.md:1527-1528). Localement,
+// `pnpm e2e` échoue si une violation existe.
 const PUBLIC_PAGES = [
   '/fr',
   '/fr/admission',
