@@ -155,6 +155,10 @@ jobs:
       CRON_SECRET: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
       CONSENT_TOKEN_SECRET: cccccccccccccccccccccccccccccccccccccccc
       PSEUDONYM_SECRET: pppppppppppppppppppppppppppppppppppppppp
+      # `next build` tourne en NODE_ENV=production → SMS_PROVIDER=log est
+      # interdit (lib/env.ts P4). Stub brevo, aucun SMS réel envoyé par le scan.
+      SMS_PROVIDER: brevo
+      BREVO_SMS_SENDER: DarnaCI
       LEGAL_CONTACT_EMAIL: legal@darna.local
       INITIAL_COMOD_EMAILS: co1@darna.local,co2@darna.local
     steps:
