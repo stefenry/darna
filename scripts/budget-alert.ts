@@ -126,9 +126,20 @@ async function main(): Promise<void> {
     console.log('R2 not provisioned (ADR 0007 scaffold) — skipping R2 cost check.');
   }
 
+  // Supabase (Management API : l'endpoint /usage a été retiré) et Vercel
+  // (billing API réservée aux plans Pro/Enterprise, team en Hobby) ne peuvent
+  // pas remonter de coût via API au MVP — free tier partout, 0 € par design.
+  // On liste quand même le provider avec la raison, pour un rapport honnête :
+  // le jour où un plan payant arrive, remplacer le fallback par le vrai appel.
+  const unavailable = (name: string, reason: unknown): ProviderCost => ({
+    name,
+    estimated_eur: 0,
+    details: { unavailable: String(reason).slice(0, 140) },
+  });
+
   const providers = await Promise.allSettled([
-    getSupabaseCost(),
-    getVercelCost(),
+    getSupabaseCost().catch((err) => unavailable('Supabase', err)),
+    getVercelCost().catch((err) => unavailable('Vercel', err)),
     ...(r2Configured ? [getR2Cost()] : []),
     getBrevoCost(),
   ]);
