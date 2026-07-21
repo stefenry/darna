@@ -1500,6 +1500,10 @@ export type Database = {
       };
       auth_residence_id: { Args: never; Returns: string };
       auth_role: { Args: never; Returns: string };
+      comod_remove_resident: {
+        Args: { p_reason: string; p_target_user_id: string };
+        Returns: undefined;
+      };
       escalate_report_legal: {
         Args: { p_context_note: string; p_report_id: string };
         Returns: {

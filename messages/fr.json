@@ -390,6 +390,24 @@
         "cross_residence": "Ce résident n'appartient pas à votre résidence.",
         "already_comod": "Déjà co-modérateur.",
         "failed": "La promotion a échoué. Réessaie."
+      },
+      "remove": {
+        "cta": "Retirer",
+        "confirmQuestion": "Retirer {name} de la résidence ?",
+        "reasonLabel": "Motif (obligatoire, journalisé publiquement — pas de données personnelles)",
+        "reasonPlaceholder": "Ex. : déménagement confirmé",
+        "confirmCta": "Retirer définitivement",
+        "cancel": "Annuler",
+        "removed": "Retiré·e — compte purgé sous 7 jours",
+        "error": {
+          "forbidden": "Action réservée aux co-modérateurs.",
+          "invalid": "Résident introuvable.",
+          "invalid_reason": "Le motif est obligatoire (200 caractères max).",
+          "cross_residence": "Ce résident n'appartient pas à votre résidence.",
+          "target_not_resident": "Impossible de retirer un co-modérateur via l'app (geste script-only).",
+          "already_deleted": "Ce compte est déjà supprimé.",
+          "failed": "Le retrait a échoué. Réessaie."
+        }
       }
     },
     "transparence": {

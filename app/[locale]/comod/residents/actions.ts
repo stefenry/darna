@@ -18,6 +18,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { createClient } from '@/lib/supabase/server';
 import { requireComod } from '@/lib/auth/require-comod';
 import { log } from '@/lib/logger';
 
@@ -99,6 +100,106 @@ export async function promoteToComod(targetUserId: string): Promise<PromoteState
   log({
     level: 'info',
     event: 'comod.promoted',
+    user_id: guard.user.id,
+    residence_id: null,
+    request_id: null,
+    payload: { target_id: targetUserId },
+  });
+
+  revalidatePath(`/[locale]/comod/residents`, 'page');
+  return { ok: true };
+}
+
+// Retrait d'un résident (spec docs/superpowers/specs/2026-07-21-comod-remove-
+// resident-design.md) : soft-delete via la RPC comod_remove_resident (mêmes
+// écritures que le flux RGPD request_account_deletion, avec acteur + motif),
+// purge dure J+7 par le cron existant. Appel via client SESSION : les gardes
+// (co_mod, même résidence, cible resident non supprimée) vivent en SQL
+// SECURITY DEFINER — testables dans tests/rls.test.ts.
+
+const REMOVE_ERROR_CODES = [
+  'forbidden',
+  'invalid',
+  'invalid_reason',
+  'cross_residence',
+  'target_not_resident',
+  'already_deleted',
+] as const;
+type RemoveErrorCode = (typeof REMOVE_ERROR_CODES)[number] | 'failed';
+
+export type RemoveResidentState = { ok: true } | { ok: false; code: RemoveErrorCode };
+
+export async function removeResident(
+  targetUserId: string,
+  reason: string,
+): Promise<RemoveResidentState> {
+  const guard = await requireComod();
+  if (!guard.ok) return { ok: false, code: 'forbidden' };
+
+  if (typeof targetUserId !== 'string' || targetUserId.length === 0) {
+    return { ok: false, code: 'invalid' };
+  }
+  const trimmedReason = typeof reason === 'string' ? reason.trim() : '';
+  if (trimmedReason.length === 0 || trimmedReason.length > 200) {
+    return { ok: false, code: 'invalid_reason' };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc('comod_remove_resident', {
+    p_target_user_id: targetUserId,
+    p_reason: trimmedReason,
+  });
+  if (error) {
+    const known = (REMOVE_ERROR_CODES as readonly string[]).includes(error.message);
+    log({
+      level: known ? 'info' : 'error',
+      event: 'comod.remove_rpc_failed',
+      user_id: guard.user.id,
+      residence_id: null,
+      request_id: null,
+      payload: { errorCode: known ? error.message : (error.code ?? 'unknown') },
+    });
+    return { ok: false, code: known ? (error.message as RemoveErrorCode) : 'failed' };
+  }
+
+  // Coupure JWT : retour au rôle demandeur (miroir inverse de la promotion).
+  // L'accès resident tombe au plus tard au refresh du token ; en attendant, le
+  // soft-delete DB est déjà effectif et isAccountDeleted bloque tout re-login.
+  // Échec NON bloquant (drift-visibility, même politique que validateAdmission).
+  try {
+    const admin = createAdminClient();
+    const meta = await admin.auth.admin.updateUserById(targetUserId, {
+      app_metadata: { role: 'demandeur' },
+    });
+    if (meta.error) {
+      log({
+        level: 'error',
+        event: 'comod.remove_meta_failed',
+        user_id: targetUserId,
+        residence_id: null,
+        request_id: null,
+        payload: { errorCode: meta.error.code ?? 'unknown', actor_id: guard.user.id },
+      });
+    }
+  } catch (cause) {
+    log({
+      level: 'error',
+      event: 'comod.remove_meta_failed',
+      user_id: targetUserId,
+      residence_id: null,
+      request_id: null,
+      payload: {
+        errorCode: 'thrown',
+        errorName: cause instanceof Error ? cause.name : 'unknown',
+      },
+    });
+  }
+
+  // Audit applicatif (sans PII : UUID uniquement ; le motif vit dans
+  // moderation_log, pas dans les logs).
+  log({
+    level: 'info',
+    event: 'comod.resident_removed',
     user_id: guard.user.id,
     residence_id: null,
     request_id: null,
