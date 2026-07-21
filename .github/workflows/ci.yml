@@ -68,8 +68,10 @@ jobs:
           TEAM_QS=""
           if [ -n "$VERCEL_ORG_ID" ]; then TEAM_QS="&teamId=$VERCEL_ORG_ID"; fi
           for i in $(seq 1 20); do
+            # v7 = version courante de list-deployments (v13 → « Invalid API
+            # version ») ; `sha` est un filtre natif de l'endpoint.
             RESPONSE=$(curl -s -H "Authorization: Bearer $VERCEL_TOKEN" \
-              "https://api.vercel.com/v13/deployments?projectId=$VERCEL_PROJECT_ID&meta.githubCommitSha=$PR_SHA&limit=1$TEAM_QS")
+              "https://api.vercel.com/v7/deployments?projectId=$VERCEL_PROJECT_ID&sha=$PR_SHA&limit=1$TEAM_QS")
             STATE=$(echo "$RESPONSE" | jq -r '.deployments[0].state // empty')
             # Diagnostic : sans ça, une erreur API (token/scope/param) est
             # indistinguable d'un déploiement pas encore listé.
