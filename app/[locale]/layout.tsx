@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { Analytics } from '@vercel/analytics/next';
 import { routing } from '@/lib/i18n/routing';
 import { getDirection, type Locale } from '@/lib/i18n/config';
 import { FooterAttribution } from '@/components/layout/footer-attribution';
@@ -76,6 +77,7 @@ export default async function LocaleLayout({ children, params }: Props) {
           <FooterAttribution />
           <ServiceWorkerUpdater />
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );
