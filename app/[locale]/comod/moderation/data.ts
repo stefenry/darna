@@ -4,6 +4,7 @@
 // (resolveTarget) et d'un pseudonyme reporter stable (jamais le nom réel).
 
 import { createClient } from '@/lib/supabase/server';
+import { isSlaBreached } from '@/lib/moderation/sla';
 import { resolveTarget, snippet, type ResolvedTarget } from '@/lib/moderation/target-content';
 import type { ReportReason, ReportTargetType } from '@/lib/validation/report';
 
@@ -18,6 +19,9 @@ export type ReportListItem = {
   createdAt: string;
   reporterPseudonym: string;
   snippet: string;
+  // SLA évalué au moment du fetch (un seul horodatage pour toute la liste) —
+  // le rendu RSC reste pur (react-hooks/purity : pas de Date.now() au rendu).
+  slaBreached: boolean;
 };
 
 export type PriorAction = {
@@ -60,6 +64,7 @@ export async function fetchOpenReports(locale: Locale): Promise<ReportListItem[]
 
   if (error || !data) return [];
 
+  const nowMs = Date.now();
   return Promise.all(
     data.map(async (r) => {
       const target = await resolveTarget(locale, r.target_type, r.target_id);
@@ -72,6 +77,7 @@ export async function fetchOpenReports(locale: Locale): Promise<ReportListItem[]
         createdAt: r.created_at,
         reporterPseudonym: reporterPseudonym(r.reporter_id),
         snippet: target.exists ? snippet(target) : '—',
+        slaBreached: isSlaBreached(r.created_at, nowMs),
       };
     }),
   );

@@ -21,9 +21,14 @@ export function ContactForm() {
   const phoneId = useId();
   const [cooldown, setCooldown] = useState(0);
 
-  useEffect(() => {
+  // Armement du cooldown à la réception d'un nouveau state de l'action —
+  // ajustement d'état pendant le rendu (pattern React « adjusting state when
+  // props change »), pas de setState synchrone dans un effet.
+  const [prevState, setPrevState] = useState(state);
+  if (state !== prevState) {
+    setPrevState(state);
     if (state.ok) setCooldown(60);
-  }, [state]);
+  }
 
   useEffect(() => {
     if (cooldown <= 0) return;

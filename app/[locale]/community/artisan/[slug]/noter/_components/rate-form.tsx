@@ -285,12 +285,17 @@ function RetractControls({
     if (commentState.ok) router.refresh();
   }, [commentState, router]);
 
-  // P9 — reset l'état confirmation si l'action échoue (sinon user bloqué).
   const ratingError = 'error' in ratingState ? ratingState.error : null;
   const commentError = 'error' in commentState ? commentState.error : null;
-  useEffect(() => {
-    if (ratingError) setConfirmRating(false);
-  }, [ratingError]);
+
+  // P9 — reset l'état confirmation si l'action échoue (sinon user bloqué).
+  // Ajustement d'état pendant le rendu (pattern React « adjusting state when
+  // props change »), pas de setState synchrone dans un effet.
+  const [prevRatingState, setPrevRatingState] = useState(ratingState);
+  if (ratingState !== prevRatingState) {
+    setPrevRatingState(ratingState);
+    if ('error' in ratingState && ratingState.error) setConfirmRating(false);
+  }
 
   return (
     <section className="flex flex-col gap-3 border-t border-neutral-300 pt-5">

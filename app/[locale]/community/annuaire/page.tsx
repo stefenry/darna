@@ -136,28 +136,12 @@ async function ResultsSection({
   params: AnnuaireSearchParams;
 }) {
   const tErr = await getTranslations('errors.annuaire');
+  // react-hooks/error-boundaries : le try/catch capture la donnée, jamais du
+  // JSX (React ne rend pas les composants au moment du `return`) — le fallback
+  // d'erreur est rendu hors bloc.
+  let data: Awaited<ReturnType<typeof fetchAnnuaire>> | null = null;
   try {
-    const { artisans, hasMore } = await fetchAnnuaire(locale, params);
-    if (artisans.length === 0) {
-      return (
-        <>
-          <ResultsHeader count={0} hasMore={false} />
-          <EmptyState locale={locale} />
-        </>
-      );
-    }
-    return (
-      <>
-        <ResultsHeader count={artisans.length} hasMore={hasMore} />
-        <ul className="grid gap-3">
-          {artisans.map((artisan) => (
-            <li key={artisan.slug}>
-              <ArtisanCard locale={locale} artisan={artisan} />
-            </li>
-          ))}
-        </ul>
-      </>
-    );
+    data = await fetchAnnuaire(locale, params);
   } catch (error) {
     log({
       level: 'error',
@@ -167,12 +151,35 @@ async function ResultsSection({
       request_id: null,
       payload: { errorCode: (error as { code?: string })?.code ?? 'unknown' },
     });
+  }
+  if (!data) {
     return (
       <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
         {tErr('fetch_failed')}
       </p>
     );
   }
+  const { artisans, hasMore } = data;
+  if (artisans.length === 0) {
+    return (
+      <>
+        <ResultsHeader count={0} hasMore={false} />
+        <EmptyState locale={locale} />
+      </>
+    );
+  }
+  return (
+    <>
+      <ResultsHeader count={artisans.length} hasMore={hasMore} />
+      <ul className="grid gap-3">
+        {artisans.map((artisan) => (
+          <li key={artisan.slug}>
+            <ArtisanCard locale={locale} artisan={artisan} />
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 }
 
 function FiltersSkeleton() {
