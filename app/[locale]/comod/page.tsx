@@ -14,6 +14,7 @@ import {
   Lightbulb,
   FileDown,
   Users,
+  Wrench,
 } from 'lucide-react';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
@@ -45,6 +46,7 @@ export default async function ComodHomePage({ params }: Props) {
     { key: 'guide', href: `/${locale}/comod/admin/guide`, Icon: BookOpen },
     { key: 'numeros', href: `/${locale}/comod/admin/numeros-utiles`, Icon: Phone },
     { key: 'pack', href: `/${locale}/comod/admin/pack-accueil`, Icon: PackageOpen },
+    { key: 'competences', href: `/${locale}/comod/admin/competences`, Icon: Wrench },
     { key: 'suggestions', href: `/${locale}/comod/suggestions`, Icon: Lightbulb },
     { key: 'transparence', href: `/${locale}/comod/admin/transparence`, Icon: FileDown },
   ] as const;

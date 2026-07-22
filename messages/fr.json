@@ -367,7 +367,8 @@
         "pack": "Pack accueil",
         "moderation": "Modération",
         "suggestions": "Suggestions",
-        "transparence": "Export audit"
+        "transparence": "Export audit",
+        "competences": "Compétences"
       }
     },
     "residents": {
@@ -465,6 +466,29 @@
         "pageTitle": "Pack accueil — administration",
         "intro": "Crée et édite les sections du pack accueil.",
         "sectionLabel": "Section"
+      },
+      "competences": {
+        "pageTitle": "Compétences artisan",
+        "title": "Compétences artisan",
+        "intro": "Le référentiel des compétences proposées dans l'annuaire. Les ajouts apparaissent immédiatement dans les filtres et les formulaires.",
+        "addTitle": "Ajouter une compétence",
+        "labelFrLabel": "Libellé (français)",
+        "labelFrPlaceholder": "Ex. : jardinage",
+        "labelArLabel": "Libellé arabe (optionnel, V1.5)",
+        "addCta": "Ajouter",
+        "adding": "Ajout…",
+        "added": "Compétence ajoutée ✓",
+        "editCta": "Renommer",
+        "saveCta": "Enregistrer",
+        "cancel": "Annuler",
+        "usageCount": "{count, plural, =0 {aucun artisan} one {# artisan} other {# artisans}}",
+        "error": {
+          "forbidden": "Action réservée aux co-modérateurs.",
+          "invalid_label": "Libellé invalide (2 à 40 caractères).",
+          "duplicate": "Cette compétence existe déjà (même libellé ou même clé).",
+          "not_found": "Compétence introuvable.",
+          "failed": "L'opération a échoué. Réessaie."
+        }
       }
     },
     "admission": {
@@ -757,7 +781,8 @@
       "duplicateView": "Voir l’artisan existant",
       "back": "Retour à l’annuaire",
       "smsFailedWarning": "Création OK, mais l'envoi du SMS a échoué. Un co-mod pourra renvoyer le lien depuis l'admin.",
-      "tagsUnavailable": "Les compétences sont indisponibles pour le moment. Réessayez plus tard."
+      "tagsUnavailable": "Les compétences sont indisponibles pour le moment. Réessayez plus tard.",
+      "suggestTag": "Une compétence manque ? Suggérez-la"
     },
     "artisanRate": {
       "pageTitle": "Noter {name}",
@@ -808,7 +833,8 @@
       "confirmPhraseLabel": "Tape RETIRER pour confirmer",
       "confirmPhrase": "RETIRER",
       "retract": "Retirer ma fiche définitivement",
-      "retracting": "Retrait…"
+      "retracting": "Retrait…",
+      "suggestTag": "Une compétence manque ? Suggérez-la"
     },
     "alertes": {
       "title": "Alertes & bons plans",
