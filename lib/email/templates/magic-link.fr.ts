@@ -59,7 +59,7 @@ Si tu n'as pas demandé ce lien, ignore cet e-mail — aucun compte n'a été cr
   const htmlContent = `<!doctype html><html lang="fr"><body style="font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.6;color:#1f1f1f;max-width:560px;margin:0 auto;padding:24px">
 <p>Salut 👋</p>
 <p>Clique sur le bouton ci-dessous pour te connecter à Darna :</p>
-<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Me connecter à Darna</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Me connecter à Darna</a></p>
 <p style="font-size:14px;color:#6b6b6b">Ou copie-colle ce lien dans ton navigateur :<br/><span style="word-break:break-all">${escapeHtml(link)}</span></p>${codeHtmlBlock}
 <p style="font-size:14px;color:#6b6b6b">Le lien et le code expirent dans ${expiresInMinutes} minutes et ne sont utilisables qu'une seule fois.</p>
 <p style="font-size:14px;color:#6b6b6b">Si tu n'as pas demandé ce lien, ignore cet e-mail — aucun compte n'a été créé sans ta confirmation.</p>

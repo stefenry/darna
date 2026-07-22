@@ -22,7 +22,7 @@ ${link}
   const htmlContent = `<!doctype html><html lang="ar" dir="rtl"><body style="font-family:system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.6;color:#1f1f1f;max-width:560px;margin:0 auto;padding:24px;text-align:right">
 <p>تصديرك جاهز 📦</p>
 <p>يمكنك تنزيل جميع بياناتك ومساهماتك على Darna بصيغة JSON:</p>
-<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">تنزيل تصديري</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">تنزيل تصديري</a></p>
 <p style="font-size:14px;color:#6b6b6b">أو انسخ هذا الرابط في متصفحك:<br/><span style="word-break:break-all">${escapeHtml(link)}</span></p>
 <p style="font-size:14px;color:#6b6b6b">هذا الرابط صالح لمدة 24 ساعة، ثم ينتهي تلقائيًا (يُحذف الملف).</p>
 <p style="font-size:14px;color:#6b6b6b">— فريق Darna</p>

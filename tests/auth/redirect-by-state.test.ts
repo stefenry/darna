@@ -39,50 +39,37 @@ function makeSupabase(opts: {
 const user = { id: 'user-uuid-1' } as User;
 
 describe('resolveRedirect', () => {
-  it('no record → /<locale>/admission', async () => {
-    const supabase = makeSupabase({});
+  // Mapping rôle/état → route post-login, paramétré : mêmes étapes, seules
+  // les données changent. Le cas « resident + latest rejected » documente que
+  // users.role reste la source de vérité (un résident accepté puis refusé sur
+  // une 2e demande ne doit pas être renvoyé sur /refused).
+  it.each([
+    { name: 'no record', mock: {}, expected: '/fr/admission' },
+    {
+      name: 'demandeur with state=pending',
+      mock: { role: 'demandeur', state: 'pending' },
+      expected: '/fr/admission/pending',
+    },
+    {
+      name: 'demandeur with state=rejected',
+      mock: { role: 'demandeur', state: 'rejected' },
+      expected: '/fr/admission/refused',
+    },
+    { name: 'users.role=resident', mock: { role: 'resident' }, expected: '/fr/community/' },
+    {
+      name: 'users.role=resident with latest admission rejected (role is the source of truth)',
+      mock: { role: 'resident', state: 'rejected' },
+      expected: '/fr/community/',
+    },
+  ] as const)('$name → $expected', async ({ mock, expected }) => {
+    const supabase = makeSupabase(mock);
     const result = await resolveRedirect({
       supabase,
       user,
       locale: 'fr',
       nextParam: null,
     });
-    expect(result).toBe('/fr/admission');
-  });
-
-  it('demandeur with state=pending → /<locale>/admission/pending', async () => {
-    const supabase = makeSupabase({ role: 'demandeur', state: 'pending' });
-    const result = await resolveRedirect({
-      supabase,
-      user,
-      locale: 'fr',
-      nextParam: null,
-    });
-    expect(result).toBe('/fr/admission/pending');
-  });
-
-  it('users.role=resident → /<locale>/community/', async () => {
-    const supabase = makeSupabase({ role: 'resident' });
-    const result = await resolveRedirect({
-      supabase,
-      user,
-      locale: 'fr',
-      nextParam: null,
-    });
-    expect(result).toBe('/fr/community/');
-  });
-
-  it('users.role=resident stays /community/ even if the latest admission is rejected (role is the source of truth)', async () => {
-    // Un résident accepté puis refusé sur une 2e demande garde role=resident ;
-    // l'historique admission_requests ne doit pas le renvoyer sur /refused.
-    const supabase = makeSupabase({ role: 'resident', state: 'rejected' });
-    const result = await resolveRedirect({
-      supabase,
-      user,
-      locale: 'fr',
-      nextParam: null,
-    });
-    expect(result).toBe('/fr/community/');
+    expect(result).toBe(expected);
   });
 
   it('co_mod (app_metadata) → /<locale>/comod, ignoring the default admission nextParam', async () => {
@@ -95,17 +82,6 @@ describe('resolveRedirect', () => {
       nextParam: '/fr/admission',
     });
     expect(result).toBe('/fr/comod');
-  });
-
-  it('demandeur with state=rejected → /<locale>/admission/refused', async () => {
-    const supabase = makeSupabase({ role: 'demandeur', state: 'rejected' });
-    const result = await resolveRedirect({
-      supabase,
-      user,
-      locale: 'fr',
-      nextParam: null,
-    });
-    expect(result).toBe('/fr/admission/refused');
   });
 
   it('honors nextParam when it points to a safe admission path under the current locale', async () => {

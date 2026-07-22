@@ -38,7 +38,7 @@ Le lien expire bientôt et n'est utilisable qu'une seule fois.
 <p>${escapeHtml(greeting)}</p>
 <p>Bonne nouvelle : un voisin co-mod vient de valider ton accès à Darna (villa <strong>${escapeHtml(String(villa))}</strong>).</p>
 <p>Connecte-toi en un clic pour découvrir l'annuaire, le guide et les alertes de la résidence :</p>
-<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Me connecter à Darna</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Me connecter à Darna</a></p>
 <p style="font-size:14px;color:#6b6b6b">Ou copie-colle ce lien dans ton navigateur :<br/><span style="word-break:break-all">${escapeHtml(link)}</span></p>
 <p style="font-size:14px;color:#6b6b6b">Le lien expire bientôt et n'est utilisable qu'une seule fois.</p>
 <p style="font-size:14px;color:#6b6b6b">— L'équipe Darna</p>

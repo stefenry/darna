@@ -148,11 +148,10 @@ jobs:
           SUPABASE_LOCAL_TEST=true pnpm vitest run tests/rls.test.ts
 
   # Story 1.10c (AR33) — Scan a11y axe sur les pages publiques.
-  # NON-BLOQUANT au MVP (continue-on-error) ; deviendra bloquant avant la bêta.
+  # BLOQUANT depuis la correction des contrastes WCAG AA (palette accent/neutral).
   a11y:
     needs: lint-typecheck-test
     runs-on: ubuntu-latest
-    continue-on-error: true
     env:
       NEXT_PUBLIC_SITE_URL: http://localhost:3000
       NEXT_PUBLIC_SUPABASE_URL: http://localhost:54321

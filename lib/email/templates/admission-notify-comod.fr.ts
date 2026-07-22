@@ -38,7 +38,7 @@ ${queueUrl}
 <li>Tranche : <strong>${escapeHtml(tranche)}</strong></li>
 <li>Prénom : <strong>${escapeHtml(firstName)}</strong></li>
 </ul>
-<p style="margin:24px 0"><a href="${escapeHtml(queueUrl)}" style="background:#5B9C66;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Ouvrir la file d'admission</a></p>
+<p style="margin:24px 0"><a href="${escapeHtml(queueUrl)}" style="background:#3B6944;color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:14px;display:inline-block;font-weight:600">Ouvrir la file d'admission</a></p>
 <p style="font-size:14px;color:#6b6b6b">Le SLA communautaire est de 24h max. Ouvre la file pour valider ou rejeter avec un motif.</p>
 <p style="font-size:14px;color:#6b6b6b">— L'équipe Darna</p>
 </body></html>`;
