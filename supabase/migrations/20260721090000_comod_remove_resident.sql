@@ -25,6 +25,9 @@ as $$
 declare
   v_uid uuid := auth.uid();
   v_reason text := btrim(coalesce(p_reason, ''));
+  -- Code partagé entre users.deletion_reason, profiles.deletion_reason et
+  -- moderation_log.reason_code : une seule source pour la purge J+7 et le journal.
+  v_reason_code constant text := 'removed_by_comod';
   v_target public.users%rowtype;
 begin
   if v_uid is null or auth_role() <> 'co_mod' then
@@ -56,7 +59,7 @@ begin
   update public.users
      set deleted_at = now(),
          deleted_by = v_uid,
-         deletion_reason = 'removed_by_comod',
+         deletion_reason = v_reason_code,
          display_name = 'Voisin supprimé',
          updated_at = now()
    where id = p_target_user_id
@@ -66,7 +69,7 @@ begin
   update public.profiles
      set deleted_at = coalesce(deleted_at, now()),
          deleted_by = v_uid,
-         deletion_reason = 'removed_by_comod',
+         deletion_reason = v_reason_code,
          updated_at = now()
    where user_id = p_target_user_id
      and deleted_at is null;
@@ -77,7 +80,7 @@ begin
   -- par utilisateur.
   insert into public.moderation_log
     (residence_id, actor_id, action, target_kind, target_id, reason_code, reason_text_anonymized)
-  select residence_id, v_uid, 'user_deleted', 'user', id, 'removed_by_comod', v_reason
+  select residence_id, v_uid, 'user_deleted', 'user', id, v_reason_code, v_reason
     from public.users
    where id = p_target_user_id
      and not exists (

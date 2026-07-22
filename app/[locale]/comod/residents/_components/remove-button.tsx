@@ -9,7 +9,7 @@ import { removeResident } from '../actions';
 // confirmation inline en 2 temps que PromoteButton, avec en plus un motif court
 // OBLIGATOIRE (journalisé dans le moderation_log public — pas de PII). Sur
 // succès, router.refresh() fait disparaître la carte (la liste filtre deleted_at).
-export function RemoveButton({ userId, name }: { userId: string; name: string }) {
+export function RemoveButton({ userId, name }: Readonly<{ userId: string; name: string }>) {
   const t = useTranslations('comod.residents.remove');
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
