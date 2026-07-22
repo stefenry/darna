@@ -13,6 +13,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.ts'],
-    exclude: ['node_modules', 'e2e', '.next'],
+    // .claude : worktrees de sessions agent (copies du repo) — sans cette
+    // exclusion, vitest ramasse leurs tests en double.
+    exclude: ['node_modules', 'e2e', '.next', '.claude'],
   },
 });

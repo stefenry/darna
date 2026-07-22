@@ -13,6 +13,7 @@ import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
 import { createClient } from '@/lib/supabase/server';
 import { PromoteButton } from './_components/promote-button';
+import { RemoveButton } from './_components/remove-button';
 
 export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ locale: string }> };
@@ -103,24 +104,31 @@ export default async function ComodResidentsPage({ params }: Props) {
                 </div>
                 <ul className="flex flex-col divide-y divide-neutral-200 rounded-[14px] bg-white shadow-xs">
                   {residents.map((r) => (
-                    <li
-                      key={r.userId}
-                      className="flex items-center justify-between gap-3 px-4 py-3"
-                    >
-                      <div className="flex min-w-0 flex-col">
-                        <span className="truncate font-medium text-neutral-900">{r.firstName}</span>
-                        {r.tranche && (
-                          <span className="text-sm text-neutral-500">
-                            {t('trancheLabel', { t: r.tranche })}
+                    <li key={r.userId} className="flex flex-col gap-2 px-4 py-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 flex-col">
+                          <span className="truncate font-medium text-neutral-900">
+                            {r.firstName}
                           </span>
+                          {r.tranche && (
+                            <span className="text-sm text-neutral-500">
+                              {t('trancheLabel', { t: r.tranche })}
+                            </span>
+                          )}
+                        </div>
+                        {r.isComod ? (
+                          <span className="inline-flex shrink-0 items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                            {t('comodBadge')}
+                          </span>
+                        ) : (
+                          <PromoteButton userId={r.userId} name={r.firstName} />
                         )}
                       </div>
-                      {r.isComod ? (
-                        <span className="inline-flex shrink-0 items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
-                          {t('comodBadge')}
-                        </span>
-                      ) : (
-                        <PromoteButton userId={r.userId} name={r.firstName} />
+                      {/* Retrait : résidents uniquement (co_mod = script-only, spec 2026-07-21). */}
+                      {!r.isComod && (
+                        <div className="flex justify-end">
+                          <RemoveButton userId={r.userId} name={r.firstName} />
+                        </div>
                       )}
                     </li>
                   ))}

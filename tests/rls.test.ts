@@ -2746,3 +2746,152 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS suggestions (Epic 6.5)', () => {
     if (admin && suggestionId) await admin.from('suggestions').delete().eq('id', suggestionId);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Retrait d'un résident par un co_mod (spec 2026-07-21) — la RPC
+// comod_remove_resident porte ses gardes en SQL (SECURITY DEFINER + auth_role/
+// auth_residence_id) : on vérifie ici qu'un résident ou un co_mod d'une autre
+// résidence ne peuvent PAS l'exécuter, et que le soft-delete est complet.
+// ─────────────────────────────────────────────────────────────────────────────
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS retrait résident (comod_remove_resident)', () => {
+  let admin: DarnaClient;
+  let karim: { id: string; client: DarnaClient }; // co_mod res1
+  let eve: { id: string; client: DarnaClient }; // co_mod res2
+  let rachid: { id: string; client: DarnaClient }; // résident res1 (cible)
+  let sofia: { id: string; client: DarnaClient }; // résident res1 (appelant illégitime)
+
+  async function makeUser(
+    localUrl: string,
+    key: string,
+    role: 'resident' | 'co_mod',
+    label: string,
+    residenceId: string,
+  ): Promise<{ id: string; client: DarnaClient }> {
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    await admin.auth.admin.updateUserById(created.user.id, {
+      app_metadata: { role, residence_id: residenceId },
+    });
+    await admin.from('users').update({ role, residence_id: residenceId }).eq('id', created.user.id);
+    const client = createClient<Database>(localUrl, key, {
+      auth: { storageKey: `rls-rm-${label}`, persistSession: false },
+    });
+    await establishSession(admin, client, email, label);
+    return { id: created.user.id, client };
+  }
+
+  beforeAll(async () => {
+    const localEnv = parseSupabaseLocalEnv();
+    admin = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+    );
+    await admin.from('residences').upsert({
+      id: RESIDENCE_2_ID,
+      name: 'Test Residence 2',
+      slug: `test2-rm-${Date.now()}`,
+      villa_count: 150,
+    });
+
+    const url = localEnv.SUPABASE_LOCAL_URL;
+    const key = localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY;
+    karim = await makeUser(url, key, 'co_mod', 'karim-rm', DARNA_RESIDENCE_ID);
+    eve = await makeUser(url, key, 'co_mod', 'eve-rm', RESIDENCE_2_ID);
+    rachid = await makeUser(url, key, 'resident', 'rachid-rm', DARNA_RESIDENCE_ID);
+    sofia = await makeUser(url, key, 'resident', 'sofia-rm', DARNA_RESIDENCE_ID);
+
+    // Profil de la cible (le soft-delete miroir doit le toucher).
+    await admin.from('profiles').insert({
+      user_id: rachid.id,
+      residence_id: DARNA_RESIDENCE_ID,
+      villa: 42,
+    });
+  });
+
+  it('un résident ne peut pas exécuter la RPC (forbidden)', async () => {
+    const { error } = await sofia.client.rpc('comod_remove_resident', {
+      p_target_user_id: rachid.id,
+      p_reason: 'tentative illégitime',
+    });
+    expect(error?.message).toContain('forbidden');
+  });
+
+  it('un co_mod d’une autre résidence est rejeté (cross_residence)', async () => {
+    const { error } = await eve.client.rpc('comod_remove_resident', {
+      p_target_user_id: rachid.id,
+      p_reason: 'tentative cross-résidence',
+    });
+    expect(error?.message).toContain('cross_residence');
+  });
+
+  it('motif vide rejeté (invalid_reason)', async () => {
+    const { error } = await karim.client.rpc('comod_remove_resident', {
+      p_target_user_id: rachid.id,
+      p_reason: '   ',
+    });
+    expect(error?.message).toContain('invalid_reason');
+  });
+
+  it('impossible de retirer un co_mod (target_not_resident)', async () => {
+    const { error } = await karim.client.rpc('comod_remove_resident', {
+      p_target_user_id: karim.id,
+      p_reason: 'auto-suppression interdite',
+    });
+    expect(error?.message).toContain('target_not_resident');
+  });
+
+  it('un co_mod de la résidence retire un résident : soft-delete complet + log', async () => {
+    const { error } = await karim.client.rpc('comod_remove_resident', {
+      p_target_user_id: rachid.id,
+      p_reason: 'Déménagement confirmé (test RLS)',
+    });
+    expect(error).toBeNull();
+
+    const { data: u } = await admin
+      .from('users')
+      .select('deleted_at, deleted_by, deletion_reason, display_name')
+      .eq('id', rachid.id)
+      .single();
+    expect(u?.deleted_at).not.toBeNull();
+    expect(u?.deleted_by).toBe(karim.id);
+    expect(u?.deletion_reason).toBe('removed_by_comod');
+    expect(u?.display_name).toBe('Voisin supprimé');
+
+    const { data: p } = await admin
+      .from('profiles')
+      .select('deleted_at, deletion_reason')
+      .eq('user_id', rachid.id)
+      .single();
+    expect(p?.deleted_at).not.toBeNull();
+    expect(p?.deletion_reason).toBe('removed_by_comod');
+
+    const { data: entries } = await admin
+      .from('moderation_log')
+      .select('actor_id, reason_code, reason_text_anonymized')
+      .eq('action', 'user_deleted')
+      .eq('target_id', rachid.id);
+    expect(entries?.length).toBe(1);
+    expect(entries?.[0]?.actor_id).toBe(karim.id);
+    expect(entries?.[0]?.reason_code).toBe('removed_by_comod');
+  });
+
+  it('un second retrait est rejeté (already_deleted), sans doublon de log', async () => {
+    const { error } = await karim.client.rpc('comod_remove_resident', {
+      p_target_user_id: rachid.id,
+      p_reason: 'double retrait',
+    });
+    expect(error?.message).toContain('already_deleted');
+
+    const { data: entries } = await admin
+      .from('moderation_log')
+      .select('id')
+      .eq('action', 'user_deleted')
+      .eq('target_id', rachid.id);
+    expect(entries?.length).toBe(1);
+  });
+});
