@@ -4,6 +4,7 @@
 import { env } from '@/lib/env';
 
 const BREVO_SMS_ENDPOINT = 'https://api.brevo.com/v3/transactionalSMS/sms';
+const TWILIO_API_BASE = 'https://api.twilio.com/2010-04-01/Accounts';
 const REQUEST_TIMEOUT_MS = 5000;
 
 export type SmsSendResult =
@@ -13,7 +14,7 @@ export type SmsSendResult =
 /**
  * Adapter DEV/MVP : loggue le SMS (lien inclus) en console pour tester le flux
  * de consentement sans provider. **Jamais en prod** (le lien contient le raw
- * token) — gardé par `SMS_PROVIDER='log'` (défaut), bascule `brevo` en prod.
+ * token) — gardé par `SMS_PROVIDER='log'` (défaut), bascule provider réel en prod.
  */
 export function sendSmsViaLog(to: string, body: string, nowMs: number): SmsSendResult {
   // eslint-disable-next-line no-console
@@ -21,37 +22,40 @@ export function sendSmsViaLog(to: string, body: string, nowMs: number): SmsSendR
   return { ok: true, messageId: `log-${nowMs}` };
 }
 
-export async function sendSmsViaBrevo(to: string, body: string): Promise<SmsSendResult> {
-  const sender = env.server.BREVO_SMS_SENDER;
-  if (!sender) {
-    return { ok: false, errorCode: 'no_sender', error: 'BREVO_SMS_SENDER not configured' };
-  }
+// Plomberie HTTP commune aux adapters providers : timeout 5s (AbortController),
+// mapping uniforme des erreurs API ({code, message} → errorCode/error) et des
+// échecs timeout/réseau. Jamais de throw vers l'appelant (contrat AR38 : les
+// actions absorbent/logguent, l'UI reste générique).
+async function postSmsRequest(args: {
+  url: string;
+  headers: Record<string, string>;
+  body: string;
+  provider: string;
+  /** Champ du JSON de succès portant l'identifiant du message envoyé. */
+  messageIdField: string;
+}): Promise<SmsSendResult> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const response = await fetch(BREVO_SMS_ENDPOINT, {
+    const response = await fetch(args.url, {
       method: 'POST',
-      headers: {
-        'api-key': env.server.BREVO_API_KEY,
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify({ sender, recipient: to, content: body, type: 'transactional' }),
+      headers: { ...args.headers, Accept: 'application/json' },
+      body: args.body,
       signal: controller.signal,
     });
+    const json = await safeJson(response);
     if (!response.ok) {
-      const body = await safeJson(response);
       return {
         ok: false,
-        errorCode: typeof body.code === 'string' ? body.code : String(response.status),
-        error: typeof body.message === 'string' ? body.message : response.statusText,
+        errorCode: json.code != null ? String(json.code) : String(response.status),
+        error: typeof json.message === 'string' ? json.message : response.statusText,
       };
     }
-    const json = await safeJson(response);
-    return { ok: true, messageId: typeof json.messageId === 'string' ? json.messageId : 'unknown' };
+    const messageId = json[args.messageIdField];
+    return { ok: true, messageId: typeof messageId === 'string' ? messageId : 'unknown' };
   } catch (cause) {
     if (cause instanceof Error && cause.name === 'AbortError') {
-      return { ok: false, errorCode: 'timeout', error: 'Brevo SMS request timed out' };
+      return { ok: false, errorCode: 'timeout', error: `${args.provider} SMS request timed out` };
     }
     return {
       ok: false,
@@ -63,7 +67,19 @@ export async function sendSmsViaBrevo(to: string, body: string): Promise<SmsSend
   }
 }
 
-const TWILIO_API_BASE = 'https://api.twilio.com/2010-04-01/Accounts';
+export async function sendSmsViaBrevo(to: string, body: string): Promise<SmsSendResult> {
+  const sender = env.server.BREVO_SMS_SENDER;
+  if (!sender) {
+    return { ok: false, errorCode: 'no_sender', error: 'BREVO_SMS_SENDER not configured' };
+  }
+  return postSmsRequest({
+    url: BREVO_SMS_ENDPOINT,
+    headers: { 'api-key': env.server.BREVO_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sender, recipient: to, content: body, type: 'transactional' }),
+    provider: 'Brevo',
+    messageIdField: 'messageId',
+  });
+}
 
 /**
  * Adapter Twilio (pivot 2026-07-22 — WhatsApp Cloud API bloqué par la
@@ -84,41 +100,16 @@ export async function sendSmsViaTwilio(to: string, body: string): Promise<SmsSen
   } else {
     return { ok: false, errorCode: 'no_sender', error: 'Twilio sender not configured' };
   }
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    const response = await fetch(`${TWILIO_API_BASE}/${sid}/Messages.json`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
-      },
-      body: params.toString(),
-      signal: controller.signal,
-    });
-    const json = await safeJson(response);
-    if (!response.ok) {
-      return {
-        ok: false,
-        errorCode: json.code != null ? String(json.code) : String(response.status),
-        error: typeof json.message === 'string' ? json.message : response.statusText,
-      };
-    }
-    return { ok: true, messageId: typeof json.sid === 'string' ? json.sid : 'unknown' };
-  } catch (cause) {
-    if (cause instanceof Error && cause.name === 'AbortError') {
-      return { ok: false, errorCode: 'timeout', error: 'Twilio SMS request timed out' };
-    }
-    return {
-      ok: false,
-      errorCode: 'network',
-      error: cause instanceof Error ? cause.message : 'unknown network error',
-    };
-  } finally {
-    clearTimeout(timer);
-  }
+  return postSmsRequest({
+    url: `${TWILIO_API_BASE}/${sid}/Messages.json`,
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString('base64')}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: params.toString(),
+    provider: 'Twilio',
+    messageIdField: 'sid',
+  });
 }
 
 async function safeJson(response: Response): Promise<Record<string, unknown>> {
