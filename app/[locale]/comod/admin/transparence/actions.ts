@@ -18,14 +18,9 @@ import {
 } from '@/lib/exports/moderation';
 import { uploadExport } from '@/lib/exports/storage';
 import { log } from '@/lib/logger';
-
-export type ModerationExportState =
-  | { ok: null }
-  | { ok: false; code: 'forbidden' | 'failed' }
-  | { ok: true; mode: 'url'; url: string; filename: string }
-  | { ok: true; mode: 'inline'; content: string; filename: string; mime: string };
-
-export const MODERATION_EXPORT_INITIAL: ModerationExportState = { ok: null };
+// Type + état initial dans export-state.ts : un fichier 'use server' ne peut
+// exporter QUE des fonctions async (l'export d'objet cassait la route au runtime).
+import type { ModerationExportState } from './export-state';
 
 export async function exportModerationLog(
   _prev: ModerationExportState,
