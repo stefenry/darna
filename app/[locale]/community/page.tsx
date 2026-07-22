@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { BookOpen, Phone, Users, Bell } from 'lucide-react';
+import { BookOpen, Phone, Users, Bell, Lightbulb } from 'lucide-react';
 import { routing } from '@/lib/i18n/routing';
 import { fetchOnboardingState } from './_data/onboarding';
 import { PackBanner } from './_components/pack-banner';
@@ -41,6 +41,12 @@ export default async function CommunityHomePage({ params }: Props) {
     { key: 'alertes', href: `/${locale}/community/alertes`, Icon: Bell },
     { key: 'guide', href: `/${locale}/community/guide`, Icon: BookOpen },
     { key: 'numeros', href: `/${locale}/community/numeros-utiles`, Icon: Phone },
+    // Grille 2 colonnes → 5e position = sous « Guide de la résidence ».
+    {
+      key: 'suggestions',
+      href: `/${locale}/community/profil/parametres/suggestion`,
+      Icon: Lightbulb,
+    },
   ] as const;
 
   return (
