@@ -29,9 +29,18 @@ const serverSchema = z
     PSEUDONYM_SECRET: z.string().min(32, 'PSEUDONYM_SECRET must be ≥32 chars (random)'),
     // Story 2.4 — provider SMS. `log` (défaut MVP) = loggue le magic link sans
     // envoi réel (aucun compte requis). `brevo` = Brevo SMS (réutilise BREVO_API_KEY)
-    // → nécessite BREVO_SMS_SENDER + couverture Maroc confirmée.
-    SMS_PROVIDER: z.enum(['log', 'brevo']).default('log'),
+    // → nécessite BREVO_SMS_SENDER + couverture Maroc confirmée. `twilio`
+    // (pivot 2026-07-22, WhatsApp Cloud API bloqué par restriction Meta) →
+    // nécessite TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN + (MessagingServiceSid
+    // OU From) ; sender ID alphanumérique Maroc à pré-enregistrer (~3 semaines).
+    SMS_PROVIDER: z.enum(['log', 'brevo', 'twilio']).default('log'),
     BREVO_SMS_SENDER: z.string().max(11).optional(),
+    TWILIO_ACCOUNT_SID: z.string().startsWith('AC').optional(),
+    TWILIO_AUTH_TOKEN: z.string().min(1).optional(),
+    // L'un des deux : Messaging Service (recommandé, porte le sender ID Maroc
+    // enregistré) ou expéditeur direct (numéro E.164 / alphanumérique ≤11).
+    TWILIO_MESSAGING_SERVICE_SID: z.string().startsWith('MG').optional(),
+    TWILIO_FROM: z.string().min(1).max(16).optional(),
     LEGAL_CONTACT_EMAIL: z.email(),
     // Optional post-invite : l'app ne crashe pas si purgé (runbook §3). Les
     // notifications co-mod (admission-submit.ts) itèrent sur [] si absent.
@@ -65,6 +74,23 @@ const serverSchema = z
         path: ['BREVO_SMS_SENDER'],
         message: 'BREVO_SMS_SENDER required when SMS_PROVIDER=brevo',
       });
+    }
+    // Pivot Twilio — credentials + expéditeur requis si le provider est actif.
+    if (env.SMS_PROVIDER === 'twilio') {
+      if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['TWILIO_ACCOUNT_SID'],
+          message: 'TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN required when SMS_PROVIDER=twilio',
+        });
+      }
+      if (!env.TWILIO_MESSAGING_SERVICE_SID && !env.TWILIO_FROM) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['TWILIO_MESSAGING_SERVICE_SID'],
+          message: 'TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM required when SMS_PROVIDER=twilio',
+        });
+      }
     }
     // Review 2026-06-18 P4 — l'adapter `log` est dev/MVP seulement. Ne JAMAIS
     // déployer en prod (le SMS body contient le raw token magic-link).

@@ -3,7 +3,7 @@
 // défaut / `brevo` en prod).
 
 import { env } from '@/lib/env';
-import { sendSmsViaLog, sendSmsViaBrevo, type SmsSendResult } from './client';
+import { sendSmsViaLog, sendSmsViaBrevo, sendSmsViaTwilio, type SmsSendResult } from './client';
 import { consentSmsTemplate, type ConsentSmsVars } from './templates/consent.fr';
 import { respondSmsTemplate, type RespondSmsVars } from './templates/respond.fr';
 import { reconsentSmsTemplate, type ReconsentSmsVars } from './templates/reconsent.fr';
@@ -26,6 +26,9 @@ function renderSms(args: SmsArgs): string {
 
 export async function sendTransactionalSms(args: SmsArgs): Promise<SmsSendResult> {
   const body = renderSms(args); // FR-only au MVP (locale artisan inconnue)
+  if (env.server.SMS_PROVIDER === 'twilio') {
+    return sendSmsViaTwilio(args.to, body);
+  }
   if (env.server.SMS_PROVIDER === 'brevo') {
     return sendSmsViaBrevo(args.to, body);
   }
