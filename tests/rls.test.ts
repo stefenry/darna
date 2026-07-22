@@ -2895,3 +2895,112 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS retrait résident (comod_remove_resid
     expect(entries?.length).toBe(1);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Gestion des compétences artisan (spec 2026-07-23) — comod_add_tag /
+// comod_rename_tag portent leurs gardes en SQL (SECURITY DEFINER + auth_role) :
+// un résident est rejeté, le slug est généré sans accents, la dédup par libellé
+// normalisé fonctionne, la clé est immuable au rename.
+// ─────────────────────────────────────────────────────────────────────────────
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS compétences (comod_add_tag / comod_rename_tag)', () => {
+  let admin: DarnaClient;
+  let karim: { id: string; client: DarnaClient }; // co_mod res1
+  let nora: { id: string; client: DarnaClient }; // résident res1
+  const createdKeys: string[] = [];
+
+  async function makeUser(
+    localUrl: string,
+    key: string,
+    role: 'resident' | 'co_mod',
+    label: string,
+    residenceId: string,
+  ): Promise<{ id: string; client: DarnaClient }> {
+    const email = `${label}-${Date.now()}@test.darna.local`;
+    const { data: created, error } = await admin.auth.admin.createUser({
+      email,
+      password: 'test-password-1234',
+      email_confirm: true,
+    });
+    if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+    await admin.auth.admin.updateUserById(created.user.id, {
+      app_metadata: { role, residence_id: residenceId },
+    });
+    await admin.from('users').update({ role, residence_id: residenceId }).eq('id', created.user.id);
+    const client = createClient<Database>(localUrl, key, {
+      auth: { storageKey: `rls-tag-${label}`, persistSession: false },
+    });
+    await establishSession(admin, client, email, label);
+    return { id: created.user.id, client };
+  }
+
+  beforeAll(async () => {
+    const localEnv = parseSupabaseLocalEnv();
+    admin = createClient<Database>(
+      localEnv.SUPABASE_LOCAL_URL,
+      localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+    );
+    const url = localEnv.SUPABASE_LOCAL_URL;
+    const key = localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY;
+    karim = await makeUser(url, key, 'co_mod', 'karim-tag', DARNA_RESIDENCE_ID);
+    nora = await makeUser(url, key, 'resident', 'nora-tag', DARNA_RESIDENCE_ID);
+  });
+
+  afterAll(async () => {
+    if (admin && createdKeys.length > 0) {
+      await admin.from('tags').delete().in('key', createdKeys);
+    }
+  });
+
+  it('un résident ne peut pas ajouter de compétence (forbidden)', async () => {
+    const { error } = await nora.client.rpc('comod_add_tag', {
+      p_label_fr: 'Tentative résident',
+    });
+    expect(error?.message).toContain('forbidden');
+  });
+
+  it('un co_mod ajoute une compétence : slug snake_case sans accents', async () => {
+    const { data, error } = await karim.client.rpc('comod_add_tag', {
+      p_label_fr: 'Électricité générale (test)',
+    });
+    expect(error).toBeNull();
+    const created = data?.[0];
+    expect(created?.key).toBe('electricite_generale_test');
+    if (created?.key) createdKeys.push(created.key);
+  });
+
+  it('doublon rejeté par libellé normalisé (casse/accents/espaces)', async () => {
+    const { error } = await karim.client.rpc('comod_add_tag', {
+      p_label_fr: '  electricite générale (TEST) ',
+    });
+    expect(error?.message).toContain('duplicate');
+  });
+
+  it('rename : libellés modifiés, clé immuable ; résident rejeté', async () => {
+    const { error: residentErr } = await nora.client.rpc('comod_rename_tag', {
+      p_key: 'electricite_generale_test',
+      p_label_fr: 'Hack résident',
+    });
+    expect(residentErr?.message).toContain('forbidden');
+
+    const { error } = await karim.client.rpc('comod_rename_tag', {
+      p_key: 'electricite_generale_test',
+      p_label_fr: 'Électricité & domotique (test)',
+    });
+    expect(error).toBeNull();
+
+    const { data: tag } = await admin
+      .from('tags')
+      .select('key, label_fr')
+      .eq('key', 'electricite_generale_test')
+      .single();
+    expect(tag?.label_fr).toBe('Électricité & domotique (test)');
+  });
+
+  it('rename sur une clé inconnue → not_found', async () => {
+    const { error } = await karim.client.rpc('comod_rename_tag', {
+      p_key: 'clef_inexistante',
+      p_label_fr: 'Peu importe',
+    });
+    expect(error?.message).toContain('not_found');
+  });
+});

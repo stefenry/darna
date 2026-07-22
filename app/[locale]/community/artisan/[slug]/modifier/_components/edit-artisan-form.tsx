@@ -157,6 +157,12 @@ export function EditArtisanForm({
               </label>
             ))}
           </div>
+          <Link
+            href={`/${locale}/community/profil/parametres/suggestion`}
+            className="self-start text-xs font-medium text-accent-600 underline-offset-4 hover:underline"
+          >
+            {t('suggestTag')}
+          </Link>
         </fieldset>
 
         <label htmlFor={priceId} className="flex flex-col gap-2 text-sm">

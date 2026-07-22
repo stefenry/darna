@@ -1500,8 +1500,19 @@ export type Database = {
       };
       auth_residence_id: { Args: never; Returns: string };
       auth_role: { Args: never; Returns: string };
+      comod_add_tag: {
+        Args: { p_label_ar?: string; p_label_fr: string };
+        Returns: {
+          key: string;
+          label_fr: string;
+        }[];
+      };
       comod_remove_resident: {
         Args: { p_reason: string; p_target_user_id: string };
+        Returns: undefined;
+      };
+      comod_rename_tag: {
+        Args: { p_key: string; p_label_ar?: string; p_label_fr: string };
         Returns: undefined;
       };
       escalate_report_legal: {
@@ -1534,6 +1545,7 @@ export type Database = {
           target_author_id: string;
         }[];
       };
+      normalize_tag_label: { Args: { p_label: string }; Returns: string };
       process_artisan_consent: {
         Args: { p_decision: string; p_token_hash: string };
         Returns: {
