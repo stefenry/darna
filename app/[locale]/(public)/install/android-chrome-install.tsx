@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { useTranslations } from 'next-intl';
 
 type BeforeInstallPromptEvent = Event & {
@@ -17,6 +17,21 @@ declare global {
 const FALLBACK_TIMEOUT_MS = 1500;
 const DISMISS_RETRY_MS = 30_000;
 
+// Store externe (react-hooks v6) : le prompt différé et l'état « installé »
+// vivent hors React (window.__darnaInstallPrompt + drapeau appinstalled) et
+// sont lus via useSyncExternalStore — pas de setState synchrone dans un effet.
+const storeListeners = new Set<() => void>();
+let appInstalledFired = false;
+
+function emitStoreChange() {
+  for (const listener of storeListeners) listener();
+}
+
+function setGlobalPrompt(e: BeforeInstallPromptEvent | null) {
+  window.__darnaInstallPrompt = e;
+  emitStoreChange();
+}
+
 if (typeof window !== 'undefined' && !window.__darnaInstallPrompt) {
   const earlyCapture = (e: Event) => {
     e.preventDefault();
@@ -32,83 +47,88 @@ function isStandaloneDisplay(): boolean {
   return nav.standalone === true;
 }
 
+function subscribeInstallStore(onChange: () => void) {
+  storeListeners.add(onChange);
+  const onBeforeInstallPrompt = (e: Event) => {
+    e.preventDefault();
+    setGlobalPrompt(e as BeforeInstallPromptEvent);
+  };
+  const onAppInstalled = () => {
+    appInstalledFired = true;
+    setGlobalPrompt(null);
+  };
+  const mql = window.matchMedia('(display-mode: standalone)');
+  window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+  window.addEventListener('appinstalled', onAppInstalled);
+  mql.addEventListener('change', emitStoreChange);
+  return () => {
+    storeListeners.delete(onChange);
+    window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+    window.removeEventListener('appinstalled', onAppInstalled);
+    mql.removeEventListener('change', emitStoreChange);
+  };
+}
+
+function getPromptSnapshot(): BeforeInstallPromptEvent | null {
+  return window.__darnaInstallPrompt ?? null;
+}
+const getServerPromptSnapshot = () => null;
+
+function getInstalledSnapshot(): boolean {
+  return appInstalledFired || isStandaloneDisplay();
+}
+const getServerInstalledSnapshot = () => false;
+
 export function AndroidChromeInstall() {
   const t = useTranslations('install.android');
-  const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null);
   const isPrompting = useRef(false);
-  const [ready, setReady] = useState(false);
+  const [prompting, setPrompting] = useState(false);
   const [timeoutFired, setTimeoutFired] = useState(false);
-  const [installed, setInstalled] = useState(false);
   const [dismissedUntil, setDismissedUntil] = useState<number | null>(null);
 
+  const deferredPrompt = useSyncExternalStore(
+    subscribeInstallStore,
+    getPromptSnapshot,
+    getServerPromptSnapshot,
+  );
+  const installed = useSyncExternalStore(
+    subscribeInstallStore,
+    getInstalledSnapshot,
+    getServerInstalledSnapshot,
+  );
+  const ready = deferredPrompt !== null;
+
   useEffect(() => {
-    if (isStandaloneDisplay()) {
-      setInstalled(true);
-      return;
-    }
-
-    const captured = window.__darnaInstallPrompt;
-    if (captured) {
-      deferredPrompt.current = captured;
-      setReady(true);
-    }
-
-    function onBeforeInstallPrompt(e: Event) {
-      e.preventDefault();
-      deferredPrompt.current = e as BeforeInstallPromptEvent;
-      window.__darnaInstallPrompt = e as BeforeInstallPromptEvent;
-      setReady(true);
-    }
-
-    function onAppInstalled() {
-      setInstalled(true);
-      setReady(false);
-      deferredPrompt.current = null;
-      window.__darnaInstallPrompt = null;
-    }
-
-    window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
-    window.addEventListener('appinstalled', onAppInstalled);
-
     const timer = window.setTimeout(() => setTimeoutFired(true), FALLBACK_TIMEOUT_MS);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', onAppInstalled);
-      window.clearTimeout(timer);
-    };
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
     if (dismissedUntil === null) return;
-    const remaining = dismissedUntil - Date.now();
-    if (remaining <= 0) {
-      setDismissedUntil(null);
-      return;
-    }
-    const t = window.setTimeout(() => setDismissedUntil(null), remaining);
-    return () => window.clearTimeout(t);
+    // Délai ≤ 0 → le timeout tire dès la prochaine tick (jamais de setState
+    // synchrone dans le corps de l'effet).
+    const remaining = Math.max(0, dismissedUntil - Date.now());
+    const timer = window.setTimeout(() => setDismissedUntil(null), remaining);
+    return () => window.clearTimeout(timer);
   }, [dismissedUntil]);
 
   async function handleInstall() {
-    if (!deferredPrompt.current || isPrompting.current) return;
+    if (!deferredPrompt || isPrompting.current) return;
     isPrompting.current = true;
+    setPrompting(true);
     try {
-      await deferredPrompt.current.prompt();
-      const { outcome } = await deferredPrompt.current.userChoice;
+      await deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
-        deferredPrompt.current = null;
-        window.__darnaInstallPrompt = null;
-        setReady(false);
+        setGlobalPrompt(null);
       } else {
         setDismissedUntil(Date.now() + DISMISS_RETRY_MS);
       }
     } catch {
-      deferredPrompt.current = null;
-      window.__darnaInstallPrompt = null;
-      setReady(false);
+      setGlobalPrompt(null);
     } finally {
       isPrompting.current = false;
+      setPrompting(false);
     }
   }
 
@@ -125,10 +145,9 @@ export function AndroidChromeInstall() {
     );
   }
 
-  const dismissedRemaining = dismissedUntil
-    ? Math.max(0, Math.ceil((dismissedUntil - Date.now()) / 1000))
-    : 0;
-  const inCooldown = dismissedUntil !== null && dismissedRemaining > 0;
+  // L'effet ci-dessus remet dismissedUntil à null pile à l'expiration : tant
+  // qu'il est non-null, le cooldown est actif (pas de Date.now() au rendu).
+  const inCooldown = dismissedUntil !== null;
 
   return (
     <section className="flex flex-col gap-6">
@@ -144,7 +163,7 @@ export function AndroidChromeInstall() {
           type="button"
           onClick={handleInstall}
           disabled={inCooldown}
-          aria-busy={isPrompting.current}
+          aria-busy={prompting}
           className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
         >
           {inCooldown ? t('ctaRetry') : t('cta')}

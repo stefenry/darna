@@ -60,29 +60,13 @@ export default async function GuidePage({ params, searchParams }: Props) {
   );
 }
 
+// react-hooks/error-boundaries : les try/catch des deux branches capturent la
+// donnée, jamais du JSX (React ne rend pas les composants au moment du
+// `return`) — le fallback d'erreur est rendu hors bloc.
 async function ListBranch({ locale, errorLabel }: { locale: Locale; errorLabel: string }) {
+  let groups: Awaited<ReturnType<typeof fetchGuideEntries>> | null = null;
   try {
-    const groups = await fetchGuideEntries(locale);
-    if (groups.length === 0) {
-      const t = await getTranslations('community.guide');
-      return (
-        <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
-          {t('empty')}
-        </p>
-      );
-    }
-    return (
-      <div className="flex flex-col gap-3">
-        {groups.map((group, i) => (
-          <GuideThemeSection
-            key={group.themeKey}
-            locale={locale}
-            group={group}
-            defaultOpen={i === 0}
-          />
-        ))}
-      </div>
-    );
+    groups = await fetchGuideEntries(locale);
   } catch (error) {
     log({
       level: 'error',
@@ -92,8 +76,28 @@ async function ListBranch({ locale, errorLabel }: { locale: Locale; errorLabel: 
       request_id: null,
       payload: { errorCode: (error as { code?: string })?.code ?? 'unknown' },
     });
-    return <ErrorNote label={errorLabel} />;
   }
+  if (groups === null) return <ErrorNote label={errorLabel} />;
+  if (groups.length === 0) {
+    const t = await getTranslations('community.guide');
+    return (
+      <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
+        {t('empty')}
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3">
+      {groups.map((group, i) => (
+        <GuideThemeSection
+          key={group.themeKey}
+          locale={locale}
+          group={group}
+          defaultOpen={i === 0}
+        />
+      ))}
+    </div>
+  );
 }
 
 async function SearchBranch({
@@ -105,9 +109,9 @@ async function SearchBranch({
   query: string;
   errorLabel: string;
 }) {
+  let hits: Awaited<ReturnType<typeof searchGuide>> | null = null;
   try {
-    const hits = await searchGuide(locale, query);
-    return <GuideSearchResults locale={locale} hits={hits} />;
+    hits = await searchGuide(locale, query);
   } catch (error) {
     log({
       level: 'error',
@@ -117,8 +121,9 @@ async function SearchBranch({
       request_id: null,
       payload: { errorCode: (error as { code?: string })?.code ?? 'unknown' },
     });
-    return <ErrorNote label={errorLabel} />;
   }
+  if (hits === null) return <ErrorNote label={errorLabel} />;
+  return <GuideSearchResults locale={locale} hits={hits} />;
 }
 
 function ErrorNote({ label }: { label: string }) {

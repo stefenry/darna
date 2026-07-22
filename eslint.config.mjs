@@ -37,14 +37,6 @@ const eslintConfig = defineConfig([
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-floating-promises': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      // Nouvelles règles react-hooks v6 (compiler) arrivées avec
-      // eslint-config-next 16 : 17 occurrences préexistantes dans 7 fichiers.
-      // Downgrade temporaire en warn pour ne pas bloquer la CI — à repasser en
-      // error une fois les fichiers corrigés (chantier dédié).
-      'react-hooks/error-boundaries': 'warn',
-      'react-hooks/purity': 'warn',
-      'react-hooks/refs': 'warn',
-      'react-hooks/set-state-in-effect': 'warn',
       'no-restricted-syntax': [
         'error',
         {

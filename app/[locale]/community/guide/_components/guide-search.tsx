@@ -28,9 +28,12 @@ export function GuideSearch() {
   // Sans cette ref, l'effet 2 dépend de `searchParams` → chaque `router.replace`
   // change `searchParams` → l'effet re-tourne → self-loop bénin mais coûteux,
   // ET le closure capture un searchParams stale si un autre paramètre change
-  // pendant les 300ms (futur : `?theme=x` 3.5).
+  // pendant les 300ms (futur : `?theme=x` 3.5). Écriture dans un effet (jamais
+  // au rendu, react-hooks/refs) : il court toujours avant le tick des 300ms.
   const searchParamsRef = useRef(searchParams);
-  searchParamsRef.current = searchParams;
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
 
   useEffect(() => {
     if (lastExternalQ.current !== urlQ) {

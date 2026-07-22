@@ -4,7 +4,6 @@ import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { PageContainer } from '@/components/layout/page-container';
 import { routing } from '@/lib/i18n/routing';
-import { isSlaBreached } from '@/lib/moderation/sla';
 import { fetchOpenReports } from './data';
 
 // Story 5.3 (AR37) — file des signalements ouverts, polling-à-l'ouverture (pas de
@@ -56,42 +55,39 @@ export default async function ComodModerationPage({ params }: Props) {
           </p>
         ) : (
           <ul className="flex flex-col gap-3">
-            {items.map((item) => {
-              const breached = isSlaBreached(item.createdAt, Date.now());
-              return (
-                <li key={item.id}>
-                  <Link
-                    href={`/${locale}/comod/moderation/${item.id}`}
-                    className="flex flex-col gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft"
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center rounded-sm bg-danger/10 px-2 py-0.5 text-xs font-semibold text-danger">
-                        {t(`reasons.${item.reason}`)}
+            {items.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={`/${locale}/comod/moderation/${item.id}`}
+                  className="flex flex-col gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center rounded-sm bg-danger/10 px-2 py-0.5 text-xs font-semibold text-danger">
+                      {t(`reasons.${item.reason}`)}
+                    </span>
+                    <span className="text-xs text-neutral-500">
+                      {t(`targets.${item.targetType}`)}
+                    </span>
+                    {item.slaBreached && (
+                      <span className="inline-flex items-center rounded-sm bg-danger px-2 py-0.5 text-xs font-semibold text-white">
+                        {t('slaBreached')}
                       </span>
-                      <span className="text-xs text-neutral-500">
-                        {t(`targets.${item.targetType}`)}
-                      </span>
-                      {breached && (
-                        <span className="inline-flex items-center rounded-sm bg-danger px-2 py-0.5 text-xs font-semibold text-white">
-                          {t('slaBreached')}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-base font-medium text-neutral-900">{item.snippet}</p>
-                    {item.note && (
-                      <p className="text-sm text-neutral-600">
-                        {t('reporterNote')} : {item.note}
-                      </p>
                     )}
-                    <div className="flex items-center gap-2 text-xs text-neutral-400">
-                      <span>{item.reporterPseudonym}</span>
-                      <span aria-hidden>·</span>
-                      <span>{ageLabel(item.createdAt, t)}</span>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+                  </div>
+                  <p className="text-base font-medium text-neutral-900">{item.snippet}</p>
+                  {item.note && (
+                    <p className="text-sm text-neutral-600">
+                      {t('reporterNote')} : {item.note}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-neutral-400">
+                    <span>{item.reporterPseudonym}</span>
+                    <span aria-hidden>·</span>
+                    <span>{ageLabel(item.createdAt, t)}</span>
+                  </div>
+                </Link>
+              </li>
+            ))}
           </ul>
         )}
       </section>
