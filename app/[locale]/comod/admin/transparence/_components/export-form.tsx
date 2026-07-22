@@ -6,11 +6,8 @@
 
 import { useActionState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  exportModerationLog,
-  MODERATION_EXPORT_INITIAL,
-  type ModerationExportState,
-} from '../actions';
+import { exportModerationLog } from '../actions';
+import { MODERATION_EXPORT_INITIAL, type ModerationExportState } from '../export-state';
 
 export function ModerationExportForm({ locale }: { locale: 'fr' | 'ar' }) {
   const t = useTranslations('comod.transparence');

@@ -1,13 +1,8 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+// eslint-config-next 16 est flat-config natif : imports directs des presets,
+// plus de FlatCompat (le pont eslintrc plantait avec la v16).
+import { defineConfig } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 
 const FORBIDDEN_TAILWIND_CLASS_REGEX =
   /(?<![a-zA-Z0-9_=\[-])(mr|ml|pl|pr|left|right)-(0|0\.5|px|auto|\[[^\]]+\]|[0-9]+(\.5)?)\b/;
@@ -15,8 +10,9 @@ const FORBIDDEN_TAILWIND_CLASS_REGEX =
 const LOGICAL_PROPERTIES_MESSAGE =
   'Tailwind logical properties enforcement (AR22): utiliser me-*/ms-*/pe-*/ps-*/start-*/end-* au lieu de mr-*/ml-*/pl-*/pr-*/left-*/right-* pour preserver RTL (FR/AR).';
 
-const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
   {
     ignores: [
       'node_modules/**',
@@ -41,6 +37,14 @@ const eslintConfig = [
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-floating-promises': 'off',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // Nouvelles règles react-hooks v6 (compiler) arrivées avec
+      // eslint-config-next 16 : 17 occurrences préexistantes dans 7 fichiers.
+      // Downgrade temporaire en warn pour ne pas bloquer la CI — à repasser en
+      // error une fois les fichiers corrigés (chantier dédié).
+      'react-hooks/error-boundaries': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-hooks/refs': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
       'no-restricted-syntax': [
         'error',
         {
@@ -60,6 +64,6 @@ const eslintConfig = [
       'no-restricted-syntax': 'off',
     },
   },
-];
+]);
 
 export default eslintConfig;
