@@ -1,17 +1,21 @@
 // Liste des résidents par villa pour le co_mod (geste « qui habite où » +
-// promotion in-app). Source : `admission_requests` (state=accepted) pour
-// villa/tranche/first_name — complet (chaque résident validé y est) et robuste
-// au bug profiles. Croisé avec `users` (co_mod RLS) pour exclure les comptes
-// supprimés et marquer les co_mod. PAS d'e-mail/contact (décision produit).
+// promotion in-app). Roster : `admission_requests` (state=accepted) — complet
+// (chaque résident validé y est) et robuste au bug profiles. villa/tranche
+// viennent du profil COURANT (`profiles`, éditable par le résident) avec
+// fallback admission (cf. roster.ts). Croisé avec `users` (co_mod RLS) pour
+// exclure les comptes supprimés et marquer les co_mod. PAS d'e-mail/contact
+// (décision produit).
 //
 // Lecture via le client SESSION (RLS co_mod : admission_requests_co_mod_select
-// + users_co_mod_select_residence). Garde 403 héritée de comod/layout.
+// + users_co_mod_select_residence + profiles_co_mod_select_residence). Garde
+// 403 héritée de comod/layout.
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
 import { createClient } from '@/lib/supabase/server';
+import { buildVillaRoster } from './roster';
 import { PromoteButton } from './_components/promote-button';
 import { RemoveButton } from './_components/remove-button';
 
@@ -29,13 +33,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return { title: t('title') };
 }
 
-type Resident = {
-  userId: string;
-  firstName: string;
-  tranche: string | null;
-  isComod: boolean;
-};
-
 export default async function ComodResidentsPage({ params }: Props) {
   const { locale } = await params;
   assertLocale(locale);
@@ -43,40 +40,23 @@ export default async function ComodResidentsPage({ params }: Props) {
   const t = await getTranslations('comod.residents');
 
   const supabase = await createClient();
-  const [{ data: admissions }, { data: users }] = await Promise.all([
+  const [{ data: admissions }, { data: users }, { data: profiles }] = await Promise.all([
     supabase
       .from('admission_requests')
       .select('user_id, villa, tranche, first_name, created_at')
       .eq('state', 'accepted')
       .order('created_at', { ascending: false }),
     supabase.from('users').select('id, role, deleted_at'),
+    supabase.from('profiles').select('user_id, villa, tranche'),
   ]);
 
-  // role/deleted par user (co_mod RLS résidence).
-  const userMap = new Map((users ?? []).map((u) => [u.id, u]));
-
-  // Dédup par user_id (garde la 1re = admission la plus récente, déjà triée desc).
-  const seen = new Set<string>();
-  const byVilla = new Map<number, Resident[]>();
-  for (const a of admissions ?? []) {
-    if (seen.has(a.user_id)) continue;
-    const u = userMap.get(a.user_id);
-    if (!u || u.deleted_at) continue; // compte supprimé / hors résidence
-    seen.add(a.user_id);
-    const list = byVilla.get(a.villa) ?? [];
-    list.push({
-      userId: a.user_id,
-      firstName: a.first_name,
-      tranche: a.tranche,
-      isComod: u.role === 'co_mod',
-    });
-    byVilla.set(a.villa, list);
-  }
-
-  const villas = [...byVilla.keys()].sort((x, y) => x - y);
-  for (const v of villas) {
-    byVilla.get(v)!.sort((p, q) => p.firstName.localeCompare(q.firstName, locale));
-  }
+  const byVilla = buildVillaRoster({
+    admissions: admissions ?? [],
+    users: users ?? [],
+    profiles: profiles ?? [],
+    locale,
+  });
+  const villas = [...byVilla.keys()];
 
   return (
     <section className="flex flex-col gap-6">

@@ -103,12 +103,15 @@ export default async function ArtisanPage({ params }: Props) {
         title={artisan.displayName}
         text={artisan.tags.map((tg) => tg.label).join(' · ')}
       />
-      <CallButton name={artisan.displayName} phoneE164={artisan.phoneE164} />
+      {/* Feedback bêta 2026-07-22 — « Signaler » AVANT le CTA sticky : placé
+          après, il tombait dans la zone morte sous le bouton flottant (les
+          derniers px de scroll) et restait introuvable sur téléphone. */}
       {!artisan.isOwner && (
         <div className="border-t border-neutral-100 pt-4">
           <ReportButton targetType="artisan" targetId={artisan.id} />
         </div>
       )}
+      <CallButton name={artisan.displayName} phoneE164={artisan.phoneE164} />
     </article>
   );
 }
