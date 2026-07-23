@@ -10,7 +10,7 @@ import { headers } from 'next/headers';
 import { zPhoneMaroc } from '@/lib/validation/phone-e164';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateConsentToken } from '@/lib/consent/token';
-import { sendTransactionalSms } from '@/lib/sms/send';
+import { sendTransactionalSms, isSmsDisabled } from '@/lib/sms/send';
 import { checkLimit } from '@/lib/rate-limit';
 import { env } from '@/lib/env';
 import { log } from '@/lib/logger';
@@ -39,6 +39,21 @@ export async function requestArtisanContactLink(
   _prev: ContactLinkState,
   formData: FormData,
 ): Promise<ContactLinkState> {
+  // Interim 2026-07-23 — envoi SMS coupé (la page masque déjà le formulaire) :
+  // on ne consomme ni rate-limit ni RPC, réponse générique inchangée (AR38).
+  if (isSmsDisabled()) {
+    await sleep(TIMING_EQUALIZE_MS);
+    log({
+      level: 'info',
+      event: 'artisan.contact_link_requested',
+      user_id: null,
+      residence_id: null,
+      request_id: null,
+      payload: { rate_limit_hit: false, status: 'sms_disabled' },
+    });
+    return GENERIC;
+  }
+
   const phoneRaw = String(formData.get('phone') ?? '')
     .trim()
     .replace(PHONE_NORMALIZE, '');

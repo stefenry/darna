@@ -16,6 +16,10 @@ process.env.CRON_SECRET ??= 'a'.repeat(40);
 process.env.CONSENT_TOKEN_SECRET ??= 'c'.repeat(40);
 process.env.PSEUDONYM_SECRET ??= 'p'.repeat(40);
 process.env.LEGAL_CONTACT_EMAIL ??= 'legal@darna.local';
+// Stubs Twilio (adapter testé en direct, SMS_PROVIDER reste `log` par défaut).
+process.env.TWILIO_ACCOUNT_SID ??= 'ACtest00000000000000000000000000';
+process.env.TWILIO_AUTH_TOKEN ??= 'twilio-test-token';
+process.env.TWILIO_MESSAGING_SERVICE_SID ??= 'MGtest00000000000000000000000000';
 process.env.INITIAL_COMOD_EMAILS ??= 'co1@darna.local,co2@darna.local';
 
 // jsdom n'implémente pas ResizeObserver (utilisé par Radix UI, ex. Checkbox).

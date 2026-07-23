@@ -14,7 +14,10 @@ vi.mock('@/lib/rate-limit', () => ({ checkLimit: () => checkLimitMock() }));
 vi.mock('@/lib/consent/token', () => ({
   generateConsentToken: () => ({ raw: 'rawtoken', hash: 'hash123' }),
 }));
-vi.mock('@/lib/sms/send', () => ({ sendTransactionalSms: () => smsMock() }));
+vi.mock('@/lib/sms/send', () => ({
+  sendTransactionalSms: () => smsMock(),
+  isSmsDisabled: () => false,
+}));
 vi.mock('@/lib/env', () => ({
   env: {
     client: { NEXT_PUBLIC_SITE_URL: 'https://darna.test' },

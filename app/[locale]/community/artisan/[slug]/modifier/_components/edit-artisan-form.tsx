@@ -24,11 +24,14 @@ export function EditArtisanForm({
   slug,
   tags,
   artisan,
+  smsDisabled = false,
 }: {
   locale: string;
   slug: string;
   tags: Tag[];
   artisan: ArtisanEditData;
+  /** Interim 2026-07-23 — envoi SMS coupé : copy reconsent sans promesse de SMS. */
+  smsDisabled?: boolean;
 }) {
   const t = useTranslations('community.artisanEdit');
   const tErr = useTranslations('errors');
@@ -48,7 +51,10 @@ export function EditArtisanForm({
   const showReconsentWarning = piiTouched && artisan.state === 'published';
 
   if (state.ok) {
-    const msg = state.reconsent === 'none' ? t('savedNoReconsent') : t('savedReconsent');
+    const msg =
+      state.reconsent === 'none'
+        ? t('savedNoReconsent')
+        : t(smsDisabled ? 'savedReconsentSmsDisabled' : 'savedReconsent');
     return (
       <div role="status" className="flex flex-col gap-3 rounded-[14px] bg-accent-50 p-5">
         <p className="text-base text-neutral-900">{msg}</p>
@@ -134,7 +140,7 @@ export function EditArtisanForm({
             aria-live="polite"
             className="rounded-[14px] bg-warning/10 px-4 py-3 text-sm text-warning"
           >
-            {t('reconsentWarning')}
+            {t(smsDisabled ? 'reconsentWarningSmsDisabled' : 'reconsentWarning')}
           </p>
         )}
 
