@@ -629,6 +629,8 @@
     "guide": {
       "title": "Guide de la résidence",
       "intro": "Les infos pratiques de la résidence, comme une FAQ. Cherche ou parcours par thème.",
+      "packTitle": "Pack accueil",
+      "packDescription": "L'essentiel pour bien démarrer dans la résidence.",
       "empty": "Le guide est en cours de préparation. Reviens bientôt.",
       "search": {
         "label": "Rechercher dans le guide",
