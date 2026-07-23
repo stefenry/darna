@@ -343,11 +343,11 @@
       "community": "Espace résident"
     },
     "artisan": {
-      "pendingTitle": "Fiche en attente de consentement SMS",
-      "pendingHint": "Si tu as déjà contacté l'artisan offline et qu'il accepte d'être listé, tu peux publier sans attendre le SMS.",
+      "pendingTitle": "Fiche en attente de validation",
+      "pendingHint": "Si l'artisan a confirmé (à toi ou au résident) qu'il accepte d'être listé, tu peux publier sa fiche.",
       "publishCta": "Publier sans consentement",
       "publishing": "Publication…",
-      "confirm": "Confirmer la publication sans consentement SMS ?",
+      "confirm": "Confirmer la publication de cette fiche ?",
       "errors": {
         "forbidden": "Réservé aux co-modérateurs.",
         "not_found": "Fiche introuvable.",
@@ -361,6 +361,7 @@
       "intro": "Gère l'admission et le contenu durable de la résidence.",
       "tiles": {
         "admission": "File d'admission",
+        "artisans": "Artisans à valider",
         "residents": "Résidents",
         "guide": "Guide",
         "numeros": "Numéros utiles",
@@ -370,6 +371,13 @@
         "transparence": "Export audit",
         "competences": "Compétences"
       }
+    },
+    "artisansQueue": {
+      "title": "Artisans à valider",
+      "intro": "Fiches soumises par les résidents, en attente de publication. Ouvre une fiche pour la vérifier et la publier.",
+      "empty": "Aucune fiche en attente.",
+      "submittedOn": "Soumise le {date}",
+      "openCta": "Voir la fiche et publier"
     },
     "residents": {
       "title": "Résidents par villa",

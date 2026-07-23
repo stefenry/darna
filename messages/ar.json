@@ -238,10 +238,18 @@
       "intro": "",
       "tiles": {
         "admission": "",
+        "artisans": "",
         "guide": "",
         "numeros": "",
         "pack": ""
       }
+    },
+    "artisansQueue": {
+      "title": "",
+      "intro": "",
+      "empty": "",
+      "submittedOn": "",
+      "openCta": ""
     },
     "admin": {
       "newEntry": "",
