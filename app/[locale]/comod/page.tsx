@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import {
+  BadgeCheck,
   BookOpen,
   Inbox,
   Phone,
@@ -41,6 +42,7 @@ export default async function ComodHomePage({ params }: Props) {
 
   const tiles = [
     { key: 'admission', href: `/${locale}/comod/admission`, Icon: Inbox },
+    { key: 'artisans', href: `/${locale}/comod/artisans`, Icon: BadgeCheck },
     { key: 'residents', href: `/${locale}/comod/residents`, Icon: Users },
     { key: 'moderation', href: `/${locale}/comod/moderation`, Icon: ShieldAlert },
     { key: 'guide', href: `/${locale}/comod/admin/guide`, Icon: BookOpen },
