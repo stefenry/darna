@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "darna-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev:webpack"],
+      "port": 3000
+    }
+  ]
+}
