@@ -31,6 +31,7 @@ import { requireResident } from '@/lib/auth/require-resident';
 import { resolveUniqueSlug } from '@/lib/slug/resolve';
 import { generateConsentToken } from '@/lib/consent/token';
 import { sendTransactionalSms, isSmsDisabled } from '@/lib/sms/send';
+import { sendTransactionalEmail } from '@/lib/email/send';
 import { checkLimit } from '@/lib/rate-limit';
 import { mapVisibilityToIdentityMode } from '@/lib/artisans/visibility';
 import { env } from '@/lib/env';
@@ -323,6 +324,40 @@ export async function createArtisan(
       request_id: null,
       payload: { errorCode: profileErr.code ?? 'unknown' },
     });
+  }
+
+  // Feedback bêta 2026-07-23 — notifie les co_mods qu'une fiche attend leur
+  // validation (file /comod/artisans). Non bloquant : un échec d'e-mail ne doit
+  // pas faire échouer la création (déjà commitée).
+  const queueUrl = `${siteOrigin()}/fr/comod/artisans`;
+  for (const comodEmail of env.server.INITIAL_COMOD_EMAILS) {
+    try {
+      const r = await sendTransactionalEmail({
+        template: 'artisan-notify-comod',
+        to: comodEmail,
+        locale: 'fr',
+        vars: { artisan_name: form.display_name_fr, queue_url: queueUrl },
+      });
+      if (!r.ok) {
+        log({
+          level: 'error',
+          event: 'artisan.comod_notify_failed',
+          user_id: userId,
+          residence_id: residenceId,
+          request_id: null,
+          payload: { errorCode: r.errorCode },
+        });
+      }
+    } catch (cause) {
+      log({
+        level: 'error',
+        event: 'artisan.comod_notify_threw',
+        user_id: userId,
+        residence_id: residenceId,
+        request_id: null,
+        payload: { error: cause instanceof Error ? cause.message : 'unknown' },
+      });
+    }
   }
 
   // Interim 2026-07-23 — envoi SMS coupé : la coche « accord de l'artisan »

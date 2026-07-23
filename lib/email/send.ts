@@ -33,6 +33,9 @@ import type { EscalationLegalVars } from './templates/escalation-legal.fr';
 import { suggestionNotifyComodTemplate as suggestionNotifyComodFr } from './templates/suggestion-notify-comod.fr';
 import { suggestionNotifyComodTemplate as suggestionNotifyComodAr } from './templates/suggestion-notify-comod.ar';
 import type { SuggestionNotifyComodVars } from './templates/suggestion-notify-comod.fr';
+import { artisanNotifyComodTemplate as artisanNotifyComodFr } from './templates/artisan-notify-comod.fr';
+import { artisanNotifyComodTemplate as artisanNotifyComodAr } from './templates/artisan-notify-comod.ar';
+import type { ArtisanNotifyComodVars } from './templates/artisan-notify-comod.fr';
 import { exportReadyTemplate as exportReadyFr } from './templates/export-ready.fr';
 import { exportReadyTemplate as exportReadyAr } from './templates/export-ready.ar';
 import type { ExportReadyVars } from './templates/export-ready.fr';
@@ -107,6 +110,12 @@ export type SendArgs =
       to: string;
       locale: 'fr' | 'ar';
       vars: SuggestionNotifyComodVars;
+    }
+  | {
+      template: 'artisan-notify-comod';
+      to: string;
+      locale: 'fr' | 'ar';
+      vars: ArtisanNotifyComodVars;
     }
   | {
       template: 'export-ready';
@@ -192,6 +201,10 @@ function renderTemplate(args: SendArgs) {
       return args.locale === 'ar'
         ? suggestionNotifyComodAr(args.vars)
         : suggestionNotifyComodFr(args.vars);
+    case 'artisan-notify-comod':
+      return args.locale === 'ar'
+        ? artisanNotifyComodAr(args.vars)
+        : artisanNotifyComodFr(args.vars);
     case 'export-ready':
       return args.locale === 'ar' ? exportReadyAr(args.vars) : exportReadyFr(args.vars);
   }
