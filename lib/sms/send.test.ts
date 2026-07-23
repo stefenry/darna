@@ -16,6 +16,33 @@ describe('consentSmsTemplate', () => {
   });
 });
 
+describe('sendTransactionalSms (provider=disabled)', () => {
+  it('n’envoie rien, ne loggue pas le body (token) et retourne errorCode=disabled', async () => {
+    const { env } = await import('@/lib/env');
+    const previous = env.server.SMS_PROVIDER;
+    env.server.SMS_PROVIDER = 'disabled';
+    const consoleSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    try {
+      const res = await sendTransactionalSms({
+        template: 'artisan-consent',
+        to: '+212600000001',
+        vars: { artisanName: 'Hassan', link: 'https://darna.app/consent/raw-token' },
+      });
+      expect(res).toEqual({
+        ok: false,
+        errorCode: 'disabled',
+        error: 'SMS sending disabled (SMS_PROVIDER)',
+      });
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(consoleSpy).not.toHaveBeenCalled();
+    } finally {
+      env.server.SMS_PROVIDER = previous;
+      vi.restoreAllMocks();
+    }
+  });
+});
+
 describe('sendTransactionalSms (provider=log par défaut en test)', () => {
   afterEach(() => vi.restoreAllMocks());
 

@@ -10,6 +10,7 @@ import type { Locale } from '@/lib/i18n/config';
 import { fetchArtisanForEdit } from '../data';
 import { fetchTags } from '@/app/[locale]/community/annuaire/data';
 import { EditArtisanForm } from './_components/edit-artisan-form';
+import { isSmsDisabled } from '@/lib/sms/send';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,7 +46,13 @@ export default async function EditArtisanPage({ params }: Props) {
       <header className="flex flex-col gap-2">
         <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
       </header>
-      <EditArtisanForm locale={locale} slug={slug} tags={tags} artisan={artisan} />
+      <EditArtisanForm
+        locale={locale}
+        slug={slug}
+        tags={tags}
+        artisan={artisan}
+        smsDisabled={isSmsDisabled()}
+      />
     </section>
   );
 }

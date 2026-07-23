@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { z } from 'zod';
 import type { Locale } from '@/lib/i18n/config';
+import { isSmsDisabled } from '@/lib/sms/send';
 import { ContactForm } from './_components/contact-form';
 
 export const dynamic = 'force-dynamic';
@@ -47,7 +48,15 @@ export default async function ArtisanContactPage({ searchParams }: Props) {
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">{t('pageTitle')}</h1>
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
-      <ContactForm />
+      {/* Interim 2026-07-23 — envoi SMS coupé : sans SMS ce flux ne peut pas
+          aboutir, on affiche l'indisponibilité plutôt qu'une fausse promesse. */}
+      {isSmsDisabled() ? (
+        <p role="status" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
+          {t('unavailable')}
+        </p>
+      ) : (
+        <ContactForm />
+      )}
     </main>
   );
 }

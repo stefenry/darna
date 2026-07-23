@@ -33,7 +33,11 @@ const serverSchema = z
     // (pivot 2026-07-22, WhatsApp Cloud API bloqué par restriction Meta) →
     // nécessite TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN + (MessagingServiceSid
     // OU From) ; sender ID alphanumérique Maroc à pré-enregistrer (~3 semaines).
-    SMS_PROVIDER: z.enum(['log', 'brevo', 'twilio']).default('log'),
+    // `disabled` (interim 2026-07-23) = AUCUN envoi, autorisé en prod
+    // (contrairement à `log` : rien n'est loggué, pas de leak de token) — la
+    // coche « accord de l'artisan » du formulaire + la validation co_mod
+    // portent le consentement en attendant l'activation Twilio.
+    SMS_PROVIDER: z.enum(['log', 'brevo', 'twilio', 'disabled']).default('log'),
     BREVO_SMS_SENDER: z.string().max(11).optional(),
     TWILIO_ACCOUNT_SID: z.string().startsWith('AC').optional(),
     TWILIO_AUTH_TOKEN: z.string().min(1).optional(),

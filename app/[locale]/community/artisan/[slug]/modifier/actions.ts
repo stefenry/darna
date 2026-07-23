@@ -25,7 +25,7 @@ import { diffTagKeys } from '@/lib/artisans/diff-tags';
 import { createClient } from '@/lib/supabase/server';
 import { requireResident } from '@/lib/auth/require-resident';
 import { generateConsentToken } from '@/lib/consent/token';
-import { sendTransactionalSms } from '@/lib/sms/send';
+import { sendTransactionalSms, isSmsDisabled } from '@/lib/sms/send';
 import { checkLimit } from '@/lib/rate-limit';
 import { routing } from '@/lib/i18n/routing';
 import { env } from '@/lib/env';
@@ -254,12 +254,25 @@ export async function updateArtisan(
     const smsTarget = rpcRow?.sms_target_phone ?? form.phone;
     const smsName = rpcRow?.sms_artisan_name ?? form.display_name_fr;
 
-    // P22 (D3) — template dédié `artisan-reconsent` (vs invitation initiale).
-    smsResult = await sendTransactionalSms({
-      template: 'artisan-reconsent',
-      to: smsTarget,
-      vars: { artisanName: smsName, link: `${siteOrigin()}/consent/${rawToken}` },
-    });
+    // Interim 2026-07-23 — envoi SMS coupé : la validation passe par un
+    // co_mod. smsResult reste null → pas de warning smsFailed côté UI.
+    if (isSmsDisabled()) {
+      log({
+        level: 'info',
+        event: 'artisan.edit_sms_skipped',
+        user_id: userId,
+        residence_id: roleCheck.residenceId,
+        request_id: null,
+        payload: { reason: 'sms_disabled' },
+      });
+    } else {
+      // P22 (D3) — template dédié `artisan-reconsent` (vs invitation initiale).
+      smsResult = await sendTransactionalSms({
+        template: 'artisan-reconsent',
+        to: smsTarget,
+        vars: { artisanName: smsName, link: `${siteOrigin()}/consent/${rawToken}` },
+      });
+    }
     reconsent = artisan.state === 'published' ? 'draft' : 'in_place';
   }
 

@@ -30,7 +30,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireResident } from '@/lib/auth/require-resident';
 import { resolveUniqueSlug } from '@/lib/slug/resolve';
 import { generateConsentToken } from '@/lib/consent/token';
-import { sendTransactionalSms } from '@/lib/sms/send';
+import { sendTransactionalSms, isSmsDisabled } from '@/lib/sms/send';
 import { checkLimit } from '@/lib/rate-limit';
 import { mapVisibilityToIdentityMode } from '@/lib/artisans/visibility';
 import { env } from '@/lib/env';
@@ -323,6 +323,21 @@ export async function createArtisan(
       request_id: null,
       payload: { errorCode: profileErr.code ?? 'unknown' },
     });
+  }
+
+  // Interim 2026-07-23 — envoi SMS coupé : la coche « accord de l'artisan »
+  // (gate CNDP du formulaire) + la validation co_mod (publier sans attendre le
+  // consentement) portent le flux. La fiche reste pending_consent comme avant.
+  if (isSmsDisabled()) {
+    log({
+      level: 'info',
+      event: 'artisan.create_sms_skipped',
+      user_id: userId,
+      residence_id: residenceId,
+      request_id: null,
+      payload: { reason: 'sms_disabled' },
+    });
+    return { ok: true, slug, display_name: form.display_name_fr };
   }
 
   // SMS magic-link (effet de bord post-commit). Review P5 — surface l'échec

@@ -24,7 +24,22 @@ function renderSms(args: SmsArgs): string {
   }
 }
 
+/**
+ * Interim 2026-07-23 — envoi SMS coupé (`SMS_PROVIDER=disabled`) en attendant
+ * l'activation Twilio. Les pages/actions s'en servent pour adapter la copy
+ * (aucune promesse de SMS) et sauter l'envoi.
+ */
+export function isSmsDisabled(): boolean {
+  return env.server.SMS_PROVIDER === 'disabled';
+}
+
 export async function sendTransactionalSms(args: SmsArgs): Promise<SmsSendResult> {
+  // Défense en profondeur : les appelants sautent déjà l'envoi quand le
+  // provider est `disabled` — si l'un l'oublie, on ne tente rien et on ne
+  // loggue pas le body (il contient le token magic-link brut).
+  if (isSmsDisabled()) {
+    return { ok: false, errorCode: 'disabled', error: 'SMS sending disabled (SMS_PROVIDER)' };
+  }
   const body = renderSms(args); // FR-only au MVP (locale artisan inconnue)
   if (env.server.SMS_PROVIDER === 'twilio') {
     return sendSmsViaTwilio(args.to, body);

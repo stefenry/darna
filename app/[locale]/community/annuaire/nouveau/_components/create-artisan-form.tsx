@@ -17,7 +17,16 @@ type Tag = { key: string; label: string };
 const INPUT_CLASS =
   'min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
 
-export function CreateArtisanForm({ locale, tags }: { locale: string; tags: Tag[] }) {
+export function CreateArtisanForm({
+  locale,
+  tags,
+  smsDisabled = false,
+}: {
+  locale: string;
+  tags: Tag[];
+  /** Interim 2026-07-23 — envoi SMS coupé : copy sans promesse de SMS. */
+  smsDisabled?: boolean;
+}) {
   const t = useTranslations('community.artisanCreate');
   // Espace large `errors.*` (couvre `errors.artisan.*` ET `errors.rate_limit`,
   // `errors.forbidden` etc.) — review 2026-06-18.
@@ -35,7 +44,9 @@ export function CreateArtisanForm({ locale, tags }: { locale: string; tags: Tag[
   if (state.ok) {
     return (
       <div role="status" className="flex flex-col gap-3 rounded-[14px] bg-accent-50 p-5">
-        <p className="text-base text-neutral-900">{t('success', { name: state.display_name })}</p>
+        <p className="text-base text-neutral-900">
+          {t(smsDisabled ? 'successSmsDisabled' : 'success', { name: state.display_name })}
+        </p>
         {state.smsFailed && (
           <p role="alert" className="rounded-[10px] bg-bg-soft px-3 py-2 text-sm text-warning">
             {t('smsFailedWarning')}

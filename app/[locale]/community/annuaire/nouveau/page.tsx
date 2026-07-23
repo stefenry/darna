@@ -8,6 +8,7 @@ import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
 import { fetchTags } from '../data';
 import { CreateArtisanForm } from './_components/create-artisan-form';
+import { isSmsDisabled } from '@/lib/sms/send';
 import { log } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
@@ -52,14 +53,16 @@ export default async function NouveauArtisanPage({ params }: Props) {
     <section className="flex flex-col gap-6 pb-12">
       <header className="flex flex-col gap-2">
         <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
-        <p className="text-base text-neutral-700">{t('intro')}</p>
+        <p className="text-base text-neutral-700">
+          {t(isSmsDisabled() ? 'introSmsDisabled' : 'intro')}
+        </p>
       </header>
       {tags.length === 0 ? (
         <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
           {t('tagsUnavailable')}
         </p>
       ) : (
-        <CreateArtisanForm locale={locale} tags={tags} />
+        <CreateArtisanForm locale={locale} tags={tags} smsDisabled={isSmsDisabled()} />
       )}
     </section>
   );
