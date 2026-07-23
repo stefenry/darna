@@ -5,9 +5,8 @@
 // fiche published. Danger Zone inline (phrase typée RETIRER, pattern 1.9) pour le
 // retrait. Deux `useActionState` distincts (édition / retrait).
 
-import { useActionState, useEffect, useId, useState } from 'react';
+import { useActionState, useId, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import type { ArtisanEditData } from '../../data';
 import { updateArtisan, retractArtisan } from '../actions';
@@ -219,13 +218,11 @@ export function EditArtisanForm({
 function RetractZone({ locale, slug }: { locale: string; slug: string }) {
   const t = useTranslations('community.artisanEdit');
   const tErr = useTranslations('errors');
-  const router = useRouter();
+  // La navigation post-retrait est portée par le redirect() SERVEUR de
+  // l'action (un router.replace client arrivait après le re-rendu notFound
+  // de /modifier) — ici on ne gère que les erreurs.
   const [state, formAction, isPending] = useActionState(retractArtisan, RETRACT_ARTISAN_INITIAL);
   const [confirm, setConfirm] = useState('');
-
-  useEffect(() => {
-    if (state.ok) router.replace(`/${locale}/community/annuaire`);
-  }, [state, router, locale]);
 
   const error = 'error' in state ? state.error : null;
   const errorKey = error?.message_key?.replace(/^errors\./, '') ?? null;

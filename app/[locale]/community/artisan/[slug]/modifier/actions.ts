@@ -13,6 +13,7 @@
 // `state='refused'` bloqué AVANT toute écriture (P6).
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import {
   zEditArtisanForm,
   mapEditArtisanFieldError,
@@ -459,5 +460,9 @@ export async function retractArtisan(
 
   revalidatePath(`/${locale}/community/annuaire`);
   revalidatePath(`/${locale}/community/artisan/${slug}`);
-  return { ok: true };
+  // Feedback bêta 2026-07-23 — redirect côté SERVEUR : retourner {ok:true}
+  // laissait la réponse de l'action re-rendre /modifier, dont la data ne
+  // trouve plus la fiche soft-deleted → notFound() (404 sur /modifier#retrait)
+  // avant que le router.replace client ne puisse tourner.
+  redirect(`/${locale}/community/annuaire`);
 }

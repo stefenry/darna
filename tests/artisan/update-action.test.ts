@@ -101,8 +101,14 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }));
 
-import { updateArtisan } from '@/app/[locale]/community/artisan/[slug]/modifier/actions';
-import { UPDATE_ARTISAN_INITIAL } from '@/app/[locale]/community/artisan/[slug]/modifier/state';
+import {
+  updateArtisan,
+  retractArtisan,
+} from '@/app/[locale]/community/artisan/[slug]/modifier/actions';
+import {
+  UPDATE_ARTISAN_INITIAL,
+  RETRACT_ARTISAN_INITIAL,
+} from '@/app/[locale]/community/artisan/[slug]/modifier/state';
 
 const USER = { id: 'user-1' };
 
@@ -179,5 +185,42 @@ describe('updateArtisan', () => {
     const res = await updateArtisan(UPDATE_ARTISAN_INITIAL, fd({}));
     expect(res.ok).toBe(false);
     if (!res.ok && 'error' in res) expect(res.error.code).toBe('unauthenticated');
+  });
+});
+
+// Feedback bêta 2026-07-23 — après un retrait, l'action redirige côté SERVEUR
+// vers l'annuaire. L'ancien retour {ok:true} laissait la réponse de l'action
+// re-rendre /modifier, dont la data ne trouve plus la fiche soft-deleted →
+// notFound() s'affichait (404 sur /modifier#retrait) avant que le
+// router.replace client ne puisse tourner.
+describe('retractArtisan', () => {
+  function retractFd(confirm = 'RETIRER'): FormData {
+    const f = new FormData();
+    f.set('slug', 'hassan-plombier');
+    f.set('locale', 'fr');
+    f.set('confirm', confirm);
+    return f;
+  }
+
+  it('retrait réussi → redirect server-side vers l’annuaire (jamais de 404 /modifier)', async () => {
+    await expect(retractArtisan(RETRACT_ARTISAN_INITIAL, retractFd())).rejects.toMatchObject({
+      digest: expect.stringContaining('/fr/community/annuaire'),
+    });
+    expect(calls.rpcs[0]?.name).toBe('retract_artisan');
+  });
+
+  it('phrase de confirmation invalide → erreur, pas de RPC ni redirect', async () => {
+    const res = await retractArtisan(RETRACT_ARTISAN_INITIAL, retractFd('SUPPRIMER'));
+    expect(res.ok).toBe(false);
+    if (!res.ok && 'error' in res) expect(res.error.code).toBe('validation');
+    expect(calls.rpcs).toHaveLength(0);
+  });
+
+  it('retrait d’une fiche d’autrui → forbidden, pas de RPC', async () => {
+    cfg.artisanRow!.created_by = 'someone-else';
+    const res = await retractArtisan(RETRACT_ARTISAN_INITIAL, retractFd());
+    expect(res.ok).toBe(false);
+    if (!res.ok && 'error' in res) expect(res.error.code).toBe('forbidden');
+    expect(calls.rpcs).toHaveLength(0);
   });
 });
