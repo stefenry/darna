@@ -32,6 +32,8 @@ import { suggestionNotifyComodTemplate as suggestionFr } from '@/lib/email/templ
 import { suggestionNotifyComodTemplate as suggestionAr } from '@/lib/email/templates/suggestion-notify-comod.ar';
 import { exportReadyTemplate as exportReadyFr } from '@/lib/email/templates/export-ready.fr';
 import { exportReadyTemplate as exportReadyAr } from '@/lib/email/templates/export-ready.ar';
+import { artisanNotifyComodTemplate as artisanNotifyFr } from '@/lib/email/templates/artisan-notify-comod.fr';
+import { artisanNotifyComodTemplate as artisanNotifyAr } from '@/lib/email/templates/artisan-notify-comod.ar';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTpl = (vars: any) => { subject: string; htmlContent: string; textContent: string };
@@ -108,6 +110,12 @@ const CASES: { name: string; fr: AnyTpl; ar: AnyTpl; vars: unknown }[] = [
     fr: exportReadyFr,
     ar: exportReadyAr,
     vars: { download_url: 'https://darna.example/export.json' },
+  },
+  {
+    name: 'artisan-notify-comod',
+    fr: artisanNotifyFr,
+    ar: artisanNotifyAr,
+    vars: { artisan_name: 'Rachid Plombier', queue_url: 'https://darna.example/q' },
   },
 ];
 
