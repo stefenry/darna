@@ -3,7 +3,9 @@
 // (RPC security-invoker), sinon liste groupée par thème (RLS-scopée résidence).
 
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { PackageOpen } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
@@ -54,7 +56,22 @@ export default async function GuidePage({ params, searchParams }: Props) {
       {isSearching ? (
         <SearchBranch locale={locale} query={rawQ} errorLabel={tErr('fetch_failed')} />
       ) : (
-        <ListBranch locale={locale} errorLabel={tErr('fetch_failed')} />
+        <>
+          {/* Feedback bêta 2026-07-23 — accès PERMANENT au Pack accueil : la
+              bannière d'onboarding (accueil communautaire) disparaît après le
+              premier login ou un « Plus tard », et c'était le seul chemin. */}
+          <Link
+            href={`/${locale}/community/guide/pack-accueil`}
+            className="flex items-center gap-3 rounded-[14px] bg-accent-50 p-4 shadow-xs hover:bg-bg-soft"
+          >
+            <PackageOpen className="size-6 shrink-0 text-accent-600" aria-hidden />
+            <span className="flex flex-col">
+              <span className="text-base font-semibold text-neutral-900">{t('packTitle')}</span>
+              <span className="text-sm text-neutral-700">{t('packDescription')}</span>
+            </span>
+          </Link>
+          <ListBranch locale={locale} errorLabel={tErr('fetch_failed')} />
+        </>
       )}
     </section>
   );

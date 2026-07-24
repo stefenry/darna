@@ -331,6 +331,8 @@
     "guide": {
       "title": "",
       "intro": "",
+      "packTitle": "",
+      "packDescription": "",
       "empty": "",
       "search": {
         "label": "",
