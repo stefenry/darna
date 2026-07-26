@@ -42,9 +42,10 @@ import { submitSuggestion } from '@/app/[locale]/community/profil/parametres/sug
 import { SUGGESTION_INITIAL } from '@/app/[locale]/community/profil/parametres/suggestion/state';
 import { markSuggestionReviewed } from '@/app/[locale]/comod/suggestions/actions';
 
-function form(body: string): FormData {
+function form(body: string, signed?: 'on'): FormData {
   const fd = new FormData();
   fd.set('body', body);
+  if (signed) fd.set('signed', signed);
   return fd;
 }
 
@@ -63,12 +64,24 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('submitSuggestion', () => {
-  it('insère la suggestion (body seul) + notifie les co_mods', async () => {
+  it('insère la suggestion + notifie les co_mods', async () => {
     const res = await submitSuggestion(SUGGESTION_INITIAL, form('Ajouter un mode sombre'));
     expect(res).toEqual({ ok: true });
-    expect(insertSpy).toHaveBeenCalledWith({ body: 'Ajouter un mode sombre' });
+    expect(insertSpy).toHaveBeenCalledWith({ body: 'Ajouter un mode sombre', signed: false });
     // 2 co_mods stub (env.INITIAL_COMOD_EMAILS) notifiés.
     expect(sendEmailMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('checkbox absente → insert signed:false (anonyme, défaut sûr)', async () => {
+    const res = await submitSuggestion(SUGGESTION_INITIAL, form('Une idée'));
+    expect(res.ok).toBe(true);
+    expect(insertSpy).toHaveBeenCalledWith({ body: 'Une idée', signed: false });
+  });
+
+  it('checkbox cochée → insert signed:true', async () => {
+    const res = await submitSuggestion(SUGGESTION_INITIAL, form('Une idée', 'on'));
+    expect(res.ok).toBe(true);
+    expect(insertSpy).toHaveBeenCalledWith({ body: 'Une idée', signed: true });
   });
 
   it('refuse non authentifié', async () => {

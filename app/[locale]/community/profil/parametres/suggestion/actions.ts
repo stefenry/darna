@@ -38,11 +38,18 @@ export async function submitSuggestion(
   if (!rl.success) return { ok: false, code: 'rate_limited' };
 
   const raw = formData.get('body');
-  const parsed = zSuggestion.safeParse({ body: typeof raw === 'string' ? raw : '' });
+  const parsed = zSuggestion.safeParse({
+    body: typeof raw === 'string' ? raw : '',
+    // FormData.get renvoie null quand la case est décochée → zSuggestion en fait
+    // `false` (cf. lib/validation/suggestion.ts).
+    signed: formData.get('signed'),
+  });
   if (!parsed.success) return { ok: false, code: 'invalid' };
 
   const supabase = await createClient();
-  const { error } = await supabase.from('suggestions').insert({ body: parsed.data.body });
+  const { error } = await supabase
+    .from('suggestions')
+    .insert({ body: parsed.data.body, signed: parsed.data.signed });
   if (error) {
     log({
       level: 'error',
