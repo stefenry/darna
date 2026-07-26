@@ -7,7 +7,7 @@
 // `createAdminClient` (RPC `request_artisan_contact_link` est service_role).
 
 import { headers } from 'next/headers';
-import { zPhoneMaroc } from '@/lib/validation/phone-e164';
+import { zPhoneE164 } from '@/lib/validation/phone-e164';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { generateConsentToken } from '@/lib/consent/token';
 import { sendTransactionalSms, isSmsDisabled } from '@/lib/sms/send';
@@ -75,7 +75,7 @@ export async function requestArtisanContactLink(
   }
 
   // Zod silencieux : un format invalide ne révèle rien (AR38).
-  const parsed = zPhoneMaroc.safeParse(phoneRaw);
+  const parsed = zPhoneE164.safeParse(phoneRaw);
   if (!parsed.success) {
     await sleep(TIMING_EQUALIZE_MS);
     return GENERIC;

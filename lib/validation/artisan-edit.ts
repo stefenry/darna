@@ -3,7 +3,7 @@
 // sur les clés i18n `errors.artisan.*` existantes (path Zod seul lu — AR17).
 
 import { z } from 'zod';
-import { zPhoneMaroc } from './phone-e164';
+import { zPhoneE164 } from './phone-e164';
 import { sanitizeName } from './sanitize';
 import { PRICE_RELATIVE, HAS_INVOICE, MAX_TAG_KEYS, type ArtisanFieldErrorKey } from './artisan';
 
@@ -24,7 +24,7 @@ export const zEditArtisanForm = z.object({
     (v) => (typeof v === 'string' && v.trim() ? sanitizeName(v) : undefined),
     z.string().max(120).optional(),
   ),
-  phone: zPhoneMaroc,
+  phone: zPhoneE164,
   tag_keys: z.array(z.string().min(1).max(64)).min(1).max(MAX_TAG_KEYS),
   price_relative: z.enum(PRICE_RELATIVE).optional(),
   has_invoice: z.enum(HAS_INVOICE).optional(),

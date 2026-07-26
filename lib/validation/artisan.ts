@@ -2,7 +2,7 @@
 // `errors.artisan.*` (le path Zod seul est lu, jamais le message natif — AR17).
 
 import { z } from 'zod';
-import { zPhoneMaroc } from './phone-e164';
+import { zPhoneE164 } from './phone-e164';
 import { sanitizeName } from './sanitize';
 
 export const PRICE_RELATIVE = ['$', '$$', '$$$', '$$$$'] as const;
@@ -23,7 +23,7 @@ export const zCreateArtisanForm = z.object({
     (v) => (typeof v === 'string' && v.trim() ? sanitizeName(v) : undefined),
     z.string().max(120).optional(),
   ),
-  phone: zPhoneMaroc,
+  phone: zPhoneE164,
   // Review 2026-06-18 P1 — borner le nombre de tags. La validation que chaque
   // clé est un slug existant est faite côté action (lookup `tags` + check de
   // cardinalité — détection de keys forgées/typos).

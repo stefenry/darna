@@ -30,8 +30,21 @@ describe('zCreateArtisanForm', () => {
     expect(zCreateArtisanForm.safeParse({ ...VALID, tag_keys: [] }).success).toBe(false);
   });
 
-  it('rejette un téléphone non +212', () => {
-    expect(zCreateArtisanForm.safeParse({ ...VALID, phone: '0600000001' }).success).toBe(false);
+  // 2026-07-26 — la saisie s'est assouplie : autres pays autorisés, séparateurs
+  // tolérés, local marocain complété. Seul un numéro non conforme à E.164 est
+  // encore refusé.
+  it('accepte un numéro étranger (E.164 international)', () => {
+    expect(zCreateArtisanForm.safeParse({ ...VALID, phone: '+33612345678' }).success).toBe(true);
+  });
+
+  it('accepte un local marocain et le normalise en +212', () => {
+    const r = zCreateArtisanForm.safeParse({ ...VALID, phone: '06 00 00 00 01' });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.phone).toBe('+212600000001');
+  });
+
+  it('rejette un téléphone qui n’est pas un E.164 valide', () => {
+    expect(zCreateArtisanForm.safeParse({ ...VALID, phone: '12345' }).success).toBe(false);
   });
 
   it('rejette un commentaire > 500 caractères', () => {
