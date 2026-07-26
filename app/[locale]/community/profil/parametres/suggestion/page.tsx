@@ -38,9 +38,15 @@ export default async function SuggestionPage({ params }: Props) {
   const t = await getTranslations('suggestion');
   const supabase = await createClient();
   const [{ data: mine }, { data: profile }] = await Promise.all([
+    // `eq('user_id')` explicite, et pas seulement la RLS : les policies se
+    // combinent en OU, et `suggestions_co_mod_select_residence` ouvre TOUTE la
+    // résidence à un co_mod. Sans ce filtre, un co_mod voyait les suggestions de
+    // tout le monde sous le titre « Mes suggestions » (retour bêta 2026-07-26).
+    // La RLS dit ce qu'on a le DROIT de lire ; l'écran doit dire ce qu'il VEUT.
     supabase
       .from('suggestions')
       .select('id, body, state, created_at, signed')
+      .eq('user_id', guard.user.id)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20),
