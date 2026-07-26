@@ -129,7 +129,8 @@
       "first_name_required": "Indique ton prénom pour que les co-mods te reconnaissent.",
       "email_invalid": "Cet e-mail ne semble pas valide.",
       "cgu_required": "Tu dois accepter les conditions d'utilisation pour continuer.",
-      "duplicate_pending": "Une demande pour cet e-mail est déjà en file d'attente. Vérifie ta boîte mail."
+      "duplicate_pending": "Une demande pour cet e-mail est déjà en file d'attente. Vérifie ta boîte mail.",
+      "submit_failed": "Ta demande n'a pas pu être enregistrée. Réessaie dans un instant."
     },
     "comod": {
       "forbidden": "Cette action est réservée aux co-modérateurs.",
