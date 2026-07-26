@@ -1145,6 +1145,7 @@ export type Database = {
           deletion_reason: string | null;
           id: string;
           residence_id: string;
+          signed: boolean;
           state: Database['public']['Enums']['suggestion_state'];
           updated_at: string;
           user_id: string | null;
@@ -1157,6 +1158,7 @@ export type Database = {
           deletion_reason?: string | null;
           id?: string;
           residence_id?: string;
+          signed?: boolean;
           state?: Database['public']['Enums']['suggestion_state'];
           updated_at?: string;
           user_id?: string | null;
@@ -1169,6 +1171,7 @@ export type Database = {
           deletion_reason?: string | null;
           id?: string;
           residence_id?: string;
+          signed?: boolean;
           state?: Database['public']['Enums']['suggestion_state'];
           updated_at?: string;
           user_id?: string | null;
