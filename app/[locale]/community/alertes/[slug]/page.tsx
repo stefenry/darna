@@ -5,7 +5,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ArrowLeft } from 'lucide-react';
 import { routing } from '@/lib/i18n/routing';
 import type { Locale } from '@/lib/i18n/config';
-import { timeRemaining } from '@/lib/content/ephemeral';
+import { remainingLabel } from '@/lib/content/ephemeral';
 import { canonicalMetadata } from '@/lib/share/metadata';
 import { canonicalUrl } from '@/lib/share/canonical';
 import { ShareButton } from '@/components/content/share-button';
@@ -31,23 +31,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const res = await fetchAlertBySlug(locale, slug);
   if (res.kind !== 'found') return { robots: { index: false, follow: false } };
   return canonicalMetadata('alert', slug, { title: res.entry.title });
-}
-
-function remainingLabel(
-  t: (k: string, v?: Record<string, number>) => string,
-  expiresAt: string,
-): string {
-  const tr = timeRemaining(expiresAt, Date.now());
-  switch (tr.state) {
-    case 'days':
-      return t('remaining.days', { value: tr.value });
-    case 'hours':
-      return t('remaining.hours', { value: tr.value });
-    case 'soon':
-      return t('remaining.soon');
-    default:
-      return t('remaining.expired');
-  }
 }
 
 export default async function AlertDetailPage({ params }: Props) {

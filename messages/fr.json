@@ -621,7 +621,8 @@
         "annuaire": "Annuaire des artisans",
         "guide": "Guide de la résidence",
         "numeros": "Numéros utiles",
-        "alertes": "Alertes & bons plans",
+        "alertes": "Alertes",
+        "bonsPlans": "Bons plans",
         "suggestions": "Suggestions"
       }
     },
@@ -862,7 +863,7 @@
       "suggestTag": "Une compétence manque ? Suggérez-la"
     },
     "alertes": {
-      "title": "Alertes & bons plans",
+      "title": "Alertes",
       "intro": "Ce qui se passe en ce moment dans la résidence.",
       "publishAlert": "Publier une alerte",
       "publishTip": "Publier un bon plan",
@@ -916,6 +917,13 @@
       }
     },
     "bonsPlans": {
+      "list": {
+        "title": "Bons plans",
+        "intro": "Les opportunités partagées par tes voisins.",
+        "publish": "Publier un bon plan",
+        "empty": "Aucun bon plan en ce moment. Et si tu partageais le premier ?",
+        "emptyCta": "Publier un bon plan"
+      },
       "categories": {
         "offre_voisin": "Offre voisin",
         "pret_objet": "Prêt d'objet",
