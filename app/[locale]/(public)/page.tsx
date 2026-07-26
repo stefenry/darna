@@ -1,14 +1,36 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { Link } from '@/lib/i18n/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { resolveRedirect } from '@/lib/auth/redirect-by-state';
+import { homeCta } from '@/lib/auth/home-cta';
+import type { routing } from '@/lib/i18n/routing';
+import { HomeActions } from './_components/home-actions';
+
+type Locale = (typeof routing.locales)[number];
 
 type Props = {
   params: Promise<{ locale: string }>;
 };
 
+// L'accueil est le `start_url` de la PWA : il doit reconnaître la session à chaque
+// lancement, donc rendu dynamique (le proxy résout déjà la session sur cette route).
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations('home');
+
+  // Session : on ne garde que ce qu'il faut pour choisir le bon CTA. Aucune
+  // redirection — décision produit : la page de présentation reste montrable même
+  // connecté.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const destination = user
+    ? await resolveRedirect({ supabase, user, locale: locale as Locale, nextParam: null })
+    : null;
+  const cta = homeCta(destination, locale);
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
@@ -17,20 +39,7 @@ export default async function HomePage({ params }: Props) {
         <p className="mt-3 text-lg text-neutral-500">{t('subtitle')}</p>
         <p className="mt-4 text-base text-neutral-400">{t('description')}</p>
 
-        <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
-          <Link
-            href="/admission"
-            className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-medium text-white shadow-sm transition-colors hover:bg-accent-600"
-          >
-            {t('cta_admission')}
-          </Link>
-          <Link
-            href="/install"
-            className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-300"
-          >
-            {t('cta_install')}
-          </Link>
-        </div>
+        <HomeActions locale={locale} cta={cta} signedIn={Boolean(user)} />
       </div>
     </main>
   );
