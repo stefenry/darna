@@ -11,6 +11,11 @@ import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { toAxisScores, RATING_AXES, type AxisScore, type RatingAxis } from '@/lib/artisans/rating';
 import { pseudonymSuffix } from '@/lib/artisans/pseudonym';
+import {
+  authorLabelFromIdentityMode,
+  resolveNeighbourLabels,
+  type AuthorLabel,
+} from '@/lib/content/author-label';
 import type { Locale } from '@/lib/i18n/config';
 import type { Database } from '@/lib/supabase/types.generated';
 
@@ -28,8 +33,13 @@ export type ArtisanDetail = {
   tags: { key: string; label: string }[];
   axes: AxisScore[];
   isOwner: boolean;
+  /** Libellé du voisin créateur (FR16). `created_by` n'est JAMAIS sérialisé. */
+  createdByLabel: AuthorLabel;
   state: ArtisanState;
 };
+
+/** Scope HMAC du pseudonyme des créateurs de fiches (stable par voisin). */
+export const ARTISAN_PSEUDONYM_SCOPE = 'artisans';
 
 export type ArtisanComment = {
   id: string;
@@ -118,6 +128,16 @@ async function _fetchArtisanBySlug(locale: Locale, slug: string): Promise<FetchA
     .map((tag) => ({ key: tag.key, label: pickLocale(locale, tag.label_fr, tag.label_ar) }))
     .sort((a, b) => a.label.localeCompare(b.label, locale));
 
+  // Créateur affiché selon la préférence globale du voisin (même sémantique que
+  // les bons plans). Admin client server-only : un résident ne peut pas lire le
+  // display_name d'un autre via RLS.
+  const creatorLabels = await resolveNeighbourLabels([row.created_by], {
+    scope: ARTISAN_PSEUDONYM_SCOPE,
+  });
+  const createdByLabel = authorLabelFromIdentityMode(
+    row.created_by ? creatorLabels.get(row.created_by) : undefined,
+  );
+
   return {
     kind: 'found',
     artisan: {
@@ -130,6 +150,7 @@ async function _fetchArtisanBySlug(locale: Locale, slug: string): Promise<FetchA
       tags,
       axes: toAxisScores(agg ?? null),
       isOwner: uid != null && row.created_by === uid,
+      createdByLabel,
       state: row.state,
     },
   };

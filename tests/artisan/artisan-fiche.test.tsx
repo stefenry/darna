@@ -46,6 +46,7 @@ const ARTISAN: ArtisanDetail = {
     { axis: 'urgences', average: null, count: 0 },
   ],
   isOwner: false,
+  createdByLabel: { authorName: 'Nora', pseudonymSuffix: null },
 };
 
 describe('ArtisanHeader', () => {
@@ -60,6 +61,32 @@ describe('ArtisanHeader', () => {
   it('numéro non E.164 → pas de bouton WhatsApp (plutôt qu’un lien cassé)', () => {
     wrap(<ArtisanHeader locale="fr" artisan={{ ...ARTISAN, phoneE164: '0600000001' }} />);
     expect(screen.queryByRole('link', { name: /WhatsApp/ })).toBeNull();
+  });
+
+  it('créateur en identité affichée → nom', () => {
+    wrap(<ArtisanHeader locale="fr" artisan={ARTISAN} />);
+    expect(screen.getByText('Fiche ajoutée par Nora')).toBeDefined();
+  });
+
+  it('créateur en pseudo → pseudonyme, jamais le nom', () => {
+    wrap(
+      <ArtisanHeader
+        locale="fr"
+        artisan={{ ...ARTISAN, createdByLabel: { authorName: null, pseudonymSuffix: 'A3F2' } }}
+      />,
+    );
+    expect(screen.getByText('Fiche ajoutée par Voisin #A3F2')).toBeDefined();
+    expect(screen.queryByText(/Nora/)).toBeNull();
+  });
+
+  it('créateur purgé RGPD → « voisin supprimé »', () => {
+    wrap(
+      <ArtisanHeader
+        locale="fr"
+        artisan={{ ...ARTISAN, createdByLabel: { authorName: null, pseudonymSuffix: null } }}
+      />,
+    );
+    expect(screen.getByText('Fiche ajoutée par un voisin supprimé')).toBeDefined();
   });
 
   it('affiche nom, prix, tous les tags et badge facture', () => {

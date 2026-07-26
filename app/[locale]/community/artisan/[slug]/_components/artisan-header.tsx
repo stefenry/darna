@@ -56,6 +56,15 @@ export function ArtisanHeader({ locale, artisan }: { locale: string; artisan: Ar
         )}
       </div>
 
+      {/* Qui a ajouté la fiche — nom ou pseudonyme selon la préférence du voisin. */}
+      <p className="text-sm text-neutral-500">
+        {artisan.createdByLabel.authorName
+          ? t('createdByNamed', { name: artisan.createdByLabel.authorName })
+          : artisan.createdByLabel.pseudonymSuffix
+            ? t('createdByPseudonym', { suffix: artisan.createdByLabel.pseudonymSuffix })
+            : t('createdByDeleted')}
+      </p>
+
       {artisan.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {artisan.tags.map((tag) => (
