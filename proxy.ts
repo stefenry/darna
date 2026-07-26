@@ -1,13 +1,22 @@
 import createIntlMiddleware from 'next-intl/middleware';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import type { User } from '@supabase/supabase-js';
 import { routing } from '@/lib/i18n/routing';
 import { env } from '@/lib/env';
 import { detectLocale } from '@/lib/i18n/detect-locale';
+import { needsProactiveRefresh, readSessionCookie } from '@/lib/auth/session-cookie';
 import { log } from '@/lib/logger';
 
 const intlMiddleware = createIntlMiddleware(routing);
+
+// Marge de rafraîchissement anticipé. L'access token vit 1 h (`jwt_expiry`) ;
+// dès qu'il lui reste moins que cette marge, on le renouvelle ICI. C'est le
+// cœur du fix de persistance : le proxy est le seul endroit de l'app où un
+// token pivoté est réellement persisté (`cookies().set()` throw dans un Server
+// Component, cf. le catch de lib/supabase/server.ts). La marge est plus large
+// que celle d'auth-js (90 s) pour qu'un rendu RSC déclenché juste après le
+// proxy ne tombe jamais lui-même sur une session à rafraîchir.
+const SESSION_REFRESH_MARGIN_SECONDS = 5 * 60;
 
 // Word-boundary + supported-locale anchor. Without it `/profilepublic`,
 // `/community-news`, `/admin-help` would match, and `/zz/community` (unsupported
@@ -42,15 +51,45 @@ function copyCookies(from: NextResponse, to: NextResponse) {
   }
 }
 
-// Supabase SSR recommended pattern (Next 16):
-// always reconstruct `NextResponse.next({ request })` when cookies are written,
-// so the freshly written cookies travel with the response — even when we end up
-// returning a redirect or a 403.
-async function refreshSupabaseSession(request: NextRequest): Promise<{
-  user: User | null;
+// Identité minimale nécessaire aux gardes du proxy. Volontairement pas un
+// `User` complet : selon le chemin emprunté on dispose soit du user renvoyé par
+// getUser(), soit des claims du JWT vérifié localement.
+type SessionIdentity = { userId: string; role: string | null };
+
+/**
+ * Résout la session pour cette requête et renvoie la réponse porteuse des
+ * cookies éventuellement rafraîchis.
+ *
+ * Trois chemins, du moins cher au plus cher :
+ *
+ * 1. Aucun cookie de session → visiteur anonyme, zéro appel réseau (avant, on
+ *    payait un getUser() même déconnecté).
+ * 2. Access token encore valide → `getClaims()` vérifie la signature ES256
+ *    localement (JWKS mis en cache au niveau du module par auth-js) : zéro
+ *    appel réseau lui aussi.
+ * 3. Access token expiré ou proche de l'expiration → `getUser()`, qui
+ *    déclenche le refresh et la rotation ; le Set-Cookie part avec la réponse.
+ *
+ * Le point 3 est ce qui manquait : les requêtes RSC/prefetch étaient exclues du
+ * matcher, donc le premier à constater l'expiration était un Server Component,
+ * dont le token pivoté est irrécupérable → session révoquée au bout du
+ * `refresh_token_reuse_interval` et reconnexion quotidienne (PWA iOS en tête).
+ *
+ * Compromis assumé sur le point 2 : entre deux refresh (≤ 1 h), le proxy fait
+ * confiance à un JWT valide et non expiré, sans rejouer la révocation
+ * côté serveur. Les gardes autoritaires restent `requireResident` /
+ * `requireComod` (getUser() réseau dans les layouts) et la RLS.
+ */
+async function resolveSession(request: NextRequest): Promise<{
+  identity: SessionIdentity | null;
   response: NextResponse;
 }> {
   let supabaseResponse = NextResponse.next({ request });
+
+  const sessionState = readSessionCookie(request.cookies.getAll());
+  if (sessionState.kind === 'absent') {
+    return { identity: null, response: supabaseResponse };
+  }
 
   const supabase = createServerClient(
     env.client.NEXT_PUBLIC_SUPABASE_URL,
@@ -60,6 +99,10 @@ async function refreshSupabaseSession(request: NextRequest): Promise<{
         getAll() {
           return request.cookies.getAll();
         },
+        // Supabase SSR recommended pattern (Next 16): always reconstruct
+        // `NextResponse.next({ request })` when cookies are written, so the
+        // freshly written cookies travel with the response — even when we end
+        // up returning a redirect or a 403.
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
@@ -71,9 +114,80 @@ async function refreshSupabaseSession(request: NextRequest): Promise<{
     },
   );
 
+  const mustRefresh = needsProactiveRefresh(
+    sessionState,
+    Math.floor(Date.now() / 1000),
+    SESSION_REFRESH_MARGIN_SECONDS,
+  );
+
   try {
-    const { data } = await supabase.auth.getUser();
-    return { user: data.user ?? null, response: supabaseResponse };
+    if (mustRefresh) {
+      const { data, error } = await supabase.auth.getUser();
+      const user = data.user ?? null;
+
+      if (!user) {
+        // Observabilité : cookie de session présent mais refresh refusé
+        // (refresh token déjà consommé / révoqué). C'est LE symptôme des
+        // reconnexions quotidiennes ; sans ce log il est invisible côté serveur
+        // (l'utilisateur est juste redirigé vers /admission).
+        log({
+          level: 'warn',
+          event: 'auth.session_rejected',
+          user_id: null,
+          residence_id: null,
+          request_id: null,
+          payload: {
+            phase: 'refresh',
+            errorCode: error?.code ?? 'unknown',
+            errorName: error?.name ?? 'unknown',
+            errorStatus: error?.status ?? null,
+          },
+        });
+        return { identity: null, response: supabaseResponse };
+      }
+
+      log({
+        level: 'info',
+        event: 'auth.session_refreshed_by_proxy',
+        user_id: user.id,
+        residence_id: null,
+        request_id: null,
+        payload: {
+          reason: sessionState.kind === 'unreadable' ? 'unreadable_cookie' : 'near_expiry',
+        },
+      });
+
+      return {
+        identity: { userId: user.id, role: user.app_metadata?.role ?? null },
+        response: supabaseResponse,
+      };
+    }
+
+    const { data, error } = await supabase.auth.getClaims();
+    const claims = data?.claims ?? null;
+
+    if (!claims) {
+      log({
+        level: 'warn',
+        event: 'auth.session_rejected',
+        user_id: null,
+        residence_id: null,
+        request_id: null,
+        payload: {
+          phase: 'verify',
+          errorCode: error?.code ?? 'unknown',
+          errorName: error?.name ?? 'unknown',
+          errorStatus: error?.status ?? null,
+        },
+      });
+      return { identity: null, response: supabaseResponse };
+    }
+
+    const role = claims.app_metadata?.role;
+    return {
+      identity: { userId: claims.sub, role: typeof role === 'string' ? role : null },
+      response: supabaseResponse,
+    };
   } catch (cause) {
     log({
       level: 'error',
@@ -85,7 +199,7 @@ async function refreshSupabaseSession(request: NextRequest): Promise<{
         errorName: cause instanceof Error ? cause.name : 'unknown',
       },
     });
-    return { user: null, response: supabaseResponse };
+    return { identity: null, response: supabaseResponse };
   }
 }
 
@@ -95,12 +209,13 @@ export async function proxy(request: NextRequest) {
   // 1. Locale handling (next-intl) — may return a NextResponse.redirect.
   const intlResponse = intlMiddleware(request);
 
-  // 2. Refresh Supabase session and pick up updated cookies on supabaseResponse.
-  const { user, response: supabaseResponse } = await refreshSupabaseSession(request);
+  // 2. Resolve/refresh the Supabase session; supabaseResponse carries any
+  //    rotated cookie.
+  const { identity, response: supabaseResponse } = await resolveSession(request);
 
   // 3. Auth guards for protected routes.
   if (isProtectedRoute(pathname)) {
-    if (!user) {
+    if (!identity) {
       const locale = detectLocale(request);
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = `/${locale}/admission`;
@@ -109,7 +224,7 @@ export async function proxy(request: NextRequest) {
       return redirectResponse;
     }
 
-    if (isComodRoute(pathname) && user.app_metadata?.role !== CO_MOD_ROLE) {
+    if (isComodRoute(pathname) && identity.role !== CO_MOD_ROLE) {
       // NFR21 — 403 avec corps localisé (story 1.8). Le statut HTTP 403 est
       // conservé ; le message est minimal (une page React 403 riche reste
       // différée à 1.10). Une garde server-side requireComod() double cette
@@ -143,16 +258,19 @@ export const config = {
     {
       source:
         '/((?!_next/static|_next/image|favicon.ico|fonts/|icons/|install/|og/|manifest.webmanifest|sw.js|robots.txt|sitemap.xml|api/|auth/|consent/|respond/|artisan/contact).*)',
-      // Story 1.10a (deferred 1.4 #58) — skip les requêtes RSC/prefetch :
-      // évite un appel Supabase getUser() à chaque fetch RSC client-side
-      // (latence + risque de boucle redirect). Les soft-navigations restent
-      // gardées par les layouts (requireComod / requireResident, défense en
-      // profondeur) ; les chargements complets (sans header RSC) passent par
-      // le proxy. Le refresh de session se fait aux chargements complets.
-      missing: [
-        { type: 'header', key: 'RSC' },
-        { type: 'header', key: 'Next-Router-Prefetch' },
-      ],
+      // Les requêtes RSC/prefetch NE SONT PLUS exclues du matcher (elles
+      // l'étaient depuis la story 1.10a / deferred 1.4 #58). Les exclure
+      // laissait le refresh de session se produire à l'intérieur d'un Server
+      // Component, où le token pivoté est perdu → session morte et reconnexion
+      // quotidienne.
+      //
+      // NB : on ne peut PAS distinguer une requête RSC ici — Next supprime les
+      // FLIGHT_HEADERS (RSC, Next-Router-Prefetch…) avant d'appeler le proxy
+      // (cf. next/dist/server/web/adapter.js, « Headers should only be stripped
+      // for middleware »). L'objectif latence de 1.10a est donc tenu autrement :
+      // resolveSession ne fait aucun appel réseau tant que l'access token est
+      // valide (vérification ES256 locale), et un seul par heure et par
+      // utilisateur au moment du refresh.
     },
   ],
 };

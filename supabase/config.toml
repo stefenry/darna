@@ -167,7 +167,20 @@ jwt_expiry = 3600
 enable_refresh_token_rotation = true
 # Allows refresh tokens to be reused after expiry, up to the specified interval in seconds.
 # Requires enable_refresh_token_rotation = true.
-refresh_token_reuse_interval = 10
+#
+# 30 s (au lieu des 10 s par défaut) — fix persistance de session. Avec la
+# rotation, deux requêtes concurrentes qui présentent le même refresh token
+# au-delà de cet intervalle font révoquer la session (« Already Used ») : c'est
+# le cas nominal sur réseau mobile dégradé et à la reprise d'une PWA iOS, qui
+# rejoue plusieurs requêtes en parallèle avec le cookie d'avant. 30 s absorbe
+# ces courses sans allonger significativement la fenêtre de rejeu d'un token
+# volé (le token pivoté reste à usage unique passé l'intervalle).
+#
+# ⚠ config.toml ne s'applique QU'EN LOCAL : `supabase db push` ne pousse que les
+# migrations. À répliquer dans le dashboard Supabase Cloud
+# (Authentication → Sessions → Refresh token reuse interval), où il faut aussi
+# vérifier que « Time-box user sessions » et « Inactivity timeout » sont vides.
+refresh_token_reuse_interval = 30
 # Signup client-side désactivé : tous les nouveaux comptes passent par
 # auth.admin.createUser côté Server Action service_role (Story 1.7 demandeur,
 # Story 1.6/1.8 invite co-mod). Magic-link via signInWithOtp continue à marcher
