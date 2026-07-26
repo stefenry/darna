@@ -86,6 +86,18 @@ describe('ArtisanCard', () => {
     expect(article.querySelectorAll(':scope > *').length).toBe(4);
   });
 
+  it('les 2 jauges sont côte à côte, pas empilées (2e passe de compactage)', () => {
+    const { container } = wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
+    const [first, second] = screen.getAllByRole('meter');
+    const row = first?.parentElement as HTMLElement;
+    expect(row.className).toContain('grid-cols-2');
+    expect(row).toBe(second?.parentElement);
+    // Marges resserrées : plus de p-4/gap-3 sur la carte.
+    const article = container.querySelector('article') as HTMLElement;
+    expect(article.className).toContain('p-3');
+    expect(article.className).toContain('gap-2');
+  });
+
   it('prix et badge facture sur la même ligne meta que le métier', () => {
     wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
     const meta = screen.getByText('Plomberie').closest('div') as HTMLElement;
