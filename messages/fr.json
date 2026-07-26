@@ -1195,6 +1195,8 @@
     "back": "Retour aux paramètres",
     "label": "Ta suggestion",
     "placeholder": "Décris ton idée…",
+    "signLabel": "Signer avec mon nom",
+    "signHint": "Les co-mods verront ton nom et ta villa. Sinon, ta suggestion reste anonyme.",
     "submit": "Envoyer",
     "submitting": "Envoi…",
     "ack": "Merci, ton retour a été transmis aux co-mods.",
@@ -1207,15 +1209,19 @@
     "history": {
       "title": "Mes suggestions",
       "empty": "Tu n’as pas encore envoyé de suggestion.",
+      "signedBadge": "Signée",
+      "anonymousBadge": "Anonyme",
       "stateNew": "En attente",
       "stateReviewed": "Lue par les co-mods"
     },
     "comod": {
       "title": "Suggestions",
-      "intro": "Les suggestions d’évolution partagées par les voisins. Auteur pseudonymisé.",
+      "intro": "Les suggestions d’évolution partagées par les voisins. Auteur pseudonymisé, sauf si le voisin a signé.",
       "empty": "Aucune suggestion pour l’instant.",
       "markRead": "Marquer comme lue",
       "author": "Voisin #{suffix}",
+      "authorNamed": "{name} — villa {villa}",
+      "authorNamedNoVilla": "{name}",
       "authorDeleted": "Voisin supprimé",
       "stateReviewed": "Lue"
     }

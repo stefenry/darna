@@ -1,13 +1,18 @@
 // Story 6.5 (FR43c) — espace co_mod « Suggestions ». Toutes les suggestions de la
-// résidence (RLS co_mod_select_residence), auteur PSEUDONYMISÉ dans l'UI (réduire
-// la pression sociale), action « Marquer comme lue ». JAMAIS public, aucun vote.
+// résidence (RLS co_mod_select_residence), action « Marquer comme lue ». JAMAIS
+// public, aucun vote.
+//
+// Auteur pseudonymisé par défaut (réduire la pression sociale) — SAUF si le voisin
+// a coché « Signer avec mon nom » à l'envoi : `suggestions.signed` figé sur la
+// ligne, cf. lib/content/suggestion-author.ts.
 
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { routing } from '@/lib/i18n/routing';
 import { createClient } from '@/lib/supabase/server';
-import { pseudonymSuffix } from '@/lib/artisans/pseudonym';
+import { resolveNeighbourLabels } from '@/lib/content/author-label';
+import { suggestionAuthorLabel, SUGGESTION_PSEUDONYM_SCOPE } from '@/lib/content/suggestion-author';
 import { MarkReviewedButton } from './_components/mark-reviewed-button';
 
 export const dynamic = 'force-dynamic';
@@ -40,12 +45,18 @@ export default async function ComodSuggestionsPage({ params }: Props) {
   const supabase = await createClient();
   const { data } = await supabase
     .from('suggestions')
-    .select('id, body, state, created_at, user_id')
+    .select('id, body, state, created_at, user_id, signed')
     .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .limit(100);
 
   const items = data ?? [];
+  // 1 requête admin batch pour tout l'écran ; `user_id` ne quitte pas le serveur,
+  // seul le libellé résolu part au client.
+  const labels = await resolveNeighbourLabels(
+    items.map((s) => s.user_id),
+    { scope: SUGGESTION_PSEUDONYM_SCOPE },
+  );
 
   return (
     <section className="flex flex-col gap-6">
@@ -61,8 +72,18 @@ export default async function ComodSuggestionsPage({ params }: Props) {
       ) : (
         <ul className="flex flex-col gap-3">
           {items.map((s) => {
-            const suffix = pseudonymSuffix(s.user_id, 'suggestions');
-            const author = suffix ? t('author', { suffix }) : t('authorDeleted');
+            const resolved = suggestionAuthorLabel(
+              s.signed,
+              s.user_id ? labels.get(s.user_id) : undefined,
+            );
+            const author =
+              resolved.kind === 'deleted'
+                ? t('authorDeleted')
+                : resolved.kind === 'pseudonym'
+                  ? t('author', { suffix: resolved.suffix })
+                  : resolved.villa === null
+                    ? t('authorNamedNoVilla', { name: resolved.name })
+                    : t('authorNamed', { name: resolved.name, villa: resolved.villa });
             return (
               <li
                 key={s.id}
