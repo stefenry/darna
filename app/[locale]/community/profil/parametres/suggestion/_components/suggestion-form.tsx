@@ -10,7 +10,7 @@ import { SUGGESTION_MAXLEN } from '@/lib/validation/suggestion';
 import { submitSuggestion, type SubmitSuggestionState } from '../actions';
 import { SUGGESTION_INITIAL } from '../state';
 
-export function SuggestionForm() {
+export function SuggestionForm({ defaultSigned }: { defaultSigned: boolean }) {
   const t = useTranslations('suggestion');
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -40,6 +40,23 @@ export function SuggestionForm() {
           placeholder={t('placeholder')}
           className="rounded-[10px] bg-bg-soft px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
         />
+      </label>
+
+      {/* Choix par suggestion, pré-rempli depuis profiles.identity_mode et FIGÉ à
+          l'envoi côté serveur : changer sa préférence plus tard ne dé-anonymise
+          pas les suggestions déjà envoyées. `defaultChecked` (non contrôlé) pour
+          que le reset() du succès revienne bien sur la valeur par défaut. */}
+      <label className="flex items-start gap-3">
+        <input
+          type="checkbox"
+          name="signed"
+          defaultChecked={defaultSigned}
+          className="mt-0.5 size-5 shrink-0 rounded-sm accent-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+        />
+        <span className="flex flex-col gap-0.5">
+          <span className="text-sm font-medium text-neutral-700">{t('signLabel')}</span>
+          <span className="text-xs text-neutral-500">{t('signHint')}</span>
+        </span>
       </label>
 
       <div aria-live="polite" className="min-h-5 text-sm">

@@ -37,12 +37,17 @@ export default async function SuggestionPage({ params }: Props) {
 
   const t = await getTranslations('suggestion');
   const supabase = await createClient();
-  const { data: mine } = await supabase
-    .from('suggestions')
-    .select('id, body, state, created_at')
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-    .limit(20);
+  const [{ data: mine }, { data: profile }] = await Promise.all([
+    supabase
+      .from('suggestions')
+      .select('id, body, state, created_at, signed')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(20),
+    // Pré-remplissage de la case « Signer avec mon nom » : la préférence globale
+    // sert de DÉFAUT, le choix réel est celui figé à l'envoi sur chaque ligne.
+    supabase.from('profiles').select('identity_mode').eq('user_id', guard.user.id).maybeSingle(),
+  ]);
 
   return (
     <section className="flex flex-col gap-6">
@@ -59,7 +64,7 @@ export default async function SuggestionPage({ params }: Props) {
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
 
-      <SuggestionForm />
+      <SuggestionForm defaultSigned={profile?.identity_mode === 'identified'} />
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-neutral-900">{t('history.title')}</h2>
@@ -75,15 +80,22 @@ export default async function SuggestionPage({ params }: Props) {
                 className="flex flex-col gap-1 rounded-[14px] bg-bg-card p-4 shadow-xs"
               >
                 <p className="whitespace-pre-wrap text-base text-neutral-800">{s.body}</p>
-                <span
-                  className={`w-fit rounded-sm px-2 py-0.5 text-xs font-medium ${
-                    s.state === 'reviewed'
-                      ? 'bg-accent-100 text-accent-700'
-                      : 'bg-bg-soft text-neutral-500'
-                  }`}
-                >
-                  {s.state === 'reviewed' ? t('history.stateReviewed') : t('history.stateNew')}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`w-fit rounded-sm px-2 py-0.5 text-xs font-medium ${
+                      s.state === 'reviewed'
+                        ? 'bg-accent-100 text-accent-700'
+                        : 'bg-bg-soft text-neutral-500'
+                    }`}
+                  >
+                    {s.state === 'reviewed' ? t('history.stateReviewed') : t('history.stateNew')}
+                  </span>
+                  {/* Rappel du choix figé à l'envoi : l'auteur doit pouvoir se
+                      souvenir de ce qu'il a envoyé, signé ou anonyme. */}
+                  <span className="w-fit rounded-sm bg-bg-soft px-2 py-0.5 text-xs font-medium text-neutral-500">
+                    {s.signed ? t('history.signedBadge') : t('history.anonymousBadge')}
+                  </span>
+                </div>
               </li>
             ))}
           </ul>

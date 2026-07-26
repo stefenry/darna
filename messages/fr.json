@@ -1195,6 +1195,8 @@
     "back": "Retour aux paramètres",
     "label": "Ta suggestion",
     "placeholder": "Décris ton idée…",
+    "signLabel": "Signer avec mon nom",
+    "signHint": "Les co-mods verront ton nom et ta villa. Sinon, ta suggestion reste anonyme.",
     "submit": "Envoyer",
     "submitting": "Envoi…",
     "ack": "Merci, ton retour a été transmis aux co-mods.",
@@ -1207,6 +1209,8 @@
     "history": {
       "title": "Mes suggestions",
       "empty": "Tu n’as pas encore envoyé de suggestion.",
+      "signedBadge": "Signée",
+      "anonymousBadge": "Anonyme",
       "stateNew": "En attente",
       "stateReviewed": "Lue par les co-mods"
     },
