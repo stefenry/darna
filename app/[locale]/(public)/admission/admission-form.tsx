@@ -53,6 +53,9 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
   const fieldErrors = 'fieldErrors' in state && state.fieldErrors ? state.fieldErrors : undefined;
   const duplicate = 'errorCode' in state && state.errorCode === 'duplicate_pending';
   const rateLimited = 'errorCode' in state && state.errorCode === 'rate_limited';
+  // Échec serveur : on le DIT, au lieu d'afficher « ouvre ta boîte mail » à
+  // quelqu'un dont la demande n'a pas été enregistrée (incident bêta 2026-07-26).
+  const submitFailed = 'errorCode' in state && state.errorCode === 'submit_failed';
 
   const villaId = useId();
   const trancheId = useId();
@@ -82,6 +85,11 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
       {rateLimited && (
         <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
           {tRate('exceeded')}
+        </div>
+      )}
+      {submitFailed && (
+        <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+          {tErrors('submit_failed')}
         </div>
       )}
 

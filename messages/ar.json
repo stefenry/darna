@@ -37,7 +37,8 @@
       "first_name_required": "",
       "email_invalid": "",
       "cgu_required": "",
-      "duplicate_pending": ""
+      "duplicate_pending": "",
+      "submit_failed": ""
     },
     "comod": {
       "forbidden": "",

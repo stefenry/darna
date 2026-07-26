@@ -10,6 +10,7 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin';
 import { detectLocaleFromHeaders } from '@/lib/i18n/detect-locale';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { ensurePublicUser } from '@/lib/auth/ensure-public-user';
 import { fetchComodEmails } from '@/lib/comod/recipients';
 import { buildPkceConfirmUrl } from '@/lib/auth/build-pkce-confirm-url';
 import { checkLimit } from '@/lib/rate-limit';
@@ -32,7 +33,7 @@ const RESIDENCE_ID_DARNA = '00000000-0000-0000-0000-000000000001';
 export type SubmitState =
   | { ok: false }
   | { ok: false; fieldErrors: Partial<Record<AdmissionFieldKey, AdmissionFieldErrorKey[]>> }
-  | { ok: false; errorCode: 'duplicate_pending' | 'rate_limited' }
+  | { ok: false; errorCode: 'duplicate_pending' | 'rate_limited' | 'submit_failed' }
   | { ok: true; locale: 'fr' | 'ar' };
 
 // AR31 — 5 soumissions / jour / IP.
@@ -235,6 +236,23 @@ export async function submitAdmissionRequest(
     });
   }
 
+  // Étape 5b : filet de sécurité sur le pont auth → public.users. Le trigger
+  // `handle_new_auth_user` avale ses erreurs et ne rejoue qu'à l'INSERT dans
+  // auth.users : un compte existant sans ligne `public.users` ferait échouer
+  // l'insertion suivante en 23503, définitivement (incident bêta 2026-07-26).
+  const bridged = await ensurePublicUser(userId, RESIDENCE_ID_DARNA);
+  if (!bridged) {
+    log({
+      level: 'error',
+      event: 'admission.bridge_failed',
+      user_id: userId,
+      residence_id: null,
+      request_id: null,
+      payload: { villa, locale },
+    });
+    return { ok: false, errorCode: 'submit_failed' };
+  }
+
   // Étape 6 : INSERT admission_requests — STRICTEMENT les colonnes autorisées
   // par le column-level grant authenticated (anti-self-validate, double-belt
   // même si service-role bypasse). state/decided_*/timestamps défauts DB.
@@ -272,11 +290,13 @@ export async function submitAdmissionRequest(
         request_id: null,
         payload: { errorCode: insert.error.code ?? 'unknown', villa, locale },
       });
-      // Si l'INSERT échoue, on ne renvoie quand même PAS de magic-link
-      // (sinon l'utilisateur se connecte et son redirect-by-state ne le voit
-      // pas comme `pending` → boucle confusion). On log et on signale via
-      // une erreur générique côté form (couvert par anti-énumeration UX).
-      return { ok: true, locale };
+      // L'anti-énumération justifie de cacher SI l'e-mail existe — pas de cacher
+      // qu'on a planté. Renvoyer `ok:true` ici affichait « ouvre ta boîte mail »
+      // à quelqu'un dont la demande n'était pas enregistrée : il attendait un
+      // e-mail qui n'arriverait jamais et le co_mod ne voyait rien (incident bêta
+      // 2026-07-26). On ne révèle rien de plus : à ce stade le compte auth existe
+      // déjà, l'échec est purement serveur.
+      return { ok: false, errorCode: 'submit_failed' };
     }
   } catch (cause) {
     log({
@@ -290,7 +310,7 @@ export async function submitAdmissionRequest(
         errorName: cause instanceof Error ? cause.name : 'unknown',
       },
     });
-    return { ok: true, locale };
+    return { ok: false, errorCode: 'submit_failed' };
   }
 
   // Étape 7 : envoyer le magic-link au demandeur (boundary AR16).

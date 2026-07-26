@@ -31,6 +31,13 @@ vi.mock('next/headers', () => ({
     }),
 }));
 
+// Pont auth → public.users : testé isolément dans ensure-public-user.test.ts.
+// Ici on pilote seulement son verdict.
+let bridgeOk = true;
+vi.mock('@/lib/auth/ensure-public-user', () => ({
+  ensurePublicUser: () => Promise.resolve(bridgeOk),
+}));
+
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
     auth: {
@@ -92,6 +99,7 @@ describe('submitAdmissionRequest Server Action', () => {
     checkLimitMock.mockReset();
     checkLimitMock.mockResolvedValue({ success: true, reset: 0 });
     adminFromChain = makeAdminFromChain();
+    bridgeOk = true;
   });
 
   afterEach(() => {
@@ -280,5 +288,41 @@ describe('submitAdmissionRequest Server Action', () => {
     }
     // No magic-link sent on the conflict path.
     expect(sendTransactionalEmailMock).not.toHaveBeenCalled();
+  });
+});
+
+// Incident bêta 2026-07-26 — la demande échouait en base (FK 23503, ligne
+// public.users manquante) et le visiteur voyait quand même « ouvre ta boîte
+// mail ». Deux garanties désormais : on répare le pont, et on ne ment plus.
+describe('submitAdmissionRequest — pont auth → public.users', () => {
+  beforeEach(() => {
+    logMock.mockReset();
+    generateLinkMock.mockReset();
+    insertMock.mockReset();
+    adminFromChain = makeAdminFromChain();
+    bridgeOk = true;
+    generateLinkMock.mockResolvedValue({
+      data: { user: { id: 'user-uuid-1' }, properties: { hashed_token: 'pkce-x' } },
+      error: null,
+    });
+    insertMock.mockResolvedValue({ data: null, error: null });
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  const events = () => logMock.mock.calls.map(([e]) => (e as { event: string }).event);
+
+  it('pont impossible → erreur explicite au visiteur, pas un faux succès', async () => {
+    bridgeOk = false;
+    const res = await submitAdmissionRequest(initial, makeFormData());
+    expect(res).toEqual({ ok: false, errorCode: 'submit_failed' });
+    expect(events()).toContain('admission.bridge_failed');
+    expect(insertMock).not.toHaveBeenCalled();
+  });
+
+  it('INSERT en échec → erreur explicite, jamais « ouvre ta boîte mail »', async () => {
+    insertMock.mockResolvedValue({ data: null, error: { code: '23503' } });
+    const res = await submitAdmissionRequest(initial, makeFormData());
+    expect(res).toEqual({ ok: false, errorCode: 'submit_failed' });
+    expect(events()).toContain('admission.insert_failed');
   });
 });
