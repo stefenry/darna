@@ -79,8 +79,10 @@ deleted }`. Chaque appelant applique **sa** règle : les bons plans gardent leur
 
 - Unitaires : règle de libellé (signée avec nom / signée sans `display_name` →
   pseudonyme / anonyme / auteur purgé), parsing de la checkbox absente ou présente.
-- `tests/rls.test.ts` (stack locale) : un résident ne peut pas écrire `signed`
-  sur la ligne d'un autre, ni relire la ligne d'autrui.
+- L'invariant RLS (« un résident n'écrit que `body` et `signed`, sur sa propre
+  ligne ») est porté par le grant colonne de la migration. Pas de cas ajouté dans
+  `tests/rls.test.ts` : ce fichier est `skipIf` sans stack Docker et n'est jamais
+  exécuté en CI — à vérifier à la main sur la stack locale si Docker est dispo.
 - Non couvert : le rendu réel de la page co_mod avec un compte co_mod — vérifié
   manuellement sur le preview Vercel.
 
