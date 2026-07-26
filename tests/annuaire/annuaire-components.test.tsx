@@ -68,6 +68,42 @@ describe('ArtisanCard', () => {
     wrap(<ArtisanCard locale="fr" artisan={{ ...ARTISAN, hasInvoice: 'sur_demande' }} />);
     expect(screen.getByText('Facture sur demande')).toBeDefined();
   });
+
+  it('bouton d’appel dans l’en-tête, à côté du nom', () => {
+    wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
+    const call = screen.getByRole('link', { name: 'Appeler Hassan Plombier' });
+    const header = call.closest('header');
+    expect(header).not.toBeNull();
+    // Le nom et le bouton partagent la même rangée.
+    expect(within(header as HTMLElement).getByText('Hassan Plombier')).toBeDefined();
+  });
+
+  it('carte compacte : 3 rangées, plus de pied de carte', () => {
+    const { container } = wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
+    const article = container.querySelector('article') as HTMLElement;
+    // overlay + header + meta + jauges — le <footer> a disparu.
+    expect(article.querySelector('footer')).toBeNull();
+    expect(article.querySelectorAll(':scope > *').length).toBe(4);
+  });
+
+  it('les 2 jauges sont côte à côte, pas empilées (2e passe de compactage)', () => {
+    const { container } = wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
+    const [first, second] = screen.getAllByRole('meter');
+    const row = first?.parentElement as HTMLElement;
+    expect(row.className).toContain('grid-cols-2');
+    expect(row).toBe(second?.parentElement);
+    // Marges resserrées : plus de p-4/gap-3 sur la carte.
+    const article = container.querySelector('article') as HTMLElement;
+    expect(article.className).toContain('p-3');
+    expect(article.className).toContain('gap-2');
+  });
+
+  it('prix et badge facture sur la même ligne meta que le métier', () => {
+    wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
+    const meta = screen.getByText('Plomberie').closest('div') as HTMLElement;
+    expect(within(meta).getByText('$$')).toBeDefined();
+    expect(within(meta).getByText('Facture émise')).toBeDefined();
+  });
 });
 
 describe('RatingGauge', () => {

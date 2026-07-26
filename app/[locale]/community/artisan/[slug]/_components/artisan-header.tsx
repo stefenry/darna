@@ -3,8 +3,9 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { ArrowLeft, MoreHorizontal, Phone } from 'lucide-react';
+import { ArrowLeft, MessageCircle, MoreHorizontal, Phone } from 'lucide-react';
 import { Chip } from '@/app/[locale]/community/annuaire/_components/chip';
+import { waMeUrl } from '@/lib/artisans/whatsapp';
 import type { Database } from '@/lib/supabase/types.generated';
 import type { ArtisanDetail } from '../data';
 
@@ -20,6 +21,7 @@ function formatPhone(e164: string): string {
 
 export function ArtisanHeader({ locale, artisan }: { locale: string; artisan: ArtisanDetail }) {
   const t = useTranslations('community.artisan');
+  const whatsappHref = waMeUrl(artisan.phoneE164);
 
   return (
     <header className="flex flex-col gap-3">
@@ -54,6 +56,15 @@ export function ArtisanHeader({ locale, artisan }: { locale: string; artisan: Ar
         )}
       </div>
 
+      {/* Qui a ajouté la fiche — nom ou pseudonyme selon la préférence du voisin. */}
+      <p className="text-sm text-neutral-500">
+        {artisan.createdByLabel.authorName
+          ? t('createdByNamed', { name: artisan.createdByLabel.authorName })
+          : artisan.createdByLabel.pseudonymSuffix
+            ? t('createdByPseudonym', { suffix: artisan.createdByLabel.pseudonymSuffix })
+            : t('createdByDeleted')}
+      </p>
+
       {artisan.tags.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {artisan.tags.map((tag) => (
@@ -70,6 +81,22 @@ export function ArtisanHeader({ locale, artisan }: { locale: string; artisan: Ar
           {formatPhone(artisan.phoneE164)}
         </span>
       </p>
+
+      {/* Lien sortant simple, sans script tiers (promesse « sans tracker »).
+          Absent si le numéro n'est pas un E.164 exploitable — mieux qu'un lien
+          qui ouvrirait WhatsApp sur un mauvais numéro. */}
+      {whatsappHref && (
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t('whatsappAriaLabel', { name: artisan.displayName })}
+          className="inline-flex min-h-touch w-fit items-center gap-2 rounded-[14px] bg-bg-soft px-4 text-base font-medium text-neutral-900 motion-safe:transition-colors hover:bg-neutral-200"
+        >
+          <MessageCircle className="size-4 text-neutral-500" aria-hidden />
+          {t('whatsapp')}
+        </a>
+      )}
     </header>
   );
 }

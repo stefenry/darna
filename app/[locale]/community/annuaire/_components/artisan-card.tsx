@@ -2,8 +2,13 @@
 // Borderless v2 : fond blanc, shadow-xs, rounded-[14px], zéro border. La carte
 // entière est un lien vers la fiche (overlay absolu) ; le mini-bouton `tel:` est
 // un lien SÉPARÉ au-dessus (z-10) — pas de lien imbriqué (HTML invalide).
-// Ordre des champs : header (nom + prix) → tag → 2 jauges top → footer (facture
-// + appel).
+// Disposition compacte (2026-07-26) : 3 rangées au lieu de 4 — le bouton d'appel
+// remonte à côté du nom et le pied de carte disparaît, sa ligne meta (métier,
+// prix, facture) étant fusionnée sur une seule rangée.
+//
+// 2e passe de compactage : les 2 jauges passent côte à côte (au lieu d'empilées) et
+// les marges se resserrent. La hauteur de l'en-tête, elle, est plancherée par la
+// cible tactile de 44 px du bouton d'appel — on n'y touche pas.
 
 import { useTranslations } from 'next-intl';
 import { Phone } from 'lucide-react';
@@ -37,7 +42,7 @@ export function ArtisanCard({ locale, artisan }: { locale: string; artisan: Arti
   const cardHref = `/${locale}/community/artisan/${artisan.slug}`;
 
   return (
-    <article className="relative flex flex-col gap-3 rounded-[14px] bg-bg-card p-4 shadow-xs motion-safe:transition-shadow hover:shadow-sm sm:p-5">
+    <article className="relative flex flex-col gap-2 rounded-[14px] bg-bg-card p-3 shadow-xs motion-safe:transition-shadow hover:shadow-sm sm:p-4">
       {/* Lien carte entière (overlay) — focusable, étiqueté. */}
       <a
         href={cardHref}
@@ -47,26 +52,38 @@ export function ArtisanCard({ locale, artisan }: { locale: string; artisan: Arti
       </a>
 
       <header className="flex items-start justify-between gap-3">
-        <h3 className="text-lg font-medium tracking-tight text-neutral-900">
+        {/* min-w-0 + truncate : un nom long ne doit jamais pousser le bouton
+            d'appel hors de la carte. */}
+        <h3 className="min-w-0 truncate text-lg font-medium tracking-tight text-neutral-900">
           {artisan.displayName}
         </h3>
+        {/* Mini-appel : lien distinct au-dessus de l'overlay (z-10). */}
+        <a
+          href={`tel:${artisan.phoneE164}`}
+          aria-label={t('call', { name: artisan.displayName })}
+          className="relative z-10 inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-[14px] bg-accent-500 text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600"
+        >
+          <Phone className="size-4" aria-hidden />
+        </a>
+      </header>
+
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        {artisan.primaryTagLabel && <Chip>{artisan.primaryTagLabel}</Chip>}
         {artisan.priceRelative && (
           <span
-            className="shrink-0 rounded-sm bg-bg-soft px-2 py-0.5 text-xs font-medium text-neutral-700"
+            className="rounded-sm bg-bg-soft px-2 py-0.5 text-xs font-medium text-neutral-700"
             aria-label={t('price', { price: artisan.priceRelative })}
           >
             {artisan.priceRelative}
           </span>
         )}
-      </header>
+        <InvoiceBadge hasInvoice={artisan.hasInvoice} />
+      </div>
 
-      {artisan.primaryTagLabel && (
-        <div>
-          <Chip>{artisan.primaryTagLabel}</Chip>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2">
+      {/* Côte à côte : deux jauges sur une rangée au lieu de deux, ~34 px gagnés
+          par carte. Le libellé d'axe tronque plutôt que de déborder sur un écran
+          étroit (il reste lu en entier par les lecteurs d'écran via aria-valuetext). */}
+      <div className="grid grid-cols-2 gap-x-3">
         {top.map((s) => (
           <RatingGauge
             key={s.axis}
@@ -77,18 +94,6 @@ export function ArtisanCard({ locale, artisan }: { locale: string; artisan: Arti
           />
         ))}
       </div>
-
-      <footer className="flex items-center justify-between gap-2">
-        <InvoiceBadge hasInvoice={artisan.hasInvoice} />
-        {/* Mini-appel : lien distinct au-dessus de l'overlay (z-10). */}
-        <a
-          href={`tel:${artisan.phoneE164}`}
-          aria-label={t('call', { name: artisan.displayName })}
-          className="relative z-10 inline-flex min-h-touch min-w-touch items-center justify-center rounded-[14px] bg-accent-500 text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600"
-        >
-          <Phone className="size-4" aria-hidden />
-        </a>
-      </footer>
     </article>
   );
 }

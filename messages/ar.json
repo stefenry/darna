@@ -394,6 +394,7 @@
       "title": "",
       "intro": "",
       "addCta": "",
+      "addCtaAria": "",
       "resultsCount": "",
       "resultsMore": "",
       "search": {
@@ -439,6 +440,11 @@
     },
     "artisan": {
       "call": "",
+      "whatsapp": "",
+      "whatsappAriaLabel": "",
+      "createdByNamed": "",
+      "createdByPseudonym": "",
+      "createdByDeleted": "",
       "back": "",
       "more": "",
       "invoice": "",

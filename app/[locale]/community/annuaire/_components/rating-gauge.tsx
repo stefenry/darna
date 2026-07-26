@@ -52,8 +52,10 @@ export function RatingGauge({ axis, average, count, variant = 'compact' }: Props
           isCompact ? 'text-xs' : 'text-[13px]',
         )}
       >
-        <span className="font-medium text-neutral-700">{label}</span>
-        <span className="tabular-nums text-neutral-500">
+        {/* min-w-0 + truncate : en variante compacte les jauges sont côte à côte,
+            un libellé long doit rogner plutôt que pousser le score hors de la carte. */}
+        <span className="min-w-0 truncate font-medium text-neutral-700">{label}</span>
+        <span className="shrink-0 tabular-nums text-neutral-500">
           {scoreText}
           {!isNa && (
             <span className={cn('ms-1', count === 1 ? 'text-neutral-400' : 'text-neutral-500')}>

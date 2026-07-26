@@ -696,6 +696,7 @@
       "title": "Annuaire des artisans",
       "intro": "Trouvez un artisan recommandé par vos voisins.",
       "addCta": "Ajouter",
+      "addCtaAria": "Ajouter un artisan",
       "resultsCount": "{count, plural, =0 {Aucun artisan} one {# artisan correspondant} other {# artisans correspondants}}",
       "resultsMore": "plus de résultats disponibles",
       "search": {
@@ -742,6 +743,11 @@
     },
     "artisan": {
       "call": "Appeler {name}",
+      "whatsapp": "WhatsApp",
+      "whatsappAriaLabel": "Écrire à {name} sur WhatsApp",
+      "createdByNamed": "Fiche ajoutée par {name}",
+      "createdByPseudonym": "Fiche ajoutée par Voisin #{suffix}",
+      "createdByDeleted": "Fiche ajoutée par un voisin supprimé",
       "back": "Retour",
       "more": "Plus d’options",
       "invoice": "Facture émise",
