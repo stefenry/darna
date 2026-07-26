@@ -49,6 +49,19 @@ const ARTISAN: ArtisanDetail = {
 };
 
 describe('ArtisanHeader', () => {
+  it('bouton WhatsApp pointant sur wa.me, ouvert dans un nouvel onglet', () => {
+    wrap(<ArtisanHeader locale="fr" artisan={ARTISAN} />);
+    const wa = screen.getByRole('link', { name: 'Écrire à Hassan Plombier sur WhatsApp' });
+    expect(wa.getAttribute('href')).toBe('https://wa.me/212600000001');
+    expect(wa.getAttribute('target')).toBe('_blank');
+    expect(wa.getAttribute('rel')).toContain('noopener');
+  });
+
+  it('numéro non E.164 → pas de bouton WhatsApp (plutôt qu’un lien cassé)', () => {
+    wrap(<ArtisanHeader locale="fr" artisan={{ ...ARTISAN, phoneE164: '0600000001' }} />);
+    expect(screen.queryByRole('link', { name: /WhatsApp/ })).toBeNull();
+  });
+
   it('affiche nom, prix, tous les tags et badge facture', () => {
     wrap(<ArtisanHeader locale="fr" artisan={ARTISAN} />);
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Hassan Plombier');

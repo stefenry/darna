@@ -439,6 +439,8 @@
     },
     "artisan": {
       "call": "",
+      "whatsapp": "",
+      "whatsappAriaLabel": "",
       "back": "",
       "more": "",
       "invoice": "",

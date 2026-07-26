@@ -738,6 +738,8 @@
     },
     "artisan": {
       "call": "Appeler {name}",
+      "whatsapp": "WhatsApp",
+      "whatsappAriaLabel": "Écrire à {name} sur WhatsApp",
       "back": "Retour",
       "more": "Plus d’options",
       "invoice": "Facture émise",
