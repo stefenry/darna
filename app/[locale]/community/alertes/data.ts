@@ -1,27 +1,14 @@
 import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import type { Locale } from '@/lib/i18n/config';
-import { pickLocalized, type TipCategoryKey } from '@/lib/content/ephemeral';
-import { resolveTipAuthorLabels } from '@/lib/content/author-label';
+import { pickLocalized } from '@/lib/content/ephemeral';
+import type { FeedItem } from '@/app/[locale]/community/_components/feed-card';
 
-// Story 4.4 — lecture du feed unifié + détail alerte. RLS filtre déjà au scope
+// Story 4.4 — lecture des alertes + détail alerte (le flux unifié a été séparé
+// en deux listes le 2026-07-26 ; les bons plans vivent dans bons-plans/data.ts). RLS filtre déjà au scope
 // résidence ; on RAJOUTE explicitement `deleted_at is null` + `expires_at > now()`
 // car la policy `*_author_select_own` laisserait fuiter les items expirés de
 // l'auteur dans le feed (AC4.4 : expirés filtrés côté serveur).
-
-export type FeedItem = {
-  kind: 'alert' | 'tip';
-  id: string;
-  slug: string;
-  title: string;
-  untranslated: boolean;
-  createdAt: string;
-  expiresAt: string;
-  category: TipCategoryKey | null;
-  // Auteur (bons plans uniquement — null pour les alertes, volontairement neutres).
-  authorName: string | null;
-  authorPseudonymSuffix: string | null;
-};
 
 export type AlertDetail = {
   id: string;
@@ -36,70 +23,37 @@ export type AlertDetail = {
 
 export type AlertDetailResult = { kind: 'found'; entry: AlertDetail } | { kind: 'not-found' };
 
-export const fetchFeed = cache(_fetchFeed);
+export const fetchAlerts = cache(_fetchAlerts);
 
-async function _fetchFeed(locale: Locale): Promise<FeedItem[]> {
+async function _fetchAlerts(locale: Locale): Promise<FeedItem[]> {
   const supabase = await createClient();
   const nowIso = new Date().toISOString();
 
-  const [alertsRes, tipsRes] = await Promise.all([
-    supabase
-      .from('alerts')
-      .select('id, slug, title_fr, title_ar, created_at, expires_at')
-      .is('deleted_at', null)
-      .gt('expires_at', nowIso)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('tips')
-      .select('id, slug, title_fr, title_ar, created_at, expires_at, category_key, created_by')
-      .is('deleted_at', null)
-      .gt('expires_at', nowIso)
-      .order('created_at', { ascending: false }),
-  ]);
-  if (alertsRes.error) throw alertsRes.error;
-  if (tipsRes.error) throw tipsRes.error;
+  const { data, error } = await supabase
+    .from('alerts')
+    .select('id, slug, title_fr, title_ar, created_at, expires_at')
+    .is('deleted_at', null)
+    .gt('expires_at', nowIso)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
 
-  // Auteur des bons plans uniquement (1 requête admin batch). Les alertes restent
-  // sans auteur (volontairement neutres : « il se passe X dans la résidence »).
-  const authorLabels = await resolveTipAuthorLabels((tipsRes.data ?? []).map((t) => t.created_by));
-
-  const items: FeedItem[] = [
-    ...(alertsRes.data ?? []).map((a) => {
-      const t = pickLocalized(locale, a.title_fr, a.title_ar);
-      return {
-        kind: 'alert' as const,
-        id: a.id,
-        slug: a.slug,
-        title: t.value,
-        untranslated: t.untranslated,
-        createdAt: a.created_at,
-        expiresAt: a.expires_at,
-        category: null,
-        authorName: null,
-        authorPseudonymSuffix: null,
-      };
-    }),
-    ...(tipsRes.data ?? []).map((t) => {
-      const loc = pickLocalized(locale, t.title_fr, t.title_ar);
-      const author = (t.created_by && authorLabels.get(t.created_by)) || null;
-      return {
-        kind: 'tip' as const,
-        id: t.id,
-        slug: t.slug,
-        title: loc.value,
-        untranslated: loc.untranslated,
-        createdAt: t.created_at,
-        expiresAt: t.expires_at,
-        category: t.category_key as TipCategoryKey,
-        authorName: author?.authorName ?? null,
-        authorPseudonymSuffix: author?.pseudonymSuffix ?? null,
-      };
-    }),
-  ];
-
-  // Tri fraîcheur global (created_at DESC) après fusion des deux sources.
-  items.sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0));
-  return items;
+  return (data ?? []).map((a) => {
+    const t = pickLocalized(locale, a.title_fr, a.title_ar);
+    return {
+      kind: 'alert' as const,
+      id: a.id,
+      slug: a.slug,
+      title: t.value,
+      untranslated: t.untranslated,
+      createdAt: a.created_at,
+      expiresAt: a.expires_at,
+      // Les alertes n'ont ni catégorie ni auteur : « il se passe X dans la
+      // résidence », pas « untel signale que ».
+      category: null,
+      authorName: null,
+      authorPseudonymSuffix: null,
+    };
+  });
 }
 
 export const fetchAlertBySlug = cache(_fetchAlertBySlug);

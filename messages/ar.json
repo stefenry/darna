@@ -320,7 +320,8 @@
         "annuaire": "",
         "guide": "",
         "numeros": "",
-        "alertes": "تنبيهات وعروض جيدة"
+        "alertes": "تنبيهات وعروض جيدة",
+        "bonsPlans": ""
       }
     },
     "nav": {
@@ -611,6 +612,13 @@
       }
     },
     "bonsPlans": {
+      "list": {
+        "title": "",
+        "intro": "",
+        "publish": "",
+        "empty": "",
+        "emptyCta": ""
+      },
       "categories": {
         "offre_voisin": "عرض من جار",
         "pret_objet": "إعارة غرض",
