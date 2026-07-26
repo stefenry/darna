@@ -22,7 +22,7 @@ describe('buildVillaRoster', () => {
   it('prend villa/tranche du profil courant quand il existe (pas la photo admission)', () => {
     const roster = buildVillaRoster({
       admissions: [admission(U1, 3, 'A', 'Aïcha')],
-      users: [{ id: U1, role: 'resident', deleted_at: null }],
+      users: [{ id: U1, role: 'resident', deleted_at: null, display_name: null }],
       profiles: [{ user_id: U1, villa: 12, tranche: 'B' }],
       locale: 'fr',
     });
@@ -35,7 +35,7 @@ describe('buildVillaRoster', () => {
   it('une tranche effacée dans le profil (null) ne retombe pas sur la valeur admission', () => {
     const roster = buildVillaRoster({
       admissions: [admission(U1, 3, 'A')],
-      users: [{ id: U1, role: 'resident', deleted_at: null }],
+      users: [{ id: U1, role: 'resident', deleted_at: null, display_name: null }],
       profiles: [{ user_id: U1, villa: 3, tranche: null }],
       locale: 'fr',
     });
@@ -45,7 +45,7 @@ describe('buildVillaRoster', () => {
   it('retombe sur les valeurs admission si la row profile manque (bug profiles connu)', () => {
     const roster = buildVillaRoster({
       admissions: [admission(U1, 5, 'C')],
-      users: [{ id: U1, role: 'resident', deleted_at: null }],
+      users: [{ id: U1, role: 'resident', deleted_at: null, display_name: null }],
       profiles: [],
       locale: 'fr',
     });
@@ -63,9 +63,9 @@ describe('buildVillaRoster', () => {
         admission(U3, 1, null, 'Ghost'),
       ],
       users: [
-        { id: U1, role: 'co_mod', deleted_at: null },
-        { id: U2, role: 'resident', deleted_at: null },
-        { id: U3, role: 'resident', deleted_at: '2026-02-01T00:00:00Z' },
+        { id: U1, role: 'co_mod', deleted_at: null, display_name: null },
+        { id: U2, role: 'resident', deleted_at: null, display_name: null },
+        { id: U3, role: 'resident', deleted_at: '2026-02-01T00:00:00Z', display_name: null },
       ],
       profiles: [],
       locale: 'fr',
@@ -86,14 +86,62 @@ describe('buildVillaRoster', () => {
         admission(U3, 10, null, 'Adam'),
       ],
       users: [
-        { id: U1, role: 'resident', deleted_at: null },
-        { id: U2, role: 'resident', deleted_at: null },
-        { id: U3, role: 'resident', deleted_at: null },
+        { id: U1, role: 'resident', deleted_at: null, display_name: null },
+        { id: U2, role: 'resident', deleted_at: null, display_name: null },
+        { id: U3, role: 'resident', deleted_at: null, display_name: null },
       ],
       profiles: [],
       locale: 'fr',
     });
     expect([...roster.keys()]).toEqual([2, 10]);
     expect(roster.get(10)!.map((r) => r.firstName)).toEqual(['Adam', 'Zineb']);
+  });
+});
+
+// Feedback bêta 2026-07-26 — même principe que villa/tranche, étendu au NOM : le
+// résident peut le changer dans /community/profil/parametres (users.display_name),
+// et la liste co_mod affichait encore le prénom figé de sa demande d'admission.
+describe('buildVillaRoster — nom courant', () => {
+  it('affiche le display_name courant plutôt que le prénom de l’admission', () => {
+    const roster = buildVillaRoster({
+      admissions: [admission(U1, 3, 'A', 'Ancien Prénom')],
+      users: [{ id: U1, role: 'resident', deleted_at: null, display_name: 'Nouveau Nom' }],
+      profiles: [{ user_id: U1, villa: 3, tranche: 'A' }],
+      locale: 'fr',
+    });
+    expect(roster.get(3)![0]!.firstName).toBe('Nouveau Nom');
+  });
+
+  it('retombe sur le prénom d’admission si aucun nom n’a été choisi', () => {
+    const roster = buildVillaRoster({
+      admissions: [admission(U1, 3, 'A', 'Aïcha')],
+      users: [{ id: U1, role: 'resident', deleted_at: null, display_name: null }],
+      profiles: [],
+      locale: 'fr',
+    });
+    expect(roster.get(3)![0]!.firstName).toBe('Aïcha');
+  });
+
+  it('un display_name vide ou blanc ne masque pas le prénom d’admission', () => {
+    const roster = buildVillaRoster({
+      admissions: [admission(U1, 3, 'A', 'Aïcha')],
+      users: [{ id: U1, role: 'resident', deleted_at: null, display_name: '   ' }],
+      profiles: [],
+      locale: 'fr',
+    });
+    expect(roster.get(3)![0]!.firstName).toBe('Aïcha');
+  });
+
+  it('le tri alphabétique suit le nom affiché, pas celui de l’admission', () => {
+    const roster = buildVillaRoster({
+      admissions: [admission(U1, 5, 'A', 'Zora'), admission(U2, 5, 'A', 'Amine')],
+      users: [
+        { id: U1, role: 'resident', deleted_at: null, display_name: 'Ali' },
+        { id: U2, role: 'resident', deleted_at: null, display_name: 'Zoubir' },
+      ],
+      profiles: [],
+      locale: 'fr',
+    });
+    expect(roster.get(5)!.map((r) => r.firstName)).toEqual(['Ali', 'Zoubir']);
   });
 });

@@ -12,6 +12,7 @@ import { checkLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
 import { env } from '@/lib/env';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { fetchComodEmails } from '@/lib/comod/recipients';
 import { zSuggestion } from '@/lib/validation/suggestion';
 
 const RATE_LIMIT = 5;
@@ -65,7 +66,7 @@ export async function submitSuggestion(
   // Notification co_mods (non bloquante) — extrait seul, pas l'auteur (FR42).
   const excerpt = parsed.data.body.slice(0, 280);
   const queueUrl = `${baseUrl()}/fr/comod/suggestions`;
-  for (const comodEmail of env.server.INITIAL_COMOD_EMAILS) {
+  for (const comodEmail of await fetchComodEmails()) {
     try {
       const r = await sendTransactionalEmail({
         template: 'suggestion-notify-comod',

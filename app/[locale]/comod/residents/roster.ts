@@ -1,10 +1,14 @@
-// Feedback bêta 2026-07-22 — fusion admission_requests × users × profiles pour
-// la liste « qui habite où ». `admission_requests` (state=accepted) reste le
-// roster (chaque résident validé y est, first_name non éditable) mais
-// villa/tranche viennent du profil COURANT quand la row `profiles` existe : le
-// résident peut les modifier dans /community/profil/parametres et la liste
-// co_mod doit suivre. Fallback admission si la row profile manque (bug
-// profiles connu, cf. migration 20260706090001).
+// Feedback bêta 2026-07-22 — fusion admission_requests × users × profiles pour la
+// liste « qui habite où ». `admission_requests` (state=accepted) définit QUI est
+// dans le roster, mais tout ce qui est éditable vient de l'état COURANT :
+//   - villa / tranche → `profiles` (modifiables dans /community/profil/parametres)
+//   - nom             → `users.display_name` (idem)
+// Fallback sur la photo d'admission quand la valeur courante manque (row profiles
+// absente — bug connu, cf. migration 20260706090001 — ou nom jamais renseigné).
+//
+// 2026-07-26 : le nom a été ajouté à cette règle. Il restait figé sur le prénom
+// de la demande d'admission, si bien qu'un résident ayant changé son nom
+// apparaissait encore sous l'ancien dans la liste co_mod.
 
 export type RosterAdmission = {
   user_id: string;
@@ -18,6 +22,8 @@ export type RosterUser = {
   id: string;
   role: string;
   deleted_at: string | null;
+  /** Nom choisi par le résident ; null tant qu'il n'en a pas défini. */
+  display_name: string | null;
 };
 
 export type RosterProfile = {
@@ -58,10 +64,12 @@ export function buildVillaRoster({ admissions, users, profiles, locale }: Input)
     const profile = profileMap.get(a.user_id);
     const villa = profile?.villa ?? a.villa;
     const tranche = profile ? profile.tranche : a.tranche;
+    // Nom courant s'il existe et n'est pas blanc, sinon prénom de l'admission.
+    const currentName = u.display_name?.trim();
     const list = byVilla.get(villa) ?? [];
     list.push({
       userId: a.user_id,
-      firstName: a.first_name,
+      firstName: currentName || a.first_name,
       tranche,
       isComod: u.role === 'co_mod',
     });

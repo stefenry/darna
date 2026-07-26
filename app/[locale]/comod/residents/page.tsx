@@ -46,7 +46,7 @@ export default async function ComodResidentsPage({ params }: Props) {
       .select('user_id, villa, tranche, first_name, created_at')
       .eq('state', 'accepted')
       .order('created_at', { ascending: false }),
-    supabase.from('users').select('id, role, deleted_at'),
+    supabase.from('users').select('id, role, deleted_at, display_name'),
     supabase.from('profiles').select('user_id, villa, tranche'),
   ]);
 

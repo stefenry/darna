@@ -21,6 +21,10 @@ vi.mock('@/lib/rate-limit', () => ({
   checkLimit: () => Promise.resolve({ success: rlSuccess, reset: 0 }),
 }));
 vi.mock('@/lib/email/send', () => ({ sendTransactionalEmail: () => sendEmailMock() }));
+// Destinataires co_mod résolus en base depuis 2026-07-26 (lib/comod/recipients).
+vi.mock('@/lib/comod/recipients', () => ({
+  fetchComodEmails: () => Promise.resolve(['co1@darna.test', 'co2@darna.test']),
+}));
 vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     from: () => ({
@@ -68,7 +72,7 @@ describe('submitSuggestion', () => {
     const res = await submitSuggestion(SUGGESTION_INITIAL, form('Ajouter un mode sombre'));
     expect(res).toEqual({ ok: true });
     expect(insertSpy).toHaveBeenCalledWith({ body: 'Ajouter un mode sombre', signed: false });
-    // 2 co_mods stub (env.INITIAL_COMOD_EMAILS) notifiés.
+    // 2 co_mods stub (résolus en base) notifiés.
     expect(sendEmailMock).toHaveBeenCalledTimes(2);
   });
 

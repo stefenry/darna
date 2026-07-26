@@ -18,6 +18,7 @@ import {
 } from '@/lib/validation/report';
 import { createClient } from '@/lib/supabase/server';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { fetchComodEmails } from '@/lib/comod/recipients';
 import { TARGET_LABELS_FR, REASON_LABELS_FR } from '@/lib/moderation/labels';
 import { checkLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
@@ -116,10 +117,10 @@ export async function submitReport(input: {
     return { ok: false, errorCode: 'submit_failed' };
   }
 
-  // Notifier les co_mods (CSV INITIAL_COMOD_EMAILS, comme l'admission 1.7).
+  // Notifier les co_mods — destinataires résolus en base (cf. lib/comod/recipients).
   // try/catch par envoi — un échec Brevo ne bloque jamais le signalement.
   const queueUrl = `${baseUrl()}/fr/comod/moderation`;
-  for (const comodEmail of env.server.INITIAL_COMOD_EMAILS) {
+  for (const comodEmail of await fetchComodEmails()) {
     try {
       const r = await sendTransactionalEmail({
         template: 'report-notify-comod',
