@@ -14,6 +14,16 @@ function getRedis(): Redis {
     redisSingleton = new Redis({
       url: env.server.UPSTASH_REDIS_REST_URL,
       token: env.server.UPSTASH_REDIS_REST_TOKEN,
+      // 2026-07-26 — les logs de prod ne montraient QUE `upstash_timeout`, jamais
+      // la vraie erreur. En cause : le client réessaie 5 fois par défaut avec un
+      // backoff exponentiel (exp(n) × 50 ms ≈ 4,3 s d'attente cumulée), soit plus
+      // que notre budget de 2 s. La course se terminait donc toujours sur NOTRE
+      // timeout, et la cause réelle (401, ENOTFOUND, base éteinte…) n'atteignait
+      // jamais les logs.
+      //
+      // Une seule reprise, backoff court : un échec revient en ~200 ms, largement
+      // dans le budget, avec son message d'origine. Le fail-open ne change pas.
+      retry: { retries: 1, backoff: () => 200 },
     });
   }
   return redisSingleton;
