@@ -17,6 +17,10 @@
     "subtitle": "Le commun numérique de notre résidence",
     "description": "Un annuaire d'artisans noté par vos voisins, un guide pratique et des alertes communautaires. Gratuit, open source, sans tracker.",
     "cta_admission": "Demander l'accès",
+    "cta_enter": "Entrer dans Darna",
+    "cta_pending": "Voir ma demande d'accès",
+    "login_hint": "J'ai déjà un accès —",
+    "login_cta": "Me connecter",
     "cta_install": "Installer l'app"
   },
   "manifesto": {
