@@ -76,3 +76,29 @@ export function pickLocalized(
   }
   return { value: fr, untranslated: locale === 'ar' };
 }
+
+/**
+ * Libellé « expire dans X » à partir d'une date d'expiration. Les clés vivent dans
+ * le namespace `community.alertes` (`remaining.*`), partagé par les deux surfaces
+ * de contenu éphémère.
+ *
+ * Factorisé le 2026-07-26 : le même bloc existait à l'identique dans la carte de
+ * flux et dans les deux pages de détail (SonarCloud le comptait comme duplication).
+ */
+export function remainingLabel(
+  t: (key: string, values?: Record<string, number>) => string,
+  expiresAt: string,
+  now: number = Date.now(),
+): string {
+  const tr = timeRemaining(expiresAt, now);
+  switch (tr.state) {
+    case 'days':
+      return t('remaining.days', { value: tr.value });
+    case 'hours':
+      return t('remaining.hours', { value: tr.value });
+    case 'soon':
+      return t('remaining.soon');
+    default:
+      return t('remaining.expired');
+  }
+}

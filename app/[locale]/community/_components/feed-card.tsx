@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { ChevronRight } from 'lucide-react';
 import type { Locale } from '@/lib/i18n/config';
-import { timeRemaining, type TipCategoryKey } from '@/lib/content/ephemeral';
+import { remainingLabel, type TipCategoryKey } from '@/lib/content/ephemeral';
 
 // Story 4.4 — carte de feed (Server Component). Titre localisé, temps restant
 // (« expire dans 18 h »), tap-to-detail.
@@ -28,23 +28,6 @@ export type FeedItem = {
   authorName: string | null;
   authorPseudonymSuffix: string | null;
 };
-
-function remainingLabel(
-  t: (k: string, v?: Record<string, number>) => string,
-  expiresAt: string,
-): string {
-  const tr = timeRemaining(expiresAt, Date.now());
-  switch (tr.state) {
-    case 'days':
-      return t('remaining.days', { value: tr.value });
-    case 'hours':
-      return t('remaining.hours', { value: tr.value });
-    case 'soon':
-      return t('remaining.soon');
-    default:
-      return t('remaining.expired');
-  }
-}
 
 export function FeedCard({ item, locale }: { item: FeedItem; locale: Locale }) {
   const t = useTranslations('community.alertes');
