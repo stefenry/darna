@@ -1216,10 +1216,12 @@
     },
     "comod": {
       "title": "Suggestions",
-      "intro": "Les suggestions d’évolution partagées par les voisins. Auteur pseudonymisé.",
+      "intro": "Les suggestions d’évolution partagées par les voisins. Auteur pseudonymisé, sauf si le voisin a signé.",
       "empty": "Aucune suggestion pour l’instant.",
       "markRead": "Marquer comme lue",
       "author": "Voisin #{suffix}",
+      "authorNamed": "{name} — villa {villa}",
+      "authorNamedNoVilla": "{name}",
       "authorDeleted": "Voisin supprimé",
       "stateReviewed": "Lue"
     }
