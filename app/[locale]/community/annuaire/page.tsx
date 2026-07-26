@@ -74,22 +74,23 @@ export default async function AnnuairePage({ params, searchParams }: Props) {
 
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex flex-col gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-              {t('title')}
-            </h1>
-            <p className="text-base text-neutral-700">{t('intro')}</p>
-          </div>
+      {/* En-tête compact (2026-07-26) : titre et bouton « + » sur UNE ligne, accroche
+          sur une seconde. Le bouton devient une icône seule — son libellé passe en
+          aria-label, la cible tactile reste à 44 px. */}
+      <header className="flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="min-w-0 truncate text-2xl font-semibold tracking-tight text-neutral-900">
+            {t('title')}
+          </h1>
           <a
             href={`/${safeLocale}/community/annuaire/nouveau`}
-            className="inline-flex min-h-touch shrink-0 items-center justify-center gap-1 rounded-[14px] bg-accent-500 px-4 text-sm font-semibold text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600"
+            aria-label={t('addCtaAria')}
+            className="inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-[14px] bg-accent-500 text-xl font-semibold leading-none text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600"
           >
             <span aria-hidden>+</span>
-            <span>{t('addCta')}</span>
           </a>
         </div>
+        <p className="text-sm text-neutral-700">{t('intro')}</p>
       </header>
 
       {residenceId && <CacheStamp residenceId={residenceId} locale={safeLocale} />}
