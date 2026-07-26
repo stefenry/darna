@@ -49,6 +49,11 @@ vi.mock('@/lib/email/send', () => ({
   sendTransactionalEmail: (args: unknown) => sendTransactionalEmailMock(args),
 }));
 
+// Destinataires co_mod résolus en base depuis 2026-07-26 (lib/comod/recipients).
+vi.mock('@/lib/comod/recipients', () => ({
+  fetchComodEmails: () => Promise.resolve(['co1@darna.test', 'co2@darna.test']),
+}));
+
 vi.mock('@/lib/logger', () => ({
   log: (entry: unknown) => logMock(entry),
 }));

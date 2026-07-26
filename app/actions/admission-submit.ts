@@ -10,6 +10,7 @@ import {
 import { createAdminClient } from '@/lib/supabase/admin';
 import { detectLocaleFromHeaders } from '@/lib/i18n/detect-locale';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { fetchComodEmails } from '@/lib/comod/recipients';
 import { buildPkceConfirmUrl } from '@/lib/auth/build-pkce-confirm-url';
 import { checkLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
@@ -329,10 +330,11 @@ export async function submitAdmissionRequest(
     }
   }
 
-  // Étape 8 : notifier les co-mods (CSV INITIAL_COMOD_EMAILS, story 1.6).
+  // Étape 8 : notifier les co-mods — destinataires résolus en base au moment de
+  // l'envoi (cf. lib/comod/recipients), plus depuis une variable d'env.
   // try/catch par envoi — un échec côté Brevo ne bloque jamais le flux principal.
   const queueUrl = `${baseUrl()}/fr/comod/admission`;
-  for (const comodEmail of env.server.INITIAL_COMOD_EMAILS) {
+  for (const comodEmail of await fetchComodEmails()) {
     try {
       const r = await sendTransactionalEmail({
         template: 'admission-notify-comod',

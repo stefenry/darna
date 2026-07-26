@@ -32,6 +32,7 @@ import { resolveUniqueSlug } from '@/lib/slug/resolve';
 import { generateConsentToken } from '@/lib/consent/token';
 import { sendTransactionalSms, isSmsDisabled } from '@/lib/sms/send';
 import { sendTransactionalEmail } from '@/lib/email/send';
+import { fetchComodEmails } from '@/lib/comod/recipients';
 import { checkLimit } from '@/lib/rate-limit';
 import { mapVisibilityToIdentityMode } from '@/lib/artisans/visibility';
 import { env } from '@/lib/env';
@@ -330,7 +331,7 @@ export async function createArtisan(
   // validation (file /comod/artisans). Non bloquant : un échec d'e-mail ne doit
   // pas faire échouer la création (déjà commitée).
   const queueUrl = `${siteOrigin()}/fr/comod/artisans`;
-  for (const comodEmail of env.server.INITIAL_COMOD_EMAILS) {
+  for (const comodEmail of await fetchComodEmails()) {
     try {
       const r = await sendTransactionalEmail({
         template: 'artisan-notify-comod',
