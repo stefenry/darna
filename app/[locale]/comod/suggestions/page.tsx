@@ -1,6 +1,10 @@
 // Story 6.5 (FR43c) — espace co_mod « Suggestions ». Toutes les suggestions de la
-// résidence (RLS co_mod_select_residence), auteur PSEUDONYMISÉ dans l'UI (réduire
-// la pression sociale), action « Marquer comme lue ». JAMAIS public, aucun vote.
+// résidence (RLS co_mod_select_residence), action « Marquer comme lue ». JAMAIS
+// public, aucun vote.
+//
+// Auteur pseudonymisé par défaut (réduire la pression sociale) — SAUF si le voisin
+// a coché « Signer avec mon nom » à l'envoi : `suggestions.signed` figé sur la
+// ligne, cf. lib/content/suggestion-author.ts.
 
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
