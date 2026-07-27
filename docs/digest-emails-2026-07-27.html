@@ -1,0 +1,674 @@
+<title>Darna — tableau de bord de la boîte</title>
+<style>
+  :root {
+    --ground:   #F4F4F0;
+    --surface:  #FFFFFF;
+    --sunken:   #EBEBE5;
+    --ink:      #212018;
+    --muted:    #6A695E;
+    --faint:    #8D8C81;
+    --rule:     #DEDED6;
+    --rule-hi:  #C9C9BF;
+    --accent:   #3B6944;
+    --accent-w: #E4EDE5;
+    --amber:    #8A6410;
+    --amber-w:  #F4EBD8;
+    --brick:    #A03E2B;
+    --brick-w:  #F4E3DF;
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground:   #131512;
+      --surface:  #1B1E1A;
+      --sunken:   #0E100E;
+      --ink:      #E6E6DE;
+      --muted:    #9A9B8F;
+      --faint:    #7A7B70;
+      --rule:     #2B2F2A;
+      --rule-hi:  #3D423B;
+      --accent:   #8CBB94;
+      --accent-w: #213026;
+      --amber:    #D5A742;
+      --amber-w:  #322A17;
+      --brick:    #DE8770;
+      --brick-w:  #33211C;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #131512;
+    --surface:  #1B1E1A;
+    --sunken:   #0E100E;
+    --ink:      #E6E6DE;
+    --muted:    #9A9B8F;
+    --faint:    #7A7B70;
+    --rule:     #2B2F2A;
+    --rule-hi:  #3D423B;
+    --accent:   #8CBB94;
+    --accent-w: #213026;
+    --amber:    #D5A742;
+    --amber-w:  #322A17;
+    --brick:    #DE8770;
+    --brick-w:  #33211C;
+  }
+
+  :root[data-theme="light"] {
+    --ground:   #F4F4F0;
+    --surface:  #FFFFFF;
+    --sunken:   #EBEBE5;
+    --ink:      #212018;
+    --muted:    #6A695E;
+    --faint:    #8D8C81;
+    --rule:     #DEDED6;
+    --rule-hi:  #C9C9BF;
+    --accent:   #3B6944;
+    --accent-w: #E4EDE5;
+    --amber:    #8A6410;
+    --amber-w:  #F4EBD8;
+    --brick:    #A03E2B;
+    --brick-w:  #F4E3DF;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .board {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 28px 22px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.84em;
+    background: var(--sunken);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 14px 26px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .masthead h1 {
+    font-family: var(--mono);
+    font-size: clamp(21px, 3vw, 27px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .masthead .sub {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.03em;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+    margin-top: 7px;
+  }
+
+  .masthead .scope {
+    margin-left: auto;
+    font-size: 12.5px;
+    color: var(--muted);
+    max-width: 34ch;
+    text-align: right;
+    line-height: 1.4;
+  }
+
+  /* ---------- kpi ---------- */
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+
+  .kpi {
+    background: var(--surface);
+    padding: 15px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    position: relative;
+  }
+
+  .kpi::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 3px;
+    background: var(--rule-hi);
+  }
+
+  .kpi.sev-hot::before  { background: var(--brick); }
+  .kpi.sev-warm::before { background: var(--amber); }
+  .kpi.sev-ok::before   { background: var(--accent); }
+
+  .kpi .n {
+    font-family: var(--mono);
+    font-size: 29px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .kpi.sev-hot .n  { color: var(--brick); }
+  .kpi.sev-warm .n { color: var(--amber); }
+  .kpi.sev-ok .n   { color: var(--accent); }
+
+  .kpi .k {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .kpi .d {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.35;
+  }
+
+  /* ---------- toolbar ---------- */
+
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .toolbar .switch {
+    display: flex;
+    border: 1px solid var(--rule-hi);
+    background: var(--surface);
+  }
+
+  .toolbar button {
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    background: none;
+    border: none;
+    color: var(--muted);
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+
+  .toolbar button + button { border-left: 1px solid var(--rule); }
+  .toolbar button:hover { color: var(--ink); }
+  .toolbar button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .toolbar button[aria-pressed="true"] { background: var(--ink); color: var(--ground); }
+
+  /* ---------- panel ---------- */
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+  }
+
+  .panel > header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .panel > header h2 {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .panel > header .note {
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .panel > header .tally {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- queue ---------- */
+
+  .queue { display: flex; flex-direction: column; }
+
+  .qrow {
+    display: grid;
+    grid-template-columns: 74px 1fr 168px;
+    gap: 16px;
+    padding: 13px 18px 13px 15px;
+    border-top: 1px solid var(--rule);
+    border-left: 3px solid transparent;
+    align-items: baseline;
+  }
+
+  .queue .qrow:first-child { border-top: none; }
+  .qrow.sev-hot  { border-left-color: var(--brick); }
+  .qrow.sev-warm { border-left-color: var(--amber); }
+  .qrow.sev-cool { border-left-color: var(--rule-hi); }
+
+  .qrow .age {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .qrow .title {
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+
+  .qrow .why {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 3px;
+    max-width: 62ch;
+  }
+
+  .qrow .flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-end;
+  }
+
+  /* ---------- chips ---------- */
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border: 1px solid var(--rule-hi);
+    color: var(--muted);
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .chip.unread { background: var(--brick-w); border-color: transparent; color: var(--brick); font-weight: 600; }
+  .chip.done   { background: var(--accent-w); border-color: transparent; color: var(--accent); }
+  .chip.wait   { background: var(--amber-w);  border-color: transparent; color: var(--amber); }
+  .chip.quiet  { color: var(--faint); border-style: dashed; }
+
+  /* ---------- tables ---------- */
+
+  .tablewrap { overflow-x: auto; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13.5px;
+    min-width: 620px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 10px 16px;
+    border-top: 1px solid var(--rule);
+    vertical-align: top;
+  }
+
+  thead th {
+    border-top: none;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--faint);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  tbody tr:first-child td { border-top: 1px solid var(--rule); }
+
+  td.num {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    color: var(--muted);
+  }
+
+  td.name { font-weight: 600; white-space: nowrap; }
+  td.verbatim { font-family: var(--serif); font-style: italic; font-size: 15px; }
+  td.state { white-space: nowrap; }
+
+  tr[data-unread="1"] td.num { color: var(--brick); font-weight: 600; }
+
+  /* ---------- filter ---------- */
+
+  .empty {
+    display: none;
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--faint);
+    font-style: italic;
+  }
+
+  :root[data-filter="unread"] [data-unread="0"] { display: none; }
+  :root[data-filter="unread"] .filterable:not(:has([data-unread="1"])) .empty { display: block; }
+
+  /* ---------- footer ---------- */
+
+  .foot {
+    border-top: 1px solid var(--rule);
+    padding-top: 18px;
+    font-size: 12.5px;
+    color: var(--faint);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 78ch;
+  }
+
+  .foot b { color: var(--muted); font-weight: 600; }
+
+  @media (max-width: 700px) {
+    .board { padding: 20px 14px 56px; gap: 24px; }
+    .masthead .scope { margin-left: 0; text-align: left; }
+    .qrow { grid-template-columns: 1fr; gap: 7px; }
+    .qrow .flags { justify-content: flex-start; }
+  }
+</style>
+
+<div class="board">
+
+  <header class="masthead">
+    <div>
+      <h1>Darna — boîte de réception</h1>
+      <p class="sub">52 e-mails de darnatips.app · 20 juin → 27 juillet 2026 · heures UTC</p>
+    </div>
+    <p class="scope">Périmètre : notifications de l'application uniquement. Les alertes GitHub, SonarQube et Vercel sont exclues.</p>
+  </header>
+
+  <section class="kpis" aria-label="Indicateurs">
+    <div class="kpi sev-hot">
+      <span class="k">Non lus · boîte</span>
+      <span class="n">6</span>
+      <span class="d">+ 1 archivé, + 8 en corbeille</span>
+    </div>
+    <div class="kpi sev-warm">
+      <span class="k">À traiter</span>
+      <span class="n">3</span>
+      <span class="d">2 fiches artisan, 1 signalement</span>
+    </div>
+    <div class="kpi sev-ok">
+      <span class="k">Suggestions</span>
+      <span class="n">12</span>
+      <span class="d">5 traitées, 2 à arbitrer, 3 en suspens</span>
+    </div>
+    <div class="kpi">
+      <span class="k">Adhésions</span>
+      <span class="n">5</span>
+      <span class="d">demandes reçues, dont 2 alias de test</span>
+    </div>
+    <div class="kpi">
+      <span class="k">Signalements</span>
+      <span class="n">7</span>
+      <span class="d">1 réel, 6 passages de nettoyage</span>
+    </div>
+    <div class="kpi">
+      <span class="k">Jours actifs</span>
+      <span class="n">4</span>
+      <span class="d">28/06, 22/07, 26/07, 27/07</span>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <span>Affichage</span>
+    <span class="switch">
+      <button type="button" data-mode="all" aria-pressed="true">Tout</button>
+      <button type="button" data-mode="unread" aria-pressed="false">Non lus</button>
+    </span>
+    <span id="filterstate">15 non lus sur 52</span>
+  </div>
+
+  <section class="panel filterable">
+    <header>
+      <h2>File d'attente</h2>
+      <span class="note">ce qui n'a pas encore de suite</span>
+      <span class="tally">8 éléments</span>
+    </header>
+    <div class="queue">
+
+      <div class="qrow sev-hot" data-unread="1">
+        <span class="age">il y a 30 min</span>
+        <div>
+          <div class="title">Signalement sur une fiche artisan</div>
+          <p class="why">Motif « Autre », note « Test Data ». Probablement du bruit de recette, mais il occupe la file de modération.</p>
+        </div>
+        <div class="flags"><span class="chip unread">non lu</span><span class="chip wait">à trancher</span></div>
+      </div>
+
+      <div class="qrow sev-warm" data-unread="1">
+        <span class="age">il y a 1 h</span>
+        <div>
+          <div class="title">Fiche artisan à valider — Amine</div>
+          <p class="why">Recommandé par un voisin. La fiche reste invisible dans l'annuaire tant qu'elle n'est pas validée.</p>
+        </div>
+        <div class="flags"><span class="chip unread">non lu</span><span class="chip wait">validation</span></div>
+      </div>
+
+      <div class="qrow sev-hot" data-unread="0">
+        <span class="age">il y a 26 h</span>
+        <div>
+          <div class="title">Fiche artisan à valider — Mouad</div>
+          <p class="why">E-mail déjà lu, fiche toujours en attente. Le SLA communautaire annoncé dans la notification est de 24 h.</p>
+        </div>
+        <div class="flags"><span class="chip">lu</span><span class="chip wait">SLA dépassé</span></div>
+      </div>
+
+      <div class="qrow sev-warm" data-unread="1">
+        <span class="age">il y a 1 h</span>
+        <div>
+          <div class="title">Suggestion : « Le filtre sur les compétences ne fonctionne pas bien »</div>
+          <p class="why">Troisième remontée sur l'annuaire en deux jours. Un correctif est passé 25 minutes après réception — reste à confirmer auprès du voisin.</p>
+        </div>
+        <div class="flags"><span class="chip unread">non lu</span><span class="chip done">corrigé</span></div>
+      </div>
+
+      <div class="qrow sev-warm" data-unread="0">
+        <span class="age">hier 20:02</span>
+        <div>
+          <div class="title">Demande de rubrique « Appels à la solidarité »</div>
+          <p class="why">Ramadan, fêtes religieuses, aide aux personnes qui font vivre la résidence. Élargit le périmètre — aucune décision prise.</p>
+        </div>
+        <div class="flags"><span class="chip">lu</span><span class="chip wait">à arbitrer</span></div>
+      </div>
+
+      <div class="qrow sev-warm" data-unread="0">
+        <span class="age">hier 20:11</span>
+        <div>
+          <div class="title">Demande de rubrique « Syndic »</div>
+          <p class="why">Dates des prochaines assemblées générales et points importants pour ceux qui ne peuvent pas y assister. Aucune décision prise.</p>
+        </div>
+        <div class="flags"><span class="chip">lu</span><span class="chip wait">à arbitrer</span></div>
+      </div>
+
+      <div class="qrow sev-cool" data-unread="1">
+        <span class="age">il y a 12 h</span>
+        <div>
+          <div class="title">Demande d'admission — villa 150 (E), StephTest</div>
+          <p class="why">Validée deux minutes plus tard : l'e-mail de bienvenue est bien arrivé sur l'alias de test.</p>
+        </div>
+        <div class="flags"><span class="chip unread">non lu</span><span class="chip done">traitée</span></div>
+      </div>
+
+      <div class="qrow sev-cool" data-unread="1">
+        <span class="age">il y a 5 j</span>
+        <div>
+          <div class="title">Retrait d'une de vos contributions</div>
+          <p class="why">Le numéro utile signalé comme erroné le 28/06 a été retiré. Notification archivée sans avoir été ouverte.</p>
+        </div>
+        <div class="flags"><span class="chip unread">non lu</span><span class="chip done">clos</span></div>
+      </div>
+
+      <p class="empty">Tout est lu dans cette file.</p>
+    </div>
+  </section>
+
+  <section class="panel filterable">
+    <header>
+      <h2>Suggestions des voisins</h2>
+      <span class="note">texte coupé par l'e-mail vers 250 caractères</span>
+      <span class="tally">12 · 1 non lue</span>
+    </header>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Reçue</th><th>Verbatim</th><th>Sujet</th><th>Suite</th></tr>
+        </thead>
+        <tbody>
+          <tr data-unread="1"><td class="num">28/06 21:13</td><td class="verbatim">« il semble qu'il y a un pb à la sauvegarde des paramètres »</td><td>Paramètres</td><td class="state"><span class="chip wait">sans suite</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 08:11</td><td class="verbatim">« La liste des artisans devrait être plus dense »</td><td>Annuaire</td><td class="state"><span class="chip done">traitée</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 08:12</td><td class="verbatim">« quand on filtre sur une compétence, l'écran des filtres reste, et il faut scroller »</td><td>Annuaire</td><td class="state"><span class="chip wait">partielle</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 09:28</td><td class="verbatim">« Depuis la fiche artisan, faire un lien pour envoi message whatsapp »</td><td>Annuaire</td><td class="state"><span class="chip done">traitée</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 10:16</td><td class="verbatim">« il faut se reconnecter trop souvent (sur mobile : pas le cas sur ordi) »</td><td>Session</td><td class="state"><span class="chip done">corrigée avant</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 19:43</td><td class="verbatim">« pour ma maman, séparer en deux catégories la page d'alertes / bons plans… »</td><td>Alertes</td><td class="state"><span class="chip done">traitée</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 19:43</td><td class="verbatim">« Séparer les alertes et les bons plans en deux tuiles distinctes »</td><td>Alertes</td><td class="state"><span class="chip done">traitée</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 20:02</td><td class="verbatim">« rajouter une rubrique Appels à la solidarité… »</td><td>Nouvelle rubrique</td><td class="state"><span class="chip wait">à arbitrer</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 20:11</td><td class="verbatim">« Ajouter une rubrique syndic avec des informations générales… »</td><td>Nouvelle rubrique</td><td class="state"><span class="chip wait">à arbitrer</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 21:25</td><td class="verbatim">« Saad, tu reçois ? »</td><td>Test du canal</td><td class="state"><span class="chip quiet">bruit</span></td></tr>
+          <tr data-unread="0"><td class="num">26/07 21:32</td><td class="verbatim">« Saad ? »</td><td>Test du canal</td><td class="state"><span class="chip quiet">bruit</span></td></tr>
+          <tr data-unread="1"><td class="num">27/07 08:44</td><td class="verbatim">« Le filtre sur les compétences ne fonctionne pas bien »</td><td>Annuaire</td><td class="state"><span class="chip done">corrigée</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty">Aucune suggestion non lue.</p>
+  </section>
+
+  <section class="panel filterable">
+    <header>
+      <h2>Adhésions</h2>
+      <span class="note">l'e-mail de bienvenue part chez le voisin, pas chez le co-mod</span>
+      <span class="tally">5 · 2 non lues</span>
+    </header>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Reçue</th><th>Villa</th><th>Tr.</th><th>Prénom</th><th>Ce que la boîte prouve</th></tr>
+        </thead>
+        <tbody>
+          <tr data-unread="0"><td class="num">28/06 21:09</td><td class="num">12</td><td class="num">E</td><td class="name">Testeur</td><td>Bienvenue reçue à 21:10 — parcours complet</td></tr>
+          <tr data-unread="1"><td class="num">28/06 21:15</td><td class="num">44</td><td class="num">C</td><td class="name">Saad</td><td>Notifiée deux fois pour une seule demande — doublon d'envoi</td></tr>
+          <tr data-unread="0"><td class="num">22/07 15:24</td><td class="num">41</td><td class="num">C</td><td class="name">Nasser</td><td>Suite non observable depuis cette boîte</td></tr>
+          <tr data-unread="1"><td class="num">22/07 16:06</td><td class="num">39</td><td class="num">C</td><td class="name">Mouad</td><td>Suite non observable ; même prénom que l'artisan proposé le 26/07</td></tr>
+          <tr data-unread="1"><td class="num">26/07 22:21</td><td class="num">150</td><td class="num">E</td><td class="name">StephTest</td><td>Bienvenue reçue à 22:23 — parcours complet</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty">Aucune adhésion non lue.</p>
+  </section>
+
+  <section class="panel filterable">
+    <header>
+      <h2>Modération</h2>
+      <span class="note">un seul signalement porte sur du contenu réel</span>
+      <span class="tally">7 signalements · 1 retrait</span>
+    </header>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Reçu</th><th>Contenu</th><th>Motif</th><th>Note du voisin</th><th>Suite</th></tr>
+        </thead>
+        <tbody>
+          <tr data-unread="1"><td class="num">28/06 21:20</td><td>Numéro utile</td><td>Info erronée</td><td>« ce n'est pas le bon numéro »</td><td class="state"><span class="chip done">retiré le 22/07</span></td></tr>
+          <tr data-unread="0"><td class="num">22/07 15:11</td><td>Fiche artisan</td><td>Autre</td><td>« Nettoyage test data »</td><td class="state"><span class="chip quiet">bruit</span></td></tr>
+          <tr data-unread="1"><td class="num">22/07 16:01→16:02</td><td>Fiche artisan</td><td>Autre</td><td>« test data » ×4 en 53 secondes</td><td class="state"><span class="chip quiet">bruit</span></td></tr>
+          <tr data-unread="1"><td class="num">27/07 09:29</td><td>Fiche artisan</td><td>Autre</td><td>« Test Data »</td><td class="state"><span class="chip wait">ouvert</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty">Aucun signalement non lu.</p>
+  </section>
+
+  <section class="panel filterable">
+    <header>
+      <h2>Accès et données</h2>
+      <span class="note">le volume de liens de connexion trace les sessions de recette</span>
+      <span class="tally">22 e-mails · 1 non lu</span>
+    </header>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Période</th><th>Objet</th><th>Volume</th><th>À retenir</th></tr>
+        </thead>
+        <tbody>
+          <tr data-unread="0"><td class="num">20/06 23:26</td><td>Your sign-in link</td><td class="num">1</td><td>Gabarit Supabase par défaut, en anglais — à vérifier qu'aucun chemin n'y retombe</td></tr>
+          <tr data-unread="0"><td class="num">20/06 → 26/07</td><td>Connecte-toi à Darna en un clic</td><td class="num">20</td><td>Trois rafales de cinq liens : 28/06, 22/07, 26/07 — sessions de recette</td></tr>
+          <tr data-unread="1"><td class="num">26/07 10:19</td><td>Ton export Darna est prêt</td><td class="num">1</td><td>Export JSON livré — la chaîne RGPD fonctionne</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="empty">Aucun e-mail d'accès non lu.</p>
+  </section>
+
+  <div class="foot">
+    <p><b>Non lus.</b> 15 messages au total : 6 dans la boîte, 1 archivé, 8 en corbeille. Les non-lus en corbeille sont des doublons et des signalements de recette — ils gonflent le compteur sans porter de travail.</p>
+    <p><b>Écarté.</b> Les notifications GitHub, SonarQube et Vercel du dépôt, ainsi que les newsletters marocaines sur l'affaire homonyme <i>Bab Darna</i>.</p>
+    <p><b>Fraîcheur.</b> Photographie de la boîte au 27 juillet 2026, 10:00 UTC. Les âges affichés sont calculés à cet instant.</p>
+  </div>
+
+</div>
+
+<script>
+  (function () {
+    var buttons = document.querySelectorAll('.toolbar button');
+    var state = document.getElementById('filterstate');
+    var labels = { all: '15 non lus sur 52', unread: 'seuls les messages non lus' };
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var mode = btn.dataset.mode;
+        document.documentElement.dataset.filter = mode;
+        buttons.forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
+        state.textContent = labels[mode];
+      });
+    });
+  })();
+</script>
