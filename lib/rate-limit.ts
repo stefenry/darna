@@ -93,10 +93,36 @@ export async function checkLimit(
       payload: {
         errorName: cause instanceof Error ? cause.name : 'unknown',
         errorMessage: cause instanceof Error ? cause.message : String(cause),
+        ...describeCause(cause),
       },
     });
     return { success: true, reset: 0 };
   }
+}
+
+/**
+ * Détaille `error.cause`. `fetch` (undici) enveloppe TOUTE panne réseau dans un
+ * générique « TypeError: fetch failed » et range la vraie erreur — donc le code
+ * (`ENOTFOUND`, `ECONNREFUSED`) et le nom d'hôte fautif — dans `cause`.
+ *
+ * Sans ça, les logs de production ne permettaient pas de distinguer une URL
+ * erronée d'une base éteinte (constat du 2026-07-27).
+ *
+ * Les champs sont OMIS quand il n'y a pas de cause, plutôt que posés à
+ * `undefined` : un log lisible ne porte pas de cases vides.
+ */
+function describeCause(error: unknown): Record<string, string> {
+  const cause = error instanceof Error ? (error.cause as unknown) : undefined;
+  if (cause === undefined || cause === null) return {};
+
+  if (!(cause instanceof Error)) return { causeMessage: String(cause) };
+
+  const code = (cause as { code?: unknown }).code;
+  return {
+    causeName: cause.name,
+    causeMessage: cause.message,
+    ...(typeof code === 'string' ? { causeCode: code } : {}),
+  };
 }
 
 /**
