@@ -56,6 +56,40 @@ test.describe('PWA offline (Story 7.3) — gated OFFLINE_BASE_URL', () => {
     expect(swReady, 'navigator.serviceWorker.ready doit résoudre').toBe(true);
   });
 
+  // Régression prod 2026-08-05 — LE parcours réel du résident : taper l'icône de
+  // la PWA sans réseau. Le navigateur ouvre `start_url` du manifeste. Tant que
+  // start_url valait `/`, cette URL ne répondait qu'en 307 vers `/fr` ; une
+  // redirection n'entre jamais en cache, donc le lancement hors-ligne tombait
+  // sur le shell « Aucune connexion détectée » même avec `/fr` en cache.
+  test('lancer la PWA hors-ligne depuis start_url rend l’app, pas le repli', async ({
+    page,
+    context,
+  }) => {
+    test.setTimeout(45_000);
+
+    // start_url est lu depuis le manifeste servi : le test suit le manifeste.
+    const manifest = await page.request.get('/manifest.webmanifest');
+    expect(manifest.ok()).toBe(true);
+    const startUrl = (await manifest.json()).start_url as string;
+
+    // 1. En ligne : ouvre start_url comme le ferait l'icône, laisse le SW
+    //    s'activer et prendre le contrôle (donc mettre la page en cache).
+    await page.goto(startUrl);
+    expect(await waitForServiceWorker(page)).toBe(true);
+    await page.reload();
+    expect(await page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+
+    // 2. Hors-ligne : relance sur start_url.
+    await context.setOffline(true);
+    await page.goto(startUrl, { waitUntil: 'commit' }).catch(() => {});
+
+    // 3. L'app doit revenir depuis le cache, PAS le shell offline.
+    await expect(page.getByText(/aucune connexion d.tect/i)).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10_000 });
+
+    await context.setOffline(false);
+  });
+
   test('navigation hors-ligne non cachée → page de repli /offline', async ({ page, context }) => {
     test.setTimeout(30_000);
     // 1. Visite en ligne pour enregistrer + activer le SW (précache du shell offline).

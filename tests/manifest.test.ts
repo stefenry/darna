@@ -17,7 +17,13 @@ describe('app/manifest.ts', () => {
 
   it('declares standalone PWA shell', () => {
     expect(m.display).toBe('standalone');
-    expect(m.start_url).toBe('/');
+    // Régression offline 2026-08-05 : start_url doit être une URL réellement
+    // SERVIE (donc cachable par le SW), pas `/` qui ne répond qu'en 307 vers
+    // `/fr` — une redirection n'entre jamais en cache, et le lancement
+    // hors-ligne de la PWA tombait sur la page de repli.
+    expect(m.start_url).toBe('/fr');
+    expect(m.start_url).not.toBe('/');
+    // Le scope reste racine pour couvrir /fr ET /ar.
     expect(m.scope).toBe('/');
     expect(m.orientation).toBe('portrait');
     expect(m.lang).toBe('fr');
