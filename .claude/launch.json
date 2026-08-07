@@ -6,6 +6,13 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev:webpack"],
       "port": 3000
+    },
+    {
+      "//": "Serveur prod local : SEUL mode où le Service Worker existe (withSerwistInit a disable: NODE_ENV === 'development'). Requiert un `pnpm build` préalable.",
+      "name": "darna-prod",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start"],
+      "port": 3000
     }
   ]
 }

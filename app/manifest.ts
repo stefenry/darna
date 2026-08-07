@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { defaultLocale } from '@/lib/i18n/config';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -6,7 +7,13 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: 'Darna',
     description:
       "Plateforme communautaire de la résidence Darna : annuaire d'artisans, alertes, guide.",
-    start_url: '/',
+    // `/` ne répond QU'EN 307 vers `/${defaultLocale}` (next-intl,
+    // localePrefix: 'always') : une redirection n'est jamais mise en cache par
+    // le Service Worker. Hors-ligne, lancer la PWA sur `/` tombait donc
+    // systématiquement sur la page de repli « Aucune connexion détectée », même
+    // avec `/fr` en cache. On pointe start_url sur l'URL réellement servie et
+    // cachée. `scope` reste `/` pour couvrir les deux locales.
+    start_url: `/${defaultLocale}`,
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',

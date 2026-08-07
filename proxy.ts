@@ -257,7 +257,15 @@ export const config = {
   matcher: [
     {
       source:
-        '/((?!_next/static|_next/image|favicon.ico|fonts/|icons/|install/|og/|manifest.webmanifest|sw.js|robots.txt|sitemap.xml|api/|auth/|consent/|respond/|artisan/contact).*)',
+        '/((?!_next/static|_next/image|favicon.ico|fonts/|icons/|install/|og/|manifest.webmanifest|sw.js|swe-worker-|robots.txt|sitemap.xml|api/|auth/|consent/|respond/|artisan/contact).*)',
+      // `swe-worker-<hash>.js` (régression prod 2026-08-05) : @serwist/next
+      // génère ce Web Worker dans `public/` pour `cacheOnNavigation`, ET
+      // l'inscrit dans le manifeste de précache du Service Worker. Sans cette
+      // exclusion, `localePrefix: 'always'` le redirigeait en 307 vers
+      // `/fr/swe-worker-<hash>.js` → 404 → le `cache.addAll()` de l'`install`
+      // échouait → le SW ne s'activait JAMAIS → l'app ne fonctionnait pas du
+      // tout hors-ligne. Exclusion par PRÉFIXE : le hash dépend de la version
+      // de Serwist. Verrouillé par tests/offline/proxy-sw-assets.test.ts.
       // Les requêtes RSC/prefetch NE SONT PLUS exclues du matcher (elles
       // l'étaient depuis la story 1.10a / deferred 1.4 #58). Les exclure
       // laissait le refresh de session se produire à l'intérieur d'un Server
