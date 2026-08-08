@@ -382,6 +382,7 @@
       "intro": "Fiches soumises par les résidents, en attente de publication. Ouvre une fiche pour la vérifier et la publier.",
       "empty": "Aucune fiche en attente.",
       "submittedOn": "Soumise le {date}",
+      "noCompetences": "Aucune compétence renseignée",
       "openCta": "Voir la fiche et publier"
     },
     "residents": {

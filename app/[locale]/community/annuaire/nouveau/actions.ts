@@ -208,6 +208,11 @@ export async function createArtisan(
       phone_e164: form.phone,
       price_relative: form.price_relative ?? null,
       has_invoice: form.has_invoice ?? null,
+      // Feedback bêta 2026-08-08 — CETTE LIGNE MANQUAIT. `comment` était lu
+      // depuis le formulaire puis jamais réutilisé : la recommandation du voisin
+      // n'atteignait jamais la base (persistance « différée à 2.6 » par la story
+      // 2.4, jamais reprise). Cf. migration 20260808160000.
+      recommendation_text: form.comment ? form.comment : null,
       created_by: userId,
     })
     .select('id')

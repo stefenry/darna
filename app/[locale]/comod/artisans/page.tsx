@@ -13,6 +13,14 @@ import Link from 'next/link';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { assertLocale } from '@/lib/i18n/assert-locale';
 import { createClient } from '@/lib/supabase/server';
+import { Chip } from '@/app/[locale]/community/annuaire/_components/chip';
+
+type EmbeddedTag = { key: string; label_fr: string; label_ar: string | null };
+
+/** Même sémantique que la fiche : AR si traduit, repli FR sinon. */
+function tagLabel(locale: string, tag: EmbeddedTag): string {
+  return locale === 'ar' && tag.label_ar ? tag.label_ar : tag.label_fr;
+}
 
 export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ locale: string }> };
@@ -32,9 +40,17 @@ export default async function ComodArtisansQueuePage({ params }: Props) {
   const t = await getTranslations('comod.artisansQueue');
 
   const supabase = await createClient();
+  // Feedback bêta 2026-08-08 — compétences ET recommandation sont nécessaires
+  // pour décider : sans elles, valider revient à publier une fiche dont on
+  // ignore le métier et le motif. Les compétences sont lisibles depuis la policy
+  // artisan_tags_co_mod_select_residence (20260808140000) — avant elle, la
+  // jointure renvoyait un tableau vide. La recommandation, elle, n'était pas
+  // persistée du tout (20260808160000) : les fiches d'avant n'en ont pas.
   const { data: artisans } = await supabase
     .from('artisans')
-    .select('id, slug, display_name_fr, phone_e164, created_at')
+    .select(
+      'id, slug, display_name_fr, phone_e164, created_at, recommendation_text, artisan_tags ( tags ( key, label_fr, label_ar ) )',
+    )
     .eq('state', 'pending_consent')
     .order('created_at', { ascending: true });
 
@@ -70,6 +86,36 @@ export default async function ComodArtisansQueuePage({ params }: Props) {
                 <span className="text-sm text-neutral-700" dir="ltr">
                   {artisan.phone_e164}
                 </span>
+
+                {(() => {
+                  const tags = (artisan.artisan_tags ?? [])
+                    .map((at) => at.tags)
+                    .filter((tag): tag is EmbeddedTag => !!tag)
+                    .map((tag) => ({ key: tag.key, label: tagLabel(locale, tag) }))
+                    .sort((a, b) => a.label.localeCompare(b.label, locale));
+
+                  // Une fiche SANS compétence est un signal de validation à part
+                  // entière : on le dit, au lieu de n'afficher rien du tout —
+                  // c'est précisément l'ambiguïté qui a motivé ce correctif.
+                  return tags.length > 0 ? (
+                    <span className="mt-1 flex flex-wrap gap-2">
+                      {tags.map((tag) => (
+                        <Chip key={tag.key}>{tag.label}</Chip>
+                      ))}
+                    </span>
+                  ) : (
+                    <span className="mt-1 text-sm italic text-neutral-500">
+                      {t('noCompetences')}
+                    </span>
+                  );
+                })()}
+
+                {artisan.recommendation_text?.trim() && (
+                  <span className="mt-1 block rounded-[14px] bg-bg-soft px-3 py-2 text-sm italic text-neutral-700">
+                    “{artisan.recommendation_text.trim()}”
+                  </span>
+                )}
+
                 <span className="mt-1 text-sm font-medium text-accent-600">{t('openCta')}</span>
               </Link>
             </li>

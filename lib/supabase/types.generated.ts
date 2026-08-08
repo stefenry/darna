@@ -475,6 +475,7 @@ export type Database = {
           phone_e164: string;
           price_relative: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at: string | null;
+          recommendation_text: string | null;
           residence_id: string;
           share_count: number;
           slug: string;
@@ -498,6 +499,7 @@ export type Database = {
           phone_e164: string;
           price_relative?: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at?: string | null;
+          recommendation_text?: string | null;
           residence_id: string;
           share_count?: number;
           slug: string;
@@ -521,6 +523,7 @@ export type Database = {
           phone_e164?: string;
           price_relative?: Database['public']['Enums']['artisan_price_relative'] | null;
           published_at?: string | null;
+          recommendation_text?: string | null;
           residence_id?: string;
           share_count?: number;
           slug?: string;
