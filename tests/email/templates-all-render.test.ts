@@ -49,7 +49,7 @@ const CASES: { name: string; fr: AnyTpl; ar: AnyTpl; vars: unknown }[] = [
     name: 'admission-notify-comod',
     fr: notifyComodFr,
     ar: notifyComodAr,
-    vars: { villa: 12, tranche: 'A', first_name: 'Salma', queue_url: 'https://darna.example/q' },
+    vars: { villa: 12, tranche: '1', first_name: 'Salma', queue_url: 'https://darna.example/q' },
   },
   {
     name: 'admission-validated',

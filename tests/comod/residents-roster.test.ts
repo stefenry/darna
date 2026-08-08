@@ -23,18 +23,18 @@ describe('buildVillaRoster', () => {
     const roster = buildVillaRoster({
       admissions: [admission(U1, 3, 'A', 'Aïcha')],
       users: [{ id: U1, role: 'resident', deleted_at: null, display_name: null }],
-      profiles: [{ user_id: U1, villa: 12, tranche: 'B' }],
+      profiles: [{ user_id: U1, villa: 12, tranche: '2' }],
       locale: 'fr',
     });
     expect([...roster.keys()]).toEqual([12]);
     expect(roster.get(12)).toEqual([
-      { userId: U1, firstName: 'Aïcha', tranche: 'B', isComod: false },
+      { userId: U1, firstName: 'Aïcha', tranche: '2', isComod: false },
     ]);
   });
 
   it('une tranche effacée dans le profil (null) ne retombe pas sur la valeur admission', () => {
     const roster = buildVillaRoster({
-      admissions: [admission(U1, 3, 'A')],
+      admissions: [admission(U1, 3, '1')],
       users: [{ id: U1, role: 'resident', deleted_at: null, display_name: null }],
       profiles: [{ user_id: U1, villa: 3, tranche: null }],
       locale: 'fr',
@@ -44,13 +44,13 @@ describe('buildVillaRoster', () => {
 
   it('retombe sur les valeurs admission si la row profile manque (bug profiles connu)', () => {
     const roster = buildVillaRoster({
-      admissions: [admission(U1, 5, 'C')],
+      admissions: [admission(U1, 5, '3')],
       users: [{ id: U1, role: 'resident', deleted_at: null, display_name: null }],
       profiles: [],
       locale: 'fr',
     });
     expect(roster.get(5)).toEqual([
-      { userId: U1, firstName: 'Test', tranche: 'C', isComod: false },
+      { userId: U1, firstName: 'Test', tranche: '3', isComod: false },
     ]);
   });
 
@@ -106,7 +106,7 @@ describe('buildVillaRoster — nom courant', () => {
     const roster = buildVillaRoster({
       admissions: [admission(U1, 3, 'A', 'Ancien Prénom')],
       users: [{ id: U1, role: 'resident', deleted_at: null, display_name: 'Nouveau Nom' }],
-      profiles: [{ user_id: U1, villa: 3, tranche: 'A' }],
+      profiles: [{ user_id: U1, villa: 3, tranche: '1' }],
       locale: 'fr',
     });
     expect(roster.get(3)![0]!.firstName).toBe('Nouveau Nom');

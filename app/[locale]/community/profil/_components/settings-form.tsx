@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter as useIntlRouter } from '@/lib/i18n/navigation';
 import { updateProfileSettings } from '../actions';
+import { TRANCHES, type Tranche } from '@/lib/validation/admission';
 
 // Inputs borderless v2 (spec UX ux-design-directions.html) : pas de border,
 // fond bg-card, shadow-xs. Focus = shadow-xs + ring accent.
 const INPUT_CLASS =
   'min-h-touch w-full rounded-[14px] bg-bg-card px-4 text-base text-neutral-900 shadow-xs placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent-500/40';
-
-type Tranche = 'A' | 'B' | 'C' | 'D' | 'E';
 
 type Props = {
   initialIdentityMode: 'pseudo' | 'identified';
@@ -23,8 +22,9 @@ type Props = {
 
 const NAME_SAVE_DEBOUNCE_MS = 800;
 const VILLA_SAVE_DEBOUNCE_MS = 600;
-const TRANCHES: Tranche[] = ['A', 'B', 'C', 'D', 'E'];
 
+// Une tranche lue en base peut être hors-enum (valeur héritée, ou effacée) : on
+// retombe alors sur '' plutôt que d'afficher une option fantôme.
 function asTranche(v: string | null): Tranche | '' {
   return (TRANCHES as readonly string[]).includes(v ?? '') ? (v as Tranche) : '';
 }

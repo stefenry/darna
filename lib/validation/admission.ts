@@ -8,8 +8,24 @@ import { zVillaNumber } from './villa-number';
 // Les messages Zod natifs (hérités de zVillaNumber/zEmail) ne sont jamais
 // affichés à l'utilisateur — on ne lit que le path de l'erreur.
 
-export const zTranche = z.enum(['A', 'B', 'C', 'D', 'E']);
+// 2026-08-08 — la résidence ne compte en pratique que 3 tranches. Les anciennes
+// lettres A/B/C deviennent 1/2/3, la 4e (D) est supprimée, et la 5e (E) devient
+// `T` : la tranche de test, conservée pour les parcours de recette.
+// Les valeurs déjà en base sont converties par la migration
+// supabase/migrations/20260808120000_tranches_1_2_3_test.sql, qui pose aussi le
+// CHECK miroir de cet enum.
+export const zTranche = z.enum(['1', '2', '3', 'T']);
 export type Tranche = z.infer<typeof zTranche>;
+
+/**
+ * Source UNIQUE de la liste des tranches, pour les `<select>` et les tests.
+ *
+ * Elle était auparavant recopiée à la main dans cinq endroits (cet enum, un
+ * second `type Tranche` local à settings-form.tsx, un tableau `TRANCHES` dans ce
+ * même fichier, cinq `<option>` en dur dans admission-form.tsx, et cinq clés
+ * i18n par locale) — cinq occasions de dériver à chaque changement.
+ */
+export const TRANCHES = zTranche.options;
 
 export const zFirstName = z.string().trim().min(1).max(40);
 export type FirstName = z.infer<typeof zFirstName>;

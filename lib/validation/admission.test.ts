@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   zSubmitAdmissionForm,
   zTranche,
+  TRANCHES,
   zFirstName,
   mapAdmissionFieldError,
   ADMISSION_FIELD_ERROR_KEYS,
@@ -10,22 +11,41 @@ import {
 
 const VALID = {
   villa: 42,
-  tranche: 'C' as const,
+  tranche: '3' as const,
   first_name: 'Salma',
   email: 'salma@example.org',
   cgu_accepted: true as const,
 };
 
 describe('zTranche', () => {
-  it('accepte A/B/C/D/E', () => {
-    for (const t of ['A', 'B', 'C', 'D', 'E']) {
+  it('accepte les 3 tranches réelles + la tranche de test', () => {
+    for (const t of ['1', '2', '3', 'T']) {
       expect(zTranche.safeParse(t).success).toBe(true);
     }
   });
 
+  it('expose TRANCHES comme source unique pour les <select>', () => {
+    expect(TRANCHES).toEqual(['1', '2', '3', 'T']);
+  });
+
+  // 2026-08-08 — les anciennes lettres sont converties en base par
+  // supabase/migrations/20260808120000_tranches_1_2_3_test.sql. Les refuser ici
+  // garantit qu'aucune ne peut être RÉINTRODUITE par un formulaire après coup.
+  it('refuse les anciennes lettres A/B/C/D/E', () => {
+    for (const t of ['A', 'B', 'C', 'D', 'E']) {
+      expect(zTranche.safeParse(t).success, `${t} ne doit plus être accepté`).toBe(false);
+    }
+  });
+
+  it('refuse la 4e tranche supprimée, sous toutes ses formes', () => {
+    expect(zTranche.safeParse('4').success).toBe(false);
+    expect(zTranche.safeParse('D').success).toBe(false);
+  });
+
   it('refuse une tranche hors enum', () => {
     expect(zTranche.safeParse('F').success).toBe(false);
-    expect(zTranche.safeParse('a').success).toBe(false);
+    expect(zTranche.safeParse('t').success).toBe(false);
+    expect(zTranche.safeParse('0').success).toBe(false);
     expect(zTranche.safeParse('').success).toBe(false);
   });
 });
