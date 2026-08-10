@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { usePathname, useRouter as useIntlRouter } from '@/lib/i18n/navigation';
 import { updateProfileSettings } from '../actions';
-import { TRANCHES, type Tranche } from '@/lib/validation/admission';
+import { TRANCHES, TEST_TRANCHE, type Tranche } from '@/lib/validation/admission';
 
 // Inputs borderless v2 (spec UX ux-design-directions.html) : pas de border,
 // fond bg-card, shadow-xs. Focus = shadow-xs + ring accent.
@@ -170,9 +170,10 @@ export function SettingsForm({
             <option value="" disabled>
               —
             </option>
+            {/* Valeur `T` inchangée ; seul le libellé est explicité. */}
             {TRANCHES.map((opt) => (
               <option key={opt} value={opt}>
-                {opt}
+                {opt === TEST_TRANCHE ? t('trancheOptionTest') : opt}
               </option>
             ))}
           </select>

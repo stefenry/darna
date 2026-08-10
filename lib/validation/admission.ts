@@ -27,6 +27,13 @@ export type Tranche = z.infer<typeof zTranche>;
  */
 export const TRANCHES = zTranche.options;
 
+/**
+ * La tranche de recette. Elle STOCKE `T` (valeur de l'enum et de la base) mais
+ * s'AFFICHE « T (Test) » — un `T` nu ne dit rien à un résident. Le libellé passe
+ * par i18n (clé `trancheOptionTest`), la valeur jamais.
+ */
+export const TEST_TRANCHE: Tranche = 'T';
+
 export const zFirstName = z.string().trim().min(1).max(40);
 export type FirstName = z.infer<typeof zFirstName>;
 

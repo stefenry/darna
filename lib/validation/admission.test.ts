@@ -3,6 +3,7 @@ import {
   zSubmitAdmissionForm,
   zTranche,
   TRANCHES,
+  TEST_TRANCHE,
   zFirstName,
   mapAdmissionFieldError,
   ADMISSION_FIELD_ERROR_KEYS,
@@ -40,6 +41,15 @@ describe('zTranche', () => {
   it('refuse la 4e tranche supprimée, sous toutes ses formes', () => {
     expect(zTranche.safeParse('4').success).toBe(false);
     expect(zTranche.safeParse('D').success).toBe(false);
+  });
+
+  // La tranche de recette s'AFFICHE « T (Test) » mais se STOCKE `T`. Confondre
+  // les deux écrirait « T (Test) » en base et casserait le CHECK de la migration.
+  it('la tranche de test stocke T, jamais son libellé', () => {
+    expect(TEST_TRANCHE).toBe('T');
+    expect(zTranche.safeParse(TEST_TRANCHE).success).toBe(true);
+    expect(zTranche.safeParse('T (Test)').success).toBe(false);
+    expect(TRANCHES).toContain(TEST_TRANCHE);
   });
 
   it('refuse une tranche hors enum', () => {

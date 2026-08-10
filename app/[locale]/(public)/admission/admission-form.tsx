@@ -9,6 +9,7 @@ import { submitAdmissionRequest, type SubmitState } from '@/app/actions/admissio
 import {
   ADMISSION_FIELD_ERROR_KEYS,
   TRANCHES,
+  TEST_TRANCHE,
   type AdmissionFieldErrorKey,
 } from '@/lib/validation/admission';
 
@@ -131,11 +132,12 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
             {t('tranchePlaceholder')}
           </option>
           {/* Dérivé de zTranche : plus de liste en dur à resynchroniser. Les
-              libellés (1, 2, 3, T) sont identiques dans les deux locales, donc
-              pas de clé i18n par option. */}
+              chiffres se passent de traduction ; seule la tranche de recette a
+              un libellé (« T (Test) »), car un `T` nu ne dit rien au résident.
+              La VALEUR reste `T` — seul l'affichage change. */}
           {TRANCHES.map((value) => (
             <option key={value} value={value}>
-              {value}
+              {value === TEST_TRANCHE ? t('trancheOptionTest') : value}
             </option>
           ))}
         </select>
