@@ -73,6 +73,17 @@ export function ArtisanHeader({ locale, artisan }: { locale: string; artisan: Ar
         </div>
       )}
 
+      {/* Feedback bêta 2026-08-08 — recommandation du voisin créateur. Saisie
+          depuis toujours à la création mais jamais persistée (cf. migration
+          20260808160000) : les fiches d'avant n'en ont pas. Citation attribuée
+          au même libellé que « ajouté par », donc cohérente avec le choix de
+          visibilité (pseudonyme / nommé) du contributeur. */}
+      {artisan.recommendationText && (
+        <blockquote className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
+          <p className="italic">“{artisan.recommendationText}”</p>
+        </blockquote>
+      )}
+
       <InvoiceBadge hasInvoice={artisan.hasInvoice} />
 
       <p className="flex items-center gap-2 text-base text-neutral-700">

@@ -47,9 +47,23 @@ const ARTISAN: ArtisanDetail = {
   ],
   isOwner: false,
   createdByLabel: { authorName: 'Nora', pseudonymSuffix: null },
+  recommendationText: null,
 };
 
 describe('ArtisanHeader', () => {
+  // Feedback bêta 2026-08-08 — la recommandation du voisin créateur n'était pas
+  // persistée, donc jamais affichée. Cf. migration 20260808160000.
+  it('affiche la recommandation du voisin quand elle existe', () => {
+    const texte = 'Très réactif, il est venu un dimanche.';
+    wrap(<ArtisanHeader locale="fr" artisan={{ ...ARTISAN, recommendationText: texte }} />);
+    expect(screen.getByText(new RegExp(texte.slice(0, 20), 'i'))).toBeDefined();
+  });
+
+  it("n'affiche aucun bloc de recommandation quand il n'y en a pas", () => {
+    wrap(<ArtisanHeader locale="fr" artisan={ARTISAN} />);
+    expect(screen.queryByText(/venu un dimanche/i)).toBeNull();
+  });
+
   it('bouton WhatsApp pointant sur wa.me, ouvert dans un nouvel onglet', () => {
     wrap(<ArtisanHeader locale="fr" artisan={ARTISAN} />);
     const wa = screen.getByRole('link', { name: 'Écrire à Hassan Plombier sur WhatsApp' });

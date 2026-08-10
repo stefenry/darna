@@ -31,6 +31,12 @@ export type ArtisanDetail = {
   hasInvoice: HasInvoice | null;
   phoneE164: string;
   tags: { key: string; label: string }[];
+  /**
+   * Recommandation optionnelle du voisin créateur, saisie à la création
+   * (feedback bêta 2026-08-08 : elle n'était pas persistée du tout — cf.
+   * migration 20260808160000). Distincte des avis notés de `ratings`.
+   */
+  recommendationText: string | null;
   axes: AxisScore[];
   isOwner: boolean;
   /** Libellé du voisin créateur (FR16). `created_by` n'est JAMAIS sérialisé. */
@@ -78,11 +84,12 @@ type DetailRow = {
   phone_e164: string;
   state: ArtisanState;
   created_by: string | null;
+  recommendation_text: string | null;
   artisan_tags: { tags: EmbeddedTag | null }[] | null;
 };
 
 const DETAIL_SELECT =
-  'id, slug, display_name_fr, display_name_ar, price_relative, has_invoice, phone_e164, state, created_by, artisan_tags ( tags ( key, label_fr, label_ar ) )';
+  'id, slug, display_name_fr, display_name_ar, price_relative, has_invoice, phone_e164, state, created_by, recommendation_text, artisan_tags ( tags ( key, label_fr, label_ar ) )';
 
 function pickLocale(locale: Locale, fr: string, ar: string | null): string {
   const arTrimmed = ar?.trim();
@@ -148,6 +155,7 @@ async function _fetchArtisanBySlug(locale: Locale, slug: string): Promise<FetchA
       hasInvoice: row.has_invoice,
       phoneE164: row.phone_e164,
       tags,
+      recommendationText: row.recommendation_text?.trim() ? row.recommendation_text.trim() : null,
       axes: toAxisScores(agg ?? null),
       isOwner: uid != null && row.created_by === uid,
       createdByLabel,

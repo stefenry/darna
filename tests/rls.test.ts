@@ -3004,3 +3004,168 @@ describe.skipIf(!RUN_LOCAL_RLS_TESTS)('RLS compétences (comod_add_tag / comod_r
     expect(error?.message).toContain('not_found');
   });
 });
+
+// Feedback bêta 2026-08-08 — un co_mod ne voyait PAS les compétences d'une fiche
+// à valider. `artisans` a sa policy co_mod tous-états depuis 2.1, mais
+// `artisan_tags` n'avait jamais eu son équivalent : sa seule policy de lecture
+// exige (published ET même résidence) OU created_by = self. Une fiche à valider
+// étant `pending_consent` et créée par un résident, la jointure embarquée
+// `artisan_tags ( tags ( … ) )` renvoyait un tableau VIDE — et le rendu masquant
+// une liste vide, les compétences disparaissaient sans erreur ni indice.
+//
+// Ces cas verrouillent le correctif (migration 20260808140000) ET ses bornes :
+// l'élargissement doit profiter au co_mod de LA résidence, à personne d'autre.
+describe.skipIf(!RUN_LOCAL_RLS_TESTS)(
+  'RLS artisan_tags — lecture co_mod (feedback 2026-08-08)',
+  () => {
+    let admin: DarnaClient;
+    let comodId: string;
+    let comodOtherId: string;
+    let creatorId: string; // résident AUTEUR de la fiche
+    let residentId: string; // résident TIERS, ni auteur ni co_mod
+    let comodClient: DarnaClient; // co_mod résidence Darna
+    let comodOtherClient: DarnaClient; // co_mod résidence 2
+    let residentClient: DarnaClient; // simple résident, non créateur
+    let pendingArtisanId: string;
+    let tagId: string;
+
+    async function makeUser(
+      localUrl: string,
+      publishableKey: string,
+      label: string,
+      role: 'co_mod' | 'resident',
+      residenceId: string,
+    ): Promise<{ id: string; client: DarnaClient }> {
+      const email = `${label}-${Date.now()}@test.darna.local`;
+      const { data: created, error } = await admin.auth.admin.createUser({
+        email,
+        email_confirm: true,
+      });
+      if (error || !created.user) throw error ?? new Error(`${label} create failed`);
+      const id = created.user.id;
+      await admin.auth.admin.updateUserById(id, {
+        app_metadata: { role, residence_id: residenceId },
+      });
+      const { error: updateErr } = await admin
+        .from('users')
+        .update({ role, residence_id: residenceId })
+        .eq('id', id);
+      if (updateErr) throw new Error(`${label} users update failed: ${updateErr.message}`);
+      const client = createClient<Database>(localUrl, publishableKey, {
+        auth: { storageKey: `rls-tags-${label}`, persistSession: false },
+      });
+      await establishSession(admin, client, email, label);
+      return { id, client };
+    }
+
+    beforeAll(async () => {
+      const localEnv = parseSupabaseLocalEnv();
+      admin = createClient<Database>(
+        localEnv.SUPABASE_LOCAL_URL,
+        localEnv.SUPABASE_LOCAL_SERVICE_KEY,
+      );
+      await admin.from('residences').upsert({
+        id: RESIDENCE_2_ID,
+        name: 'Test Residence 2',
+        slug: `test2-tags-${Date.now()}`,
+        villa_count: 150,
+      });
+
+      const url = localEnv.SUPABASE_LOCAL_URL;
+      const key = localEnv.SUPABASE_LOCAL_PUBLISHABLE_KEY;
+      const comod = await makeUser(url, key, 'tagscomod', 'co_mod', DARNA_RESIDENCE_ID);
+      comodId = comod.id;
+      comodClient = comod.client;
+      const comodOther = await makeUser(url, key, 'tagscomod2', 'co_mod', RESIDENCE_2_ID);
+      comodOtherId = comodOther.id;
+      comodOtherClient = comodOther.client;
+      const creator = await makeUser(url, key, 'tagscreator', 'resident', DARNA_RESIDENCE_ID);
+      creatorId = creator.id;
+      const resident = await makeUser(url, key, 'tagsresident', 'resident', DARNA_RESIDENCE_ID);
+      residentId = resident.id;
+      residentClient = resident.client;
+
+      // La fiche à valider est créée par un AUTRE utilisateur que le co_mod
+      // validant : c'est exactement le cas que l'ancienne policy ne couvrait pas.
+      const ts = Date.now();
+      const { data: pend, error: pendErr } = await admin
+        .from('artisans')
+        .insert({
+          slug: `tags-pending-${ts}`,
+          residence_id: DARNA_RESIDENCE_ID,
+          display_name_fr: 'Artisan À Valider',
+          phone_e164: '+212600000777',
+          state: 'pending_consent',
+          created_by: creatorId,
+        })
+        .select()
+        .single();
+      if (pendErr || !pend) throw pendErr ?? new Error('pending artisan insert failed');
+      pendingArtisanId = pend.id;
+
+      const { data: tag, error: tagErr } = await admin.from('tags').select('id').limit(1).single();
+      if (tagErr || !tag) throw tagErr ?? new Error('aucun tag dans le référentiel');
+      tagId = tag.id;
+      const { error: linkErr } = await admin
+        .from('artisan_tags')
+        .insert({ artisan_id: pendingArtisanId, tag_id: tagId });
+      if (linkErr) throw new Error(`artisan_tags insert failed: ${linkErr.message}`);
+    });
+
+    afterAll(async () => {
+      if (!admin) return;
+      await admin.from('artisan_tags').delete().eq('artisan_id', pendingArtisanId);
+      await admin.from('artisans').delete().eq('id', pendingArtisanId);
+      for (const id of [comodId, comodOtherId, creatorId, residentId]) {
+        if (id) await admin.auth.admin.deleteUser(id);
+      }
+      await admin.from('residences').delete().eq('id', RESIDENCE_2_ID);
+    });
+
+    it('le co_mod voit la fiche à valider (policy artisans, déjà en place)', async () => {
+      const { data, error } = await comodClient
+        .from('artisans')
+        .select('id')
+        .eq('id', pendingArtisanId);
+      expect(error).toBeNull();
+      expect(data).toHaveLength(1);
+    });
+
+    it('LE BUG : le co_mod voit désormais AUSSI ses compétences', async () => {
+      const { data, error } = await comodClient
+        .from('artisan_tags')
+        .select('tag_id')
+        .eq('artisan_id', pendingArtisanId);
+      expect(error).toBeNull();
+      expect(data, 'compétences invisibles = régression du feedback 2026-08-08').toHaveLength(1);
+    });
+
+    it('la jointure embarquée de la page renvoie bien la compétence', async () => {
+      const { data, error } = await comodClient
+        .from('artisans')
+        .select('id, artisan_tags ( tags ( key, label_fr ) )')
+        .eq('id', pendingArtisanId)
+        .single();
+      expect(error).toBeNull();
+      expect(data?.artisan_tags ?? []).toHaveLength(1);
+    });
+
+    it("un co_mod d'une AUTRE résidence ne voit pas ces compétences", async () => {
+      const { data, error } = await comodOtherClient
+        .from('artisan_tags')
+        .select('tag_id')
+        .eq('artisan_id', pendingArtisanId);
+      expect(error).toBeNull();
+      expect(data).toHaveLength(0);
+    });
+
+    it('un simple résident non créateur ne voit pas les compétences d’une fiche non publiée', async () => {
+      const { data, error } = await residentClient
+        .from('artisan_tags')
+        .select('tag_id')
+        .eq('artisan_id', pendingArtisanId);
+      expect(error).toBeNull();
+      expect(data).toHaveLength(0);
+    });
+  },
+);
