@@ -8,6 +8,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { submitAdmissionRequest, type SubmitState } from '@/app/actions/admission-submit';
 import {
   ADMISSION_FIELD_ERROR_KEYS,
+  TRANCHES,
+  TEST_TRANCHE,
   type AdmissionFieldErrorKey,
 } from '@/lib/validation/admission';
 
@@ -129,11 +131,15 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
           <option value="" disabled>
             {t('tranchePlaceholder')}
           </option>
-          <option value="A">{t('trancheOptionA')}</option>
-          <option value="B">{t('trancheOptionB')}</option>
-          <option value="C">{t('trancheOptionC')}</option>
-          <option value="D">{t('trancheOptionD')}</option>
-          <option value="E">{t('trancheOptionE')}</option>
+          {/* Dérivé de zTranche : plus de liste en dur à resynchroniser. Les
+              chiffres se passent de traduction ; seule la tranche de recette a
+              un libellé (« T (Test) »), car un `T` nu ne dit rien au résident.
+              La VALEUR reste `T` — seul l'affichage change. */}
+          {TRANCHES.map((value) => (
+            <option key={value} value={value}>
+              {value === TEST_TRANCHE ? t('trancheOptionTest') : value}
+            </option>
+          ))}
         </select>
         {trancheErr && (
           <span id={trancheErrId} role="alert" className="text-sm text-danger">

@@ -17,7 +17,7 @@ test('E2E admission flow', async ({ page }) => {
 
   // 2. Fill form
   await page.locator('input[name="villa"]').fill(VILLA);
-  await page.locator('select[name="tranche"]').selectOption('A');
+  await page.locator('select[name="tranche"]').selectOption('1');
   await page.locator('input[name="first_name"]').fill('Test Voisin');
   await page.locator('input[name="email"]').fill(TEST_EMAIL);
   await page.getByRole('checkbox', { name: /accepte les conditions/ }).click();

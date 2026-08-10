@@ -45,7 +45,7 @@ describe('magic-link templates', () => {
 describe('admission-notify-comod templates', () => {
   const notifyVars = {
     villa: 87,
-    tranche: 'C',
+    tranche: '3',
     first_name: 'Salma',
     queue_url: 'https://darna.example/fr/comod/admission',
   };
@@ -53,7 +53,7 @@ describe('admission-notify-comod templates', () => {
   it('FR returns subject, htmlContent, textContent and includes villa/tranche/first_name/queue_url', () => {
     const out = notifyComodFr(notifyVars);
     expect(out.subject).toContain('87');
-    expect(out.subject).toContain('C');
+    expect(out.subject).toContain('3');
     expect(out.textContent).toContain('Salma');
     expect(out.textContent).toContain('https://darna.example/fr/comod/admission');
     expect(out.htmlContent).toContain('Salma');
@@ -72,7 +72,7 @@ describe('admission-notify-comod templates', () => {
   it('FR HTML escapes special characters in first_name and queue_url', () => {
     const out = notifyComodFr({
       villa: 1,
-      tranche: 'A',
+      tranche: '1',
       first_name: 'Salma <script>alert(1)</script>',
       queue_url: 'https://darna.example/x?a=1&b=2',
     });
@@ -84,7 +84,7 @@ describe('admission-notify-comod templates', () => {
   it('FR coerces villa defensively (NaN → 0, non-finite)', () => {
     const out = notifyComodFr({
       villa: Number.NaN,
-      tranche: 'B',
+      tranche: '2',
       first_name: 'Test',
       queue_url: 'https://darna.example/x',
     });

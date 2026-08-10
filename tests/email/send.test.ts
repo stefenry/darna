@@ -147,7 +147,7 @@ describe('sendTransactionalEmail (Brevo boundary AR16)', () => {
       locale: 'fr',
       vars: {
         villa: 87,
-        tranche: 'C',
+        tranche: '3',
         first_name: 'Salma',
         queue_url: 'https://darna.example/fr/comod/admission',
       },

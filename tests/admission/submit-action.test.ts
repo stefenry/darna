@@ -76,7 +76,7 @@ const initial = { ok: false as const };
 function makeFormData(overrides: Partial<Record<string, string | null>> = {}) {
   const defaults: Record<string, string> = {
     villa: '87',
-    tranche: 'C',
+    tranche: '3',
     first_name: 'Salma',
     email: 'salma@example.org',
     cgu_accepted: 'on',
@@ -183,7 +183,7 @@ describe('submitAdmissionRequest Server Action', () => {
     expect(insertArg.user_id).toBe('user-uuid-1');
     expect(insertArg.residence_id).toBe('00000000-0000-0000-0000-000000000001');
     expect(insertArg.villa).toBe(87);
-    expect(insertArg.tranche).toBe('C');
+    expect(insertArg.tranche).toBe('3');
     expect(insertArg.first_name).toBe('Salma');
     expect(insertArg.contact_channel).toBe('email');
     // Story 6.3 — pas de `?next=` dans ce test → landing_path null (pas d'entité).
@@ -205,7 +205,7 @@ describe('submitAdmissionRequest Server Action', () => {
       expect(requestedEntry.payload).not.toHaveProperty('email');
       expect(requestedEntry.payload).not.toHaveProperty('first_name');
       expect(requestedEntry.payload?.villa).toBe(87);
-      expect(requestedEntry.payload?.tranche).toBe('C');
+      expect(requestedEntry.payload?.tranche).toBe('3');
       expect(requestedEntry.payload?.has_email_verified_at).toBe(false);
     }
   });
