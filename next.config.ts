@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
 import createNextIntlPlugin from 'next-intl/plugin';
 import withSerwistInit from '@serwist/next';
+import { buildCsp } from './lib/security/csp';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
@@ -16,22 +17,12 @@ const withSerwist = withSerwistInit({
   additionalPrecacheEntries: [{ url: '/fr/offline', revision: '7-3-offline-v1' }],
 });
 
-// AR30 / NFL10 — CSP stricte (story 1.10a). connect-src whitelist : Supabase
-// (REST + Realtime wss), Brevo, GlitchTip, Upstash. img-src : Supabase Storage +
-// R2. `script-src 'unsafe-inline'` accepté au MVP (bootstrap Next) — CSP
-// nonce-based différée post-bêta. ⚠️ valider sur preview Vercel avant prod.
-const CSP = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://*.supabase.co https://*.r2.cloudflarestorage.com",
-  "font-src 'self'",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.brevo.com https://*.glitchtip.app https://*.upstash.io",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "base-uri 'self'",
-  'upgrade-insecure-requests',
-].join('; ');
+// AR30 / NFL10 — CSP stricte (story 1.10a), construite dans lib/security/csp.ts
+// pour être unit-testable. L'origine GlitchTip de `connect-src` est dérivée du
+// DSN client (régression observabilité 2026-08-05 : la liste figeait
+// `https://*.glitchtip.app` alors que GlitchTip Cloud est sur
+// `app.glitchtip.com`, donc tous les envois restaient bloqués).
+const CSP = buildCsp(process.env.NEXT_PUBLIC_GLITCHTIP_DSN);
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),

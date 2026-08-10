@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { resolveGlitchtipDsn } from './sentry/dsn';
 
 const serverSchema = z
   .object({
@@ -17,6 +18,15 @@ const serverSchema = z
     // sender domain Brevo n'est pas validé.
     RESEND_API_KEY: z.string().optional(),
     GLITCHTIP_DSN: z.url(),
+    // Le DSN CLIENT est validé ici, dans le schéma SERVEUR, et volontairement pas
+    // dans clientSchema : parseClientEnv() tourne aussi dans le navigateur, où un
+    // throw casserait l'app pour tous les résidents. Une observabilité absente ne
+    // doit jamais dégrader l'app — le garde de production ci-dessous suffit, il
+    // s'exécute au build (fail-fast avant déploiement).
+    NEXT_PUBLIC_GLITCHTIP_DSN: z.string().optional(),
+    // Posée par Vercel au build ET au runtime. Sert à réserver les gardes
+    // « interdit en production » aux vrais déploiements de production.
+    VERCEL_ENV: z.enum(['production', 'preview', 'development']).optional(),
     UPSTASH_REDIS_REST_URL: z.url(),
     UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
     CRON_SECRET: z.string().min(32, 'CRON_SECRET must be ≥32 chars (random)'),
@@ -104,6 +114,27 @@ const serverSchema = z
         path: ['SMS_PROVIDER'],
         message: 'SMS_PROVIDER=log interdit en production (leak token raw dans logs)',
       });
+    }
+    // Régression 2026-08-05 — NEXT_PUBLIC_GLITCHTIP_DSN valait
+    // `https://placeholder@glitchtip.example/0` sur Vercel. Le SDK s'initialisait
+    // quand même, la CSP bloquait chaque envoi, et AUCUNE erreur n'a remonté
+    // pendant des semaines. lib/sentry/dsn.ts désactive désormais proprement la
+    // remontée dans ce cas, mais rien n'empêchait la PROD de partir ainsi : ce
+    // garde le fait, au build (fail-fast avant déploiement).
+    //
+    // Gardé sur VERCEL_ENV et non NODE_ENV, à dessein : un `pnpm build` local avec
+    // un DSN bouchon reste légitime — c'est le seul moyen de tester le Service
+    // Worker, désactivé en dev (cf. sw/index.ts) — et un preview deployment n'a
+    // pas à porter le DSN de production. Seule la production est verrouillée.
+    if (env.VERCEL_ENV === 'production') {
+      for (const key of ['GLITCHTIP_DSN', 'NEXT_PUBLIC_GLITCHTIP_DSN'] as const) {
+        if (resolveGlitchtipDsn(env[key])) continue;
+        ctx.addIssue({
+          code: 'custom',
+          path: [key],
+          message: `${key} doit être un DSN GlitchTip exploitable en production — ni absent, ni bouchon (cf. lib/sentry/dsn.ts)`,
+        });
+      }
     }
   });
 
