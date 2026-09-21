@@ -33,16 +33,14 @@ export default async function AdmissionPendingPage({ params }: Props) {
     <PageContainer className="py-10" as="main">
       <section className="flex flex-col gap-6">
         <header className="flex flex-col gap-2">
-          <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-            {t('pageTitle')}
-          </h1>
+          <h1 className="page-title">{t('pageTitle')}</h1>
           <p className="text-base text-neutral-700">{t('body')}</p>
           <p className="text-sm text-neutral-500">{t('subBody')}</p>
         </header>
 
         <Link
           href={`/${locale}/auth/login`}
-          className="inline-flex min-h-touch items-center justify-center self-start rounded-[14px] bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-300"
+          className="inline-flex min-h-touch items-center justify-center self-start rounded bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-300"
         >
           {t('alreadyValidatedCta')}
         </Link>

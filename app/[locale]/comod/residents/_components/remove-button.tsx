@@ -43,7 +43,7 @@ export function RemoveButton({ userId, name }: Readonly<{ userId: string; name: 
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="rounded-[10px] px-3 py-1.5 text-sm font-medium text-danger hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger"
+        className="rounded-sm px-3 py-1.5 text-sm font-medium text-danger hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger"
       >
         {t('cta')}
       </button>
@@ -61,7 +61,7 @@ export function RemoveButton({ userId, name }: Readonly<{ userId: string; name: 
           onChange={(e) => setReason(e.target.value)}
           maxLength={200}
           placeholder={t('reasonPlaceholder')}
-          className="min-h-touch rounded-[10px] bg-card px-3 text-sm shadow-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+          className="min-h-touch rounded-sm bg-card px-3 text-sm shadow-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
         />
       </label>
       <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ export function RemoveButton({ userId, name }: Readonly<{ userId: string; name: 
           type="button"
           onClick={run}
           disabled={isPending || !reasonValid}
-          className="rounded-[10px] bg-danger px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger"
+          className="rounded-sm bg-danger px-3 py-1.5 text-sm font-semibold text-on-danger disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-danger"
         >
           {t('confirmCta')}
         </button>
@@ -80,7 +80,7 @@ export function RemoveButton({ userId, name }: Readonly<{ userId: string; name: 
             setError(null);
           }}
           disabled={isPending}
-          className="rounded-[10px] px-2 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900"
+          className="rounded-sm px-2 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900"
         >
           {t('cancel')}
         </button>

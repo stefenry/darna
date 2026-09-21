@@ -39,7 +39,7 @@ export default async function ArtisanContactPage({ searchParams }: Props) {
       <div className="flex justify-end">
         <Link
           href={`?lang=${otherLang}`}
-          className="text-sm font-medium text-accent-600 underline-offset-4 hover:underline"
+          className="text-sm font-medium text-link underline-offset-4 hover:underline"
         >
           {t('langToggle')}
         </Link>
@@ -51,7 +51,7 @@ export default async function ArtisanContactPage({ searchParams }: Props) {
       {/* Interim 2026-07-23 — envoi SMS coupé : sans SMS ce flux ne peut pas
           aboutir, on affiche l'indisponibilité plutôt qu'une fausse promesse. */}
       {isSmsDisabled() ? (
-        <p role="status" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
+        <p role="status" className="rounded bg-bg-soft px-4 py-3 text-sm text-neutral-700">
           {t('unavailable')}
         </p>
       ) : (

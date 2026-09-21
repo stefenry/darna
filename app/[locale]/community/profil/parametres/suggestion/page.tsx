@@ -60,7 +60,7 @@ export default async function SuggestionPage({ params }: Props) {
       <Link
         href={`/${locale}/community/profil/parametres`}
         aria-label={t('back')}
-        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
       >
         <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden />
       </Link>
@@ -75,22 +75,19 @@ export default async function SuggestionPage({ params }: Props) {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-medium text-neutral-900">{t('history.title')}</h2>
         {(mine ?? []).length === 0 ? (
-          <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
+          <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
             {t('history.empty')}
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
             {(mine ?? []).map((s) => (
-              <li
-                key={s.id}
-                className="flex flex-col gap-1 rounded-[14px] bg-bg-card p-4 shadow-xs"
-              >
+              <li key={s.id} className="flex flex-col gap-1 rounded bg-bg-card p-4 shadow-xs">
                 <p className="whitespace-pre-wrap text-base text-neutral-800">{s.body}</p>
                 <div className="flex flex-wrap items-center gap-2">
                   <span
                     className={`w-fit rounded-sm px-2 py-0.5 text-xs font-medium ${
                       s.state === 'reviewed'
-                        ? 'bg-accent-100 text-accent-700'
+                        ? 'bg-accent-100 text-link-hover'
                         : 'bg-bg-soft text-neutral-500'
                     }`}
                   >

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 // Story 2.5 review P8 — la page `/consent/[token]` est HORS `[locale]` et n'hérite
@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: 'Darna',
   description: 'PWA communautaire pour résidence — par les résidents, pour les résidents.',
+};
+
+// Barre d'état du navigateur / de la PWA : suit le thème clair ou sombre.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F3F5F2' },
+    { media: '(prefers-color-scheme: dark)', color: '#0B0D0E' },
+  ],
 };
 
 export default function RootLayout({

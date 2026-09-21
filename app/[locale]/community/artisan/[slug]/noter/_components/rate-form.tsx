@@ -100,16 +100,16 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
 
   if (state.ok) {
     return (
-      <div role="status" className="flex flex-col gap-3 rounded-[14px] bg-accent-50 p-5">
+      <div role="status" className="flex flex-col gap-3 rounded bg-accent-50 p-5">
         <p className="text-base text-neutral-900">{t('success')}</p>
         {state.visibilityMemorizeFailed && (
-          <p role="alert" className="rounded-[10px] bg-bg-soft px-3 py-2 text-sm text-warning">
+          <p role="alert" className="rounded-sm bg-bg-soft px-3 py-2 text-sm text-warning">
             {t('visibilityMemorizeFailedWarning')}
           </p>
         )}
         <Link
           href={`/${locale}/community/artisan/${slug}`}
-          className="inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600"
+          className="inline-flex min-h-touch w-fit items-center justify-center rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent hover:bg-accent-600"
         >
           {t('back')}
         </Link>
@@ -130,12 +130,10 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
           <input key={axis} type="hidden" name={AXIS_FIELD[axis]} value={scores[axis] ?? ''} />
         ))}
 
-        <p className="rounded-[14px] bg-accent-50 px-4 py-3 text-sm text-neutral-700">
-          {t('intro')}
-        </p>
+        <p className="rounded bg-accent-50 px-4 py-3 text-sm text-neutral-700">{t('intro')}</p>
 
         {error && (
-          <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+          <div role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
             {errorKey ? tErr(errorKey) : tErr('rating.submit_failed')}
           </div>
         )}
@@ -147,7 +145,7 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
           return (
             <fieldset
               key={axis}
-              className={`flex flex-col gap-3 rounded-[14px] p-4 ${isNa ? 'bg-bg-soft' : 'bg-bg-card shadow-xs'}`}
+              className={`flex flex-col gap-3 rounded p-4 ${isNa ? 'bg-bg-soft' : 'bg-bg-card shadow-xs'}`}
             >
               <div className="flex items-center justify-between gap-2">
                 <legend className="text-sm font-medium text-neutral-900">{tAxes(axis)}</legend>
@@ -155,7 +153,7 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
                   type="button"
                   onClick={() => toggleNa(axis)}
                   aria-pressed={isNa}
-                  className="inline-flex min-h-touch items-center rounded-full bg-bg-soft px-3 text-xs font-medium text-accent-600"
+                  className="inline-flex min-h-touch items-center rounded-full bg-bg-soft px-3 text-xs font-medium text-link"
                 >
                   {isNa ? t('naReactivate') : t('naToggle')}
                 </button>
@@ -176,7 +174,7 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
                       aria-label={t('axisStarLabel', { value: String(n), axis: tAxes(axis) })}
                       disabled={isNa}
                       onClick={() => setStar(axis, n)}
-                      className={`flex min-h-touch min-w-touch items-center justify-center rounded-[10px] text-2xl ${filled ? 'text-accent-600' : 'text-neutral-300'}`}
+                      className={`flex min-h-touch min-w-touch items-center justify-center rounded-sm text-2xl ${filled ? 'text-link' : 'text-neutral-300'}`}
                     >
                       ★
                     </button>
@@ -200,14 +198,14 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
             defaultValue={existingRating?.comment_text ?? ''}
             placeholder={t('commentPlaceholder')}
             onChange={(e) => setCommentLen(e.target.value.length)}
-            className="rounded-[14px] border border-neutral-300 bg-bg-card px-4 py-3 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
+            className="rounded border border-neutral-300 bg-bg-card px-4 py-3 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
           />
           <span className="text-end text-xs tabular-nums text-neutral-500">
             {t('charCount', { count: String(commentLen) })}
           </span>
         </label>
 
-        <label className="flex items-center justify-between gap-3 rounded-[14px] bg-bg-card p-4 shadow-xs">
+        <label className="flex items-center justify-between gap-3 rounded bg-bg-card p-4 shadow-xs">
           <span className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-neutral-900">{t('visibilityTitle')}</span>
             <span className="text-neutral-500">{t('visibilityDesc')}</span>
@@ -229,7 +227,7 @@ export function RateForm({ locale, slug, existingRating, defaultVisibility }: Pr
           <button
             type="submit"
             disabled={!canSubmit}
-            className="flex min-h-touch-lg w-full items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+            className="flex min-h-touch-lg w-full items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
           >
             {isPending ? t('submitting') : existingRating ? t('submitUpdate') : t('submit')}
           </button>
@@ -300,7 +298,7 @@ function RetractControls({
   return (
     <section className="flex flex-col gap-3 border-t border-neutral-300 pt-5">
       {(ratingError || commentError) && (
-        <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+        <div role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
           {tErr('rating.submit_failed')}
         </div>
       )}
@@ -320,7 +318,7 @@ function RetractControls({
           <button
             type="submit"
             disabled={ratingPending}
-            className="inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-danger px-5 text-sm font-semibold text-white hover:opacity-90 disabled:bg-neutral-300"
+            className="inline-flex min-h-touch w-fit items-center justify-center rounded bg-danger px-5 text-sm font-semibold text-on-danger hover:opacity-90 disabled:bg-neutral-300"
           >
             {t('retractRatingConfirm')}
           </button>

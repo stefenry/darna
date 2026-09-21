@@ -60,7 +60,7 @@ export default async function RespondPage({ params, searchParams }: Props) {
       <div className="flex justify-end">
         <Link
           href={`?lang=${otherLang}`}
-          className="text-sm font-medium text-accent-600 underline-offset-4 hover:underline"
+          className="text-sm font-medium text-link underline-offset-4 hover:underline"
         >
           {t('langToggle')}
         </Link>

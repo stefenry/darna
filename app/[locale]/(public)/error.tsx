@@ -23,7 +23,7 @@ export default function PublicError({
       <p className="mt-2 text-base text-neutral-500">{t('generic_description')}</p>
       <button
         onClick={reset}
-        className="mt-6 inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-medium text-white hover:bg-accent-600"
+        className="mt-6 inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-medium text-on-accent hover:bg-accent-600"
       >
         {t('retry')}
       </button>

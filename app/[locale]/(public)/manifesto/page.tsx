@@ -12,7 +12,7 @@ export default async function ManifestoPage({ params }: Props) {
 
   return (
     <PageContainer className="py-12" as="main">
-      <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+      <h1 className="page-title">{t('title')}</h1>
       <p className="mt-6 text-lg leading-relaxed text-neutral-500">{t('intro')}</p>
 
       <section className="mt-10">
@@ -26,10 +26,7 @@ export default async function ManifestoPage({ params }: Props) {
               'principle_open',
             ] as const
           ).map((key) => (
-            <li
-              key={key}
-              className="rounded-[14px] bg-bg-card p-4 text-base text-neutral-700 shadow-xs"
-            >
+            <li key={key} className="rounded bg-bg-card p-4 text-base text-neutral-700 shadow-xs">
               {t(key)}
             </li>
           ))}

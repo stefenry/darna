@@ -46,14 +46,23 @@ describe('ArtisanCard', () => {
     expect(screen.getByText('Facture émise')).toBeDefined();
   });
 
-  it('affiche exactement 2 jauges (top axes par voix : dépannage + travail soigné)', () => {
+  it('affiche les 4 axes, ordre canonique, libellés courts (refonte 2026-09)', () => {
     wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
     const meters = screen.getAllByRole('meter');
-    expect(meters).toHaveLength(2);
+    expect(meters).toHaveLength(4);
     const labels = meters.map(
-      (m) => within(m).getByText(/Dépannage|Travail soigné|Petits travaux|Urgences/).textContent,
+      (m) => within(m).getByText(/Dépannage|Soigné|Petits trav\.|Urgences/).textContent,
     );
-    expect(labels).toEqual(['Dépannage', 'Travail soigné']);
+    expect(labels).toEqual(['Dépannage', 'Petits trav.', 'Soigné', 'Urgences']);
+    // Le libellé complet et les voix restent dans le nom accessible.
+    expect(meters[2]?.getAttribute('aria-valuetext')).toBe(
+      '5.0 sur 5 sur Travail soigné, 2 voisins',
+    );
+  });
+
+  it('nombre d’avis = axe le plus noté (pas de total dans l’agrégat)', () => {
+    wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
+    expect(screen.getByText('4 avis')).toBeDefined();
   });
 
   it('lien fiche (sans préfixe tel) + lien d’appel tel: séparés', () => {
@@ -78,24 +87,20 @@ describe('ArtisanCard', () => {
     expect(within(header as HTMLElement).getByText('Hassan Plombier')).toBeDefined();
   });
 
-  it('carte compacte : 3 rangées, plus de pied de carte', () => {
+  it('carte compacte : 2 rangées, plus de pied de carte', () => {
     const { container } = wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
     const article = container.querySelector('article') as HTMLElement;
-    // overlay + header + meta + jauges — le <footer> a disparu.
+    // overlay + header (nom, meta, appel) + bandeau des axes.
     expect(article.querySelector('footer')).toBeNull();
-    expect(article.querySelectorAll(':scope > *').length).toBe(4);
+    expect(article.querySelectorAll(':scope > *').length).toBe(3);
   });
 
-  it('les 2 jauges sont côte à côte, pas empilées (2e passe de compactage)', () => {
-    const { container } = wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
-    const [first, second] = screen.getAllByRole('meter');
-    const row = first?.parentElement as HTMLElement;
-    expect(row.className).toContain('grid-cols-2');
-    expect(row).toBe(second?.parentElement);
-    // Marges resserrées : plus de p-4/gap-3 sur la carte.
-    const article = container.querySelector('article') as HTMLElement;
-    expect(article.className).toContain('p-3');
-    expect(article.className).toContain('gap-2');
+  it('les 4 jauges partagent une seule rangée', () => {
+    wrap(<ArtisanCard locale="fr" artisan={ARTISAN} />);
+    const meters = screen.getAllByRole('meter');
+    const row = meters[0]?.parentElement as HTMLElement;
+    expect(row.className).toContain('flex');
+    for (const m of meters) expect(m.parentElement).toBe(row);
   });
 
   it('prix et badge facture sur la même ligne meta que le métier', () => {
@@ -107,8 +112,8 @@ describe('ArtisanCard', () => {
 });
 
 describe('RatingGauge', () => {
-  it('axe noté : score + voix, meter renseigné', () => {
-    wrap(<RatingGauge axis="depannage" average={4.5} count={4} />);
+  it('axe noté (fiche) : score + voix, meter renseigné', () => {
+    wrap(<RatingGauge axis="depannage" average={4.5} count={4} variant="full" />);
     const meter = screen.getByRole('meter');
     expect(meter.getAttribute('aria-valuenow')).toBe('4.5');
     expect(within(meter).getByText('Dépannage')).toBeDefined();

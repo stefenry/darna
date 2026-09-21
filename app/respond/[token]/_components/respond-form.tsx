@@ -20,9 +20,9 @@ const FIELD_TARGETS = [
 ] as const;
 
 const INPUT_CLASS =
-  'min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
+  'min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
 const TEXTAREA_CLASS =
-  'rounded-[14px] border border-neutral-300 bg-bg-card px-4 py-3 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
+  'rounded border border-neutral-300 bg-bg-card px-4 py-3 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
 
 function formatDate(s: string, locale: string): string {
   const d = new Date(s);
@@ -48,7 +48,7 @@ export function RespondForm({
   const justifId = useId();
 
   const tabClass = (active: boolean) =>
-    `min-h-touch rounded-[14px] px-4 text-sm font-medium ${active ? 'bg-accent-500 text-white' : 'bg-bg-soft text-neutral-700'}`;
+    `min-h-touch rounded px-4 text-sm font-medium ${active ? 'bg-accent-500 text-on-accent' : 'bg-bg-soft text-neutral-700'}`;
 
   return (
     <div className="flex flex-col gap-5">
@@ -131,7 +131,7 @@ export function RespondForm({
               type="submit"
               name="kind"
               value="response"
-              className="inline-flex min-h-touch-lg items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm hover:bg-accent-600"
+              className="inline-flex min-h-touch-lg items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm hover:bg-accent-600"
             >
               {t('submitResponse')}
             </button>
@@ -184,7 +184,7 @@ export function RespondForm({
               type="submit"
               name="kind"
               value="rectification"
-              className="inline-flex min-h-touch-lg items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm hover:bg-accent-600"
+              className="inline-flex min-h-touch-lg items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm hover:bg-accent-600"
             >
               {t('submitRectification')}
             </button>

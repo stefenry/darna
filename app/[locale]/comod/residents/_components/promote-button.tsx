@@ -32,7 +32,7 @@ export function PromoteButton({ userId, name }: { userId: string; name: string }
   }
 
   if (done) {
-    return <span className="shrink-0 text-sm text-accent-600">{t('promoted')}</span>;
+    return <span className="shrink-0 text-sm text-link">{t('promoted')}</span>;
   }
 
   if (!confirming) {
@@ -41,7 +41,7 @@ export function PromoteButton({ userId, name }: { userId: string; name: string }
         <button
           type="button"
           onClick={() => setConfirming(true)}
-          className="rounded-[10px] border border-accent-500 px-3 py-1.5 text-sm font-medium text-accent-600 hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="rounded-sm border border-accent-500 px-3 py-1.5 text-sm font-medium text-link hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
         >
           {t('promote')}
         </button>
@@ -61,7 +61,7 @@ export function PromoteButton({ userId, name }: { userId: string; name: string }
         type="button"
         onClick={run}
         disabled={isPending}
-        className="rounded-[10px] bg-accent-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-accent-600 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        className="rounded-sm bg-accent-500 px-3 py-1.5 text-sm font-semibold text-on-accent hover:bg-accent-600 disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
       >
         {t('confirmCta')}
       </button>
@@ -69,7 +69,7 @@ export function PromoteButton({ userId, name }: { userId: string; name: string }
         type="button"
         onClick={() => setConfirming(false)}
         disabled={isPending}
-        className="rounded-[10px] px-2 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900"
+        className="rounded-sm px-2 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900"
       >
         {t('cancel')}
       </button>

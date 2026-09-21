@@ -95,12 +95,12 @@ export function DurableEntryForm({ kind, id, existing, locale }: Props) {
       className="flex flex-col gap-5 pb-28"
     >
       {fieldErr && (
-        <p role="alert" className="rounded-[10px] bg-bg-soft px-3 py-2 text-sm text-danger">
+        <p role="alert" className="rounded-sm bg-bg-soft px-3 py-2 text-sm text-danger">
           {tErr(fieldErr.message_key.replace('errors.comod.', '') as never)}
         </p>
       )}
       {state.ok && (state as { warning?: string }).warning === 'untranslated' && (
-        <p role="status" className="rounded-[10px] bg-bg-soft px-3 py-2 text-sm text-warning">
+        <p role="status" className="rounded-sm bg-bg-soft px-3 py-2 text-sm text-warning">
           {t('untranslatedWarning')}
         </p>
       )}
@@ -248,7 +248,7 @@ export function DurableEntryForm({ kind, id, existing, locale }: Props) {
               required
               className={textareaClass}
             />
-            <div className="rounded-[10px] border border-neutral-200 p-3">
+            <div className="rounded-sm border border-neutral-200 p-3">
               <p className="mb-1 text-xs text-neutral-400">{t('preview')}</p>
               <MarkdownRender source={bodyFr} />
             </div>
@@ -266,7 +266,7 @@ export function DurableEntryForm({ kind, id, existing, locale }: Props) {
               dir="rtl"
               className={textareaClass}
             />
-            <div className="rounded-[10px] border border-neutral-200 p-3" dir="rtl">
+            <div className="rounded-sm border border-neutral-200 p-3" dir="rtl">
               <p className="mb-1 text-xs text-neutral-400">{t('preview')}</p>
               <MarkdownRender source={bodyAr} />
             </div>
@@ -312,19 +312,19 @@ export function DurableEntryForm({ kind, id, existing, locale }: Props) {
       </div>
 
       {/* CTA sticky */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-200 bg-white/95 p-4 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-neutral-200 bg-bg-card/95 p-4 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-center justify-end gap-2">
           <button
             type="button"
             onClick={() => router.push(`/${locale}/comod/admin/${routeOf(kind)}`)}
-            className="inline-flex min-h-touch items-center justify-center rounded-[14px] px-4 text-sm font-medium text-neutral-600 hover:bg-bg-soft"
+            className="inline-flex min-h-touch items-center justify-center rounded px-4 text-sm font-medium text-neutral-600 hover:bg-bg-soft"
           >
             {t('cancel')}
           </button>
           <button
             type="submit"
             disabled={!frFilled || isPending}
-            className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-sm font-semibold text-white hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-sm font-semibold text-on-accent hover:bg-accent-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isPending ? t('saving') : t('save')}
           </button>
@@ -339,7 +339,7 @@ function routeOf(kind: DurableKind): string {
 }
 
 const inputClass =
-  'min-h-touch w-full rounded-[14px] bg-bg-soft px-4 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500';
+  'min-h-touch w-full rounded bg-bg-soft px-4 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500';
 const selectClass = inputClass;
 const textareaClass =
-  'w-full rounded-[14px] bg-bg-soft px-4 py-3 font-mono text-sm text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500';
+  'w-full rounded bg-bg-soft px-4 py-3 font-mono text-sm text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500';

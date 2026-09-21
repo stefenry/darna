@@ -67,7 +67,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         {/* Story 7.6 — skip link : 1er élément focusable, masqué jusqu'au focus. */}
         <a
           href="#main-content"
-          className="sr-only z-[100] rounded-[10px] bg-accent-500 px-4 py-2 text-sm font-medium text-white focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="sr-only z-[100] rounded-sm bg-accent-500 px-4 py-2 text-sm font-medium text-on-accent focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           {tA11y('skipToContent')}
         </a>

@@ -136,9 +136,7 @@ export function AndroidChromeInstall() {
     return (
       <section className="flex flex-col gap-6">
         <header className="flex flex-col gap-2">
-          <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-            {t('alreadyInstalledTitle')}
-          </h1>
+          <h1 className="page-title">{t('alreadyInstalledTitle')}</h1>
           <p className="text-base text-neutral-500">{t('alreadyInstalledBody')}</p>
         </header>
       </section>
@@ -152,9 +150,7 @@ export function AndroidChromeInstall() {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-          {t('pageTitle')}
-        </h1>
+        <h1 className="page-title">{t('pageTitle')}</h1>
         <p className="text-base text-neutral-500">{t('intro')}</p>
       </header>
 
@@ -164,21 +160,21 @@ export function AndroidChromeInstall() {
           onClick={handleInstall}
           disabled={inCooldown}
           aria-busy={prompting}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
         >
           {inCooldown ? t('ctaRetry') : t('cta')}
         </button>
       )}
 
       {ready && inCooldown && (
-        <div className="rounded-[14px] bg-bg-soft p-4 text-sm text-neutral-700" role="status">
+        <div className="rounded bg-bg-soft p-4 text-sm text-neutral-700" role="status">
           <p className="font-medium text-neutral-900">{t('dismissedTitle')}</p>
           <p className="mt-1">{t('dismissedBody')}</p>
         </div>
       )}
 
       {!ready && timeoutFired && (
-        <div className="flex flex-col gap-4 rounded-[14px] bg-bg-card p-4 shadow-xs">
+        <div className="flex flex-col gap-4 rounded bg-bg-card p-4 shadow-xs">
           <h2 className="text-base font-medium text-neutral-900">{t('fallbackTitle')}</h2>
           <p className="text-base text-neutral-700">{t('fallbackBody')}</p>
           <details className="text-sm text-neutral-700">

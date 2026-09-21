@@ -56,7 +56,7 @@ export default async function ComodHomePage({ params }: Props) {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
       <nav className="grid grid-cols-2 gap-3" aria-label={t('title')}>
@@ -64,9 +64,9 @@ export default async function ComodHomePage({ params }: Props) {
           <Link
             key={key}
             href={href}
-            className="flex min-h-32 flex-col justify-between rounded-[14px] bg-white p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+            className="flex min-h-32 flex-col justify-between rounded bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
           >
-            <Icon className="size-6 text-accent-600" aria-hidden />
+            <Icon className="size-6 text-link" aria-hidden />
             <span className="text-base font-semibold text-neutral-900">{t(`tiles.${key}`)}</span>
           </Link>
         ))}

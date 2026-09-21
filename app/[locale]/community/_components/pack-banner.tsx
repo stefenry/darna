@@ -32,13 +32,13 @@ export function PackBanner({ locale }: { locale: string }) {
       onKeyDown={(e) => {
         if (e.key === 'Escape') dismiss();
       }}
-      className="relative flex flex-col gap-3 rounded-[14px] border border-accent-200 bg-bg-soft p-4"
+      className="relative flex flex-col gap-3 rounded-lg border border-neutral-200 bg-bg-card px-5 py-4"
     >
       <button
         type="button"
         onClick={dismiss}
         aria-label={t('dismiss')}
-        className="absolute end-3 top-3 inline-flex size-9 items-center justify-center rounded-[10px] text-neutral-500 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        className="absolute end-3 top-3 inline-flex size-9 items-center justify-center rounded-sm text-neutral-500 hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
       >
         <X className="size-5" aria-hidden />
       </button>
@@ -51,14 +51,14 @@ export function PackBanner({ locale }: { locale: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <Link
           href={`/${locale}/community/guide/pack-accueil`}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-bg-soft px-4 text-sm font-semibold text-neutral-900 hover:bg-neutral-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
         >
           {t('cta')}
         </Link>
         <button
           type="button"
           onClick={dismiss}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] px-4 text-sm font-medium text-neutral-600 hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="inline-flex min-h-touch items-center justify-center rounded px-4 text-sm font-medium text-neutral-600 hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
         >
           {t('later')}
         </button>

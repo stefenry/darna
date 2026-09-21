@@ -79,7 +79,7 @@ export function GuideSearch() {
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={t('placeholder')}
-          className="min-h-touch w-full rounded-[14px] bg-bg-soft pe-4 ps-11 text-base text-neutral-900 placeholder:text-neutral-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="min-h-touch w-full rounded bg-bg-soft pe-4 ps-11 text-base text-neutral-900 placeholder:text-neutral-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
         />
       </div>
     </div>

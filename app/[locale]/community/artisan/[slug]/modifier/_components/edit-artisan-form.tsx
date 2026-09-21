@@ -15,7 +15,7 @@ import { UPDATE_ARTISAN_INITIAL, RETRACT_ARTISAN_INITIAL } from '../state';
 type Tag = { key: string; label: string };
 
 const INPUT_CLASS =
-  'min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
+  'min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
 const PHONE_NORMALIZE = /[\s.\-()]+/g;
 
 export function EditArtisanForm({
@@ -55,16 +55,16 @@ export function EditArtisanForm({
         ? t('savedNoReconsent')
         : t(smsDisabled ? 'savedReconsentSmsDisabled' : 'savedReconsent');
     return (
-      <div role="status" className="flex flex-col gap-3 rounded-[14px] bg-accent-50 p-5">
+      <div role="status" className="flex flex-col gap-3 rounded bg-accent-50 p-5">
         <p className="text-base text-neutral-900">{msg}</p>
         {state.smsFailed && (
-          <p role="alert" className="rounded-[10px] bg-bg-soft px-3 py-2 text-sm text-warning">
+          <p role="alert" className="rounded-sm bg-bg-soft px-3 py-2 text-sm text-warning">
             {t('smsFailedWarning')}
           </p>
         )}
         <Link
           href={`/${locale}/community/artisan/${slug}`}
-          className="inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600"
+          className="inline-flex min-h-touch w-fit items-center justify-center rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent hover:bg-accent-600"
         >
           {t('backToFiche')}
         </Link>
@@ -82,13 +82,13 @@ export function EditArtisanForm({
         <input type="hidden" name="locale" value={locale} />
 
         {error && (
-          <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+          <div role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
             {errorKey ? tErr(errorKey) : tErr('artisan.edit_submit_failed')}
           </div>
         )}
 
         {artisan.reconsentPending && (
-          <p className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
+          <p className="rounded bg-bg-soft px-4 py-3 text-sm text-neutral-700">
             {t('reconsentInProgress')}
           </p>
         )}
@@ -135,10 +135,7 @@ export function EditArtisanForm({
         </label>
 
         {showReconsentWarning && (
-          <p
-            aria-live="polite"
-            className="rounded-[14px] bg-warning/10 px-4 py-3 text-sm text-warning"
-          >
+          <p aria-live="polite" className="rounded bg-warning/10 px-4 py-3 text-sm text-warning">
             {t(smsDisabled ? 'reconsentWarningSmsDisabled' : 'reconsentWarning')}
           </p>
         )}
@@ -149,7 +146,7 @@ export function EditArtisanForm({
             {tags.map((tag) => (
               <label
                 key={tag.key}
-                className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-full bg-bg-soft px-3 text-sm text-neutral-700 has-[:checked]:bg-accent-500 has-[:checked]:text-white"
+                className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-full bg-bg-soft px-3 text-sm text-neutral-700 has-[:checked]:bg-accent-500 has-[:checked]:text-on-accent"
               >
                 <input
                   type="checkbox"
@@ -164,7 +161,7 @@ export function EditArtisanForm({
           </div>
           <Link
             href={`/${locale}/community/profil/parametres/suggestion`}
-            className="self-start text-xs font-medium text-accent-600 underline-offset-4 hover:underline"
+            className="self-start text-xs font-medium text-link underline-offset-4 hover:underline"
           >
             {t('suggestTag')}
           </Link>
@@ -204,7 +201,7 @@ export function EditArtisanForm({
         <button
           type="submit"
           disabled={isPending}
-          className="inline-flex min-h-touch-lg items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+          className="inline-flex min-h-touch-lg items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
         >
           {isPending ? t('saving') : t('save')}
         </button>
@@ -230,7 +227,7 @@ function RetractZone({ locale, slug }: { locale: string; slug: string }) {
   return (
     <section
       id="retrait"
-      className="flex flex-col gap-3 rounded-[14px] border border-danger/30 bg-danger/5 p-4"
+      className="flex flex-col gap-3 rounded border border-danger/30 bg-danger/5 p-4"
     >
       <h2 className="text-base font-semibold text-danger">{t('dangerZoneTitle')}</h2>
       <p className="text-sm text-neutral-700">{t('dangerZoneDescription')}</p>
@@ -256,7 +253,7 @@ function RetractZone({ locale, slug }: { locale: string; slug: string }) {
         <button
           type="submit"
           disabled={isPending || confirm !== t('confirmPhrase')}
-          className="inline-flex min-h-touch-lg items-center justify-center rounded-[14px] bg-danger px-6 text-base font-semibold text-white shadow-sm transition-colors hover:opacity-90 disabled:bg-neutral-300 disabled:text-neutral-500"
+          className="inline-flex min-h-touch-lg items-center justify-center rounded bg-danger px-6 text-base font-semibold text-on-danger shadow-sm transition-colors hover:opacity-90 disabled:bg-neutral-300 disabled:text-neutral-500"
         >
           {isPending ? t('retracting') : t('retract')}
         </button>

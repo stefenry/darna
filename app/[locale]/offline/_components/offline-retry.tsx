@@ -7,7 +7,7 @@ export function OfflineRetry({ label }: { label: string }) {
     <button
       type="button"
       onClick={() => window.location.reload()}
-      className="min-h-touch rounded-[14px] bg-accent-500 px-6 text-base font-medium text-white hover:bg-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+      className="min-h-touch rounded bg-accent-500 px-6 text-base font-medium text-on-accent hover:bg-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
     >
       {label}
     </button>

@@ -37,7 +37,7 @@ export function RetireOwnButton({
           setError(null);
           setOpen(true);
         }}
-        className="inline-flex min-h-touch w-fit items-center justify-center rounded-[10px] px-3 text-sm font-medium text-danger hover:bg-bg-soft"
+        className="inline-flex min-h-touch w-fit items-center justify-center rounded-sm px-3 text-sm font-medium text-danger hover:bg-bg-soft"
       >
         {t('action')}
       </button>
@@ -64,7 +64,7 @@ export function RetireOwnButton({
       onKeyDown={(e) => {
         if (e.key === 'Escape') setOpen(false);
       }}
-      className="flex flex-col gap-2 rounded-[10px] border border-danger/30 bg-bg-soft p-3"
+      className="flex flex-col gap-2 rounded-sm border border-danger/30 bg-bg-soft p-3"
     >
       <p className="text-sm font-medium text-neutral-800">{t('confirm')}</p>
       {error && (
@@ -78,14 +78,14 @@ export function RetireOwnButton({
           type="button"
           onClick={onConfirm}
           disabled={isPending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[10px] bg-danger px-4 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+          className="inline-flex min-h-touch items-center justify-center rounded-sm bg-danger px-4 text-sm font-semibold text-on-danger hover:opacity-90 disabled:opacity-50"
         >
           {t('action')}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="inline-flex min-h-touch items-center justify-center rounded-[10px] px-3 text-sm font-medium text-neutral-600 hover:bg-white"
+          className="inline-flex min-h-touch items-center justify-center rounded-sm px-3 text-sm font-medium text-neutral-600 hover:bg-bg-card"
         >
           {t('cancel')}
         </button>

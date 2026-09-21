@@ -23,7 +23,7 @@ export function MarkReviewedButton({ id }: { id: string }) {
           if (res.ok) router.refresh();
         })
       }
-      className="inline-flex min-h-touch w-fit items-center justify-center gap-2 rounded-[10px] bg-bg-soft px-4 text-sm font-semibold text-accent-600 hover:bg-neutral-300 disabled:opacity-50"
+      className="inline-flex min-h-touch w-fit items-center justify-center gap-2 rounded-sm bg-bg-soft px-4 text-sm font-semibold text-link hover:bg-neutral-300 disabled:opacity-50"
     >
       <Check className="size-4" aria-hidden />
       {t('markRead')}

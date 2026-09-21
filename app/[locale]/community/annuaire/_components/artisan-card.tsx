@@ -1,20 +1,16 @@
 // Story 2.2 (AC1/AC7) — carte artisan (Server Component, aucune interactivité).
-// Borderless v2 : fond blanc, shadow-xs, rounded-[14px], zéro border. La carte
-// entière est un lien vers la fiche (overlay absolu) ; le mini-bouton `tel:` est
-// un lien SÉPARÉ au-dessus (z-10) — pas de lien imbriqué (HTML invalide).
-// Disposition compacte (2026-07-26) : 3 rangées au lieu de 4 — le bouton d'appel
-// remonte à côté du nom et le pied de carte disparaît, sa ligne meta (métier,
-// prix, facture) étant fusionnée sur une seule rangée.
+// La carte entière est un lien vers la fiche (overlay absolu) ; le mini-bouton
+// `tel:` est un lien SÉPARÉ au-dessus (z-10) — pas de lien imbriqué (HTML invalide).
 //
-// 2e passe de compactage : les 2 jauges passent côte à côte (au lieu d'empilées) et
-// les marges se resserrent. La hauteur de l'en-tête, elle, est plancherée par la
-// cible tactile de 44 px du bouton d'appel — on n'y touche pas.
+// Refonte 2026-09 — « le maximum d'informations sur le minimum de place » :
+// 2 rangées. (1) nom + ligne meta en texte (métier · prix · avis · facture) et
+// bouton d'appel ; (2) les 4 axes de notation en bandeau, une seule teinte.
+// La hauteur de l'en-tête est plancherée par la cible tactile du bouton d'appel.
 
 import { useTranslations } from 'next-intl';
-import { Phone } from 'lucide-react';
+import { Check, Phone } from 'lucide-react';
 import { RatingGauge } from './rating-gauge';
-import { Chip } from './chip';
-import { topAxes, type AxisScore } from '@/lib/artisans/rating';
+import { RATING_AXES, type AxisScore } from '@/lib/artisans/rating';
 import type { Database } from '@/lib/supabase/types.generated';
 
 type PriceRelative = Database['public']['Enums']['artisan_price_relative'];
@@ -33,82 +29,98 @@ export type ArtisanCardData = {
 
 export function ArtisanCard({ locale, artisan }: { locale: string; artisan: ArtisanCardData }) {
   const t = useTranslations('community.annuaire.card');
-  // Review D4 : pour un artisan sans aucun vote, `topAxes` retombe sur les 2
-  // axes du métier (mapping `tag → axes`) au lieu des 2 axes canoniques par
-  // défaut — la carte reste honnête plutôt que mensongère.
-  const top = topAxes(artisan.axes, 2, artisan.primaryTagKey);
+  const byAxis = new Map(artisan.axes.map((a) => [a.axis, a]));
+  // Pas de total de votants dans l'agrégat : l'axe le plus noté en donne la
+  // borne basse (un voisin note rarement un seul axe).
+  const reviews = Math.max(0, ...artisan.axes.map((a) => a.count));
   // Review F25 : un seul lien englobant la carte (le bouton call sort visuellement
   // mais reste DOM-séparé sans overlap d'`aria-label` sur l'article).
   const cardHref = `/${locale}/community/artisan/${artisan.slug}`;
 
   return (
-    <article className="relative flex flex-col gap-2 rounded-[14px] bg-bg-card p-3 shadow-xs motion-safe:transition-shadow hover:shadow-sm sm:p-4">
+    <article className="relative flex flex-col gap-1.5 rounded bg-bg-card py-2 pe-3 ps-4 shadow-xs">
       {/* Lien carte entière (overlay) — focusable, étiqueté. */}
       <a
         href={cardHref}
-        className="absolute inset-0 rounded-[14px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        className="absolute inset-0 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
       >
         <span className="sr-only">{t('open', { name: artisan.displayName })}</span>
       </a>
 
-      <header className="flex items-start justify-between gap-3">
+      <header className="flex items-center justify-between gap-3">
         {/* min-w-0 + truncate : un nom long ne doit jamais pousser le bouton
             d'appel hors de la carte. */}
-        <h3 className="min-w-0 truncate text-lg font-medium tracking-tight text-neutral-900">
-          {artisan.displayName}
-        </h3>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <h3 className="truncate text-base font-semibold leading-tight tracking-tight text-neutral-900">
+            {artisan.displayName}
+          </h3>
+          <div className="flex items-center gap-1.5 overflow-hidden whitespace-nowrap text-[13px] text-neutral-500">
+            {artisan.primaryTagLabel && <span>{artisan.primaryTagLabel}</span>}
+            {artisan.priceRelative && (
+              <>
+                <Dot />
+                <span
+                  className="font-semibold text-neutral-900"
+                  aria-label={t('price', { price: artisan.priceRelative })}
+                >
+                  {artisan.priceRelative}
+                </span>
+              </>
+            )}
+            {reviews > 0 && (
+              <>
+                <Dot />
+                <span>{t('reviews', { count: reviews })}</span>
+              </>
+            )}
+            <InvoiceBadge hasInvoice={artisan.hasInvoice} />
+          </div>
+        </div>
         {/* Mini-appel : lien distinct au-dessus de l'overlay (z-10). */}
         <a
           href={`tel:${artisan.phoneE164}`}
           aria-label={t('call', { name: artisan.displayName })}
-          className="relative z-10 inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-[14px] bg-accent-500 text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600"
+          className="relative z-10 inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-accent-500 text-on-accent motion-safe:transition-colors hover:bg-accent-600"
         >
-          <Phone className="size-4" aria-hidden />
+          <Phone className="size-[18px]" aria-hidden />
         </a>
       </header>
 
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        {artisan.primaryTagLabel && <Chip>{artisan.primaryTagLabel}</Chip>}
-        {artisan.priceRelative && (
-          <span
-            className="rounded-sm bg-bg-soft px-2 py-0.5 text-xs font-medium text-neutral-700"
-            aria-label={t('price', { price: artisan.priceRelative })}
-          >
-            {artisan.priceRelative}
-          </span>
-        )}
-        <InvoiceBadge hasInvoice={artisan.hasInvoice} />
-      </div>
-
-      {/* Côte à côte : deux jauges sur une rangée au lieu de deux, ~34 px gagnés
-          par carte. Le libellé d'axe tronque plutôt que de déborder sur un écran
-          étroit (il reste lu en entier par les lecteurs d'écran via aria-valuetext). */}
-      <div className="grid grid-cols-2 gap-x-3">
-        {top.map((s) => (
-          <RatingGauge
-            key={s.axis}
-            axis={s.axis}
-            average={s.average}
-            count={s.count}
-            variant="compact"
-          />
-        ))}
+      {/* Les 4 axes, ordre canonique : on compare les artisans colonne par colonne. */}
+      <div className="flex gap-3 pe-1">
+        {RATING_AXES.map((axis) => {
+          const s = byAxis.get(axis) ?? { axis, average: null, count: 0 };
+          return <RatingGauge key={axis} axis={axis} average={s.average} count={s.count} />;
+        })}
       </div>
     </article>
   );
+}
+
+function Dot() {
+  return <span aria-hidden>·</span>;
 }
 
 function InvoiceBadge({ hasInvoice }: { hasInvoice: HasInvoice | null }) {
   const t = useTranslations('community.annuaire.card');
   if (hasInvoice === 'oui') {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
-        <span aria-hidden>✓</span> {t('invoice')}
-      </span>
+      <>
+        <Dot />
+        <span className="inline-flex items-center gap-0.5">
+          <Check className="size-3.5" aria-hidden />
+          {t('invoice')}
+        </span>
+      </>
     );
   }
   if (hasInvoice === 'sur_demande') {
-    return <span className="text-xs font-medium text-neutral-500">{t('invoiceOnRequest')}</span>;
+    return (
+      <>
+        <Dot />
+        <span>{t('invoiceOnRequest')}</span>
+      </>
+    );
   }
-  return <span />;
+  return null;
 }

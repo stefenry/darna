@@ -45,7 +45,7 @@ export function GuideSearchResults({ locale, hits }: { locale: Locale; hits: Gui
 
   if (hits.length === 0) {
     return (
-      <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
+      <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
         {t('empty')}
       </p>
     );
@@ -57,7 +57,7 @@ export function GuideSearchResults({ locale, hits }: { locale: Locale; hits: Gui
         <Link
           key={hit.slug}
           href={`/${locale}/community/guide/${hit.slug}`}
-          className="flex flex-col gap-1 rounded-[14px] bg-white px-4 py-3 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="flex flex-col gap-1 rounded bg-bg-card px-4 py-3 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
         >
           <span className="font-semibold text-neutral-900">{hit.title}</span>
           {hit.snippet && (

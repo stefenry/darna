@@ -11,8 +11,8 @@ describe('app/manifest.ts', () => {
   });
 
   it('uses the v2 theme + background tokens', () => {
-    expect(m.theme_color).toBe('#5B9C66');
-    expect(m.background_color).toBe('#FBFAF6');
+    expect(m.theme_color).toBe('#F3F5F2');
+    expect(m.background_color).toBe('#F3F5F2');
   });
 
   it('declares standalone PWA shell', () => {

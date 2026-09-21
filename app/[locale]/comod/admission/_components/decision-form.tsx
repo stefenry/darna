@@ -54,7 +54,7 @@ export function DecisionForm({ admissionRequestId, onResolved }: Props) {
       <button
         type="button"
         onClick={open}
-        className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-bg-soft px-5 text-sm font-semibold text-danger transition-colors hover:bg-neutral-200"
+        className="inline-flex min-h-touch items-center justify-center rounded bg-bg-soft px-5 text-sm font-semibold text-danger transition-colors hover:bg-neutral-200"
       >
         {t('rejectCta')}
       </button>
@@ -77,7 +77,7 @@ export function DecisionForm({ admissionRequestId, onResolved }: Props) {
             {ADMISSION_DECISION_REASONS.map((reason) => (
               <label
                 key={reason}
-                className="flex items-center gap-3 rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-900"
+                className="flex items-center gap-3 rounded bg-bg-soft px-4 py-3 text-sm text-neutral-900"
               >
                 <input
                   type="radio"
@@ -103,7 +103,7 @@ export function DecisionForm({ admissionRequestId, onResolved }: Props) {
               type="button"
               onClick={close}
               disabled={isPending}
-              className="inline-flex min-h-touch items-center justify-center rounded-[14px] px-5 text-sm font-medium text-neutral-700 hover:bg-bg-soft"
+              className="inline-flex min-h-touch items-center justify-center rounded px-5 text-sm font-medium text-neutral-700 hover:bg-bg-soft"
             >
               {t('cancelCta')}
             </button>
@@ -111,7 +111,7 @@ export function DecisionForm({ admissionRequestId, onResolved }: Props) {
               type="button"
               onClick={confirm}
               disabled={!motive || isPending}
-              className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-danger px-5 text-sm font-semibold text-white transition-colors hover:bg-danger/90 disabled:bg-neutral-300 disabled:text-neutral-500"
+              className="inline-flex min-h-touch items-center justify-center rounded bg-danger px-5 text-sm font-semibold text-on-danger transition-colors hover:bg-danger/90 disabled:bg-neutral-300 disabled:text-neutral-500"
             >
               {isPending ? t('submitting') : t('confirmRejectCta')}
             </button>

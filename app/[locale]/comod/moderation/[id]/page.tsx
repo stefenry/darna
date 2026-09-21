@@ -46,7 +46,7 @@ export default async function ReportDetailPage({ params }: Props) {
         <Link
           href={`/${locale}/comod/moderation`}
           aria-label={t('detail.back')}
-          className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+          className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
         >
           <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden />
         </Link>
@@ -68,7 +68,7 @@ export default async function ReportDetailPage({ params }: Props) {
         </header>
 
         {/* Contenu cible (contexte complet). */}
-        <section className="flex flex-col gap-2 rounded-[14px] bg-bg-soft p-4">
+        <section className="flex flex-col gap-2 rounded bg-bg-soft p-4">
           <h2 className="text-sm font-semibold text-neutral-700">{t('detail.targetHeading')}</h2>
           {report.target.exists ? (
             <>
@@ -107,7 +107,7 @@ export default async function ReportDetailPage({ params }: Props) {
         {pendingLegal ? (
           <LegalResolution reportId={report.id} locale={locale} />
         ) : resolved ? (
-          <section className="rounded-[14px] border border-neutral-200 p-4">
+          <section className="rounded border border-neutral-200 p-4">
             <p className="text-sm font-medium text-neutral-700">
               {report.state === 'closed_removed' || report.state === 'closed_removed_legal_advised'
                 ? t('detail.resolvedRemoved')

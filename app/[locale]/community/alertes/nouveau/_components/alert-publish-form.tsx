@@ -66,9 +66,9 @@ export function AlertPublishForm({
                 <button
                   type="button"
                   onClick={() => setSelected(tpl)}
-                  className="flex min-h-touch-lg w-full flex-col items-center justify-center gap-2 rounded-[14px] bg-white p-4 text-center shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+                  className="flex min-h-touch-lg w-full flex-col items-center justify-center gap-2 rounded bg-bg-card p-4 text-center shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
                 >
-                  <Icon className="size-6 text-accent-600" aria-hidden />
+                  <Icon className="size-6 text-link" aria-hidden />
                   <span className="text-sm font-semibold text-neutral-900">{tpl.labelFr}</span>
                 </button>
               </li>
@@ -103,7 +103,7 @@ export function AlertPublishForm({
       <button
         type="button"
         onClick={() => setSelected(null)}
-        className="inline-flex min-h-touch w-fit items-center text-sm font-medium text-accent-600 hover:underline"
+        className="inline-flex min-h-touch w-fit items-center text-sm font-medium text-link hover:underline"
       >
         {t('new.changeTemplate')}
       </button>
@@ -111,7 +111,7 @@ export function AlertPublishForm({
       {errMsg && (
         <p
           role="alert"
-          className="rounded-[14px] border border-danger/30 bg-bg-soft p-3 text-sm text-danger"
+          className="rounded border border-danger/30 bg-bg-soft p-3 text-sm text-danger"
         >
           {errMsg}
         </p>
@@ -126,7 +126,7 @@ export function AlertPublishForm({
             required
             maxLength={200}
             defaultValue={selected.labelFr}
-            className="min-h-touch rounded-[10px] bg-bg-soft px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+            className="min-h-touch rounded-sm bg-bg-soft px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
           />
         </label>
 
@@ -139,7 +139,7 @@ export function AlertPublishForm({
             maxLength={5000}
             defaultValue={selected.bodyFr ?? ''}
             placeholder={t('new.bodyPlaceholder')}
-            className="rounded-[10px] bg-bg-soft px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+            className="rounded-sm bg-bg-soft px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
           />
         </label>
 
@@ -149,7 +149,7 @@ export function AlertPublishForm({
             {ALERT_DURATIONS_HOURS.map((h) => (
               <label
                 key={h}
-                className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-[10px] bg-bg-soft px-4 text-sm font-medium text-neutral-800 has-[:checked]:bg-accent-100 has-[:checked]:text-accent-700 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent-500"
+                className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-sm bg-bg-soft px-4 text-sm font-medium text-neutral-800 has-[:checked]:bg-accent-100 has-[:checked]:text-link-hover has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent-500"
               >
                 <input
                   type="radio"
@@ -164,7 +164,7 @@ export function AlertPublishForm({
           </div>
         </fieldset>
 
-        <details className="rounded-[10px] bg-bg-soft px-3 py-2">
+        <details className="rounded-sm bg-bg-soft px-3 py-2">
           <summary className="cursor-pointer text-sm font-medium text-neutral-600">
             {t('new.addArabic')}
           </summary>
@@ -176,7 +176,7 @@ export function AlertPublishForm({
                 type="text"
                 maxLength={200}
                 defaultValue={selected.labelAr ?? ''}
-                className="min-h-touch rounded-[10px] bg-white px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+                className="min-h-touch rounded-sm bg-bg-card px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -186,7 +186,7 @@ export function AlertPublishForm({
                 rows={4}
                 maxLength={5000}
                 defaultValue={selected.bodyAr ?? ''}
-                className="rounded-[10px] bg-white px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+                className="rounded-sm bg-bg-card px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
               />
             </label>
           </div>
@@ -198,7 +198,7 @@ export function AlertPublishForm({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex min-h-touch-lg w-full items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
+            className="inline-flex min-h-touch-lg w-full items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent hover:bg-accent-600 disabled:opacity-50"
           >
             {isPending ? t('new.publishing') : t('new.publish')}
           </button>

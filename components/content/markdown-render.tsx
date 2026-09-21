@@ -68,7 +68,7 @@ const components: Components = {
     return (
       <a
         href={href}
-        className="font-medium text-accent-600 underline underline-offset-2 hover:text-accent-700"
+        className="font-medium text-link underline underline-offset-2 hover:text-link-hover"
         {...(isExternal ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
       >
         {children}

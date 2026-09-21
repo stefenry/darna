@@ -11,7 +11,7 @@ import { addTag, renameTag } from '../../_actions/tags';
 type TagRow = { key: string; labelFr: string; labelAr: string | null; usageCount: number };
 
 const INPUT_CLASS =
-  'min-h-touch rounded-[10px] bg-card px-3 text-sm shadow-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500';
+  'min-h-touch rounded-sm bg-card px-3 text-sm shadow-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500';
 
 export function TagsAdmin({ tags }: Readonly<{ tags: TagRow[] }>) {
   const t = useTranslations('comod.admin.competences');
@@ -44,7 +44,7 @@ export function TagsAdmin({ tags }: Readonly<{ tags: TagRow[] }>) {
   return (
     <div className="flex flex-col gap-6">
       <form
-        className="flex flex-col gap-3 rounded-[14px] bg-white p-4 shadow-xs"
+        className="flex flex-col gap-3 rounded bg-bg-card p-4 shadow-xs"
         onSubmit={(e) => {
           e.preventDefault();
           submitAdd();
@@ -77,11 +77,11 @@ export function TagsAdmin({ tags }: Readonly<{ tags: TagRow[] }>) {
           <button
             type="submit"
             disabled={isPending || !addValid}
-            className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+            className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
           >
             {isPending ? t('adding') : t('addCta')}
           </button>
-          {added && <span className="text-sm text-accent-600">{t('added')}</span>}
+          {added && <span className="text-sm text-link">{t('added')}</span>}
         </div>
         {addError && (
           <span role="alert" className="text-xs text-danger">
@@ -90,7 +90,7 @@ export function TagsAdmin({ tags }: Readonly<{ tags: TagRow[] }>) {
         )}
       </form>
 
-      <ul className="flex flex-col divide-y divide-neutral-200 rounded-[14px] bg-white shadow-xs">
+      <ul className="flex flex-col divide-y divide-neutral-200 rounded bg-bg-card shadow-xs">
         {tags.map((tag) => (
           <TagListItem key={tag.key} tag={tag} />
         ))}
@@ -137,7 +137,7 @@ function TagListItem({ tag }: Readonly<{ tag: TagRow }>) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="shrink-0 rounded-[10px] border border-accent-500 px-3 py-1.5 text-sm font-medium text-accent-600 hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="shrink-0 rounded-sm border border-accent-500 px-3 py-1.5 text-sm font-medium text-link hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
         >
           {t('editCta')}
         </button>
@@ -171,7 +171,7 @@ function TagListItem({ tag }: Readonly<{ tag: TagRow }>) {
           type="button"
           onClick={submitRename}
           disabled={isPending || !valid}
-          className="rounded-[10px] bg-accent-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-accent-600 disabled:opacity-60"
+          className="rounded-sm bg-accent-500 px-3 py-1.5 text-sm font-semibold text-on-accent hover:bg-accent-600 disabled:opacity-60"
         >
           {t('saveCta')}
         </button>
@@ -184,7 +184,7 @@ function TagListItem({ tag }: Readonly<{ tag: TagRow }>) {
             setError(null);
           }}
           disabled={isPending}
-          className="rounded-[10px] px-2 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900"
+          className="rounded-sm px-2 py-1.5 text-sm font-medium text-neutral-600 hover:text-neutral-900"
         >
           {t('cancel')}
         </button>

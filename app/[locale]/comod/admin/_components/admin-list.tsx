@@ -36,20 +36,20 @@ export function AdminList({
     <div className="flex flex-col gap-4">
       <Link
         href={`/${locale}/comod/admin/${route}/nouveau`}
-        className="inline-flex min-h-touch w-fit items-center gap-2 rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600"
+        className="inline-flex min-h-touch w-fit items-center gap-2 rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent hover:bg-accent-600"
       >
         <Plus className="size-4" aria-hidden />
         {t('newEntry')}
       </Link>
 
       {items.length === 0 ? (
-        <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
+        <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
           {t('empty')}
         </p>
       ) : (
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
-            <li key={item.id} className="flex flex-col gap-2 rounded-[14px] bg-white p-4 shadow-xs">
+            <li key={item.id} className="flex flex-col gap-2 rounded bg-bg-card p-4 shadow-xs">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-col gap-0.5">
                   <span className="font-semibold text-neutral-900">
@@ -70,7 +70,7 @@ export function AdminList({
                   {!item.retired && (
                     <Link
                       href={`/${locale}/comod/admin/${route}/${item.id}`}
-                      className="inline-flex min-h-touch items-center justify-center rounded-[10px] px-3 text-sm font-medium text-accent-600 hover:bg-bg-soft"
+                      className="inline-flex min-h-touch items-center justify-center rounded-sm px-3 text-sm font-medium text-link hover:bg-bg-soft"
                     >
                       {t('edit')}
                     </Link>

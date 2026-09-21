@@ -38,7 +38,7 @@ export function SuggestionForm({ defaultSigned }: { defaultSigned: boolean }) {
           rows={5}
           maxLength={SUGGESTION_MAXLEN}
           placeholder={t('placeholder')}
-          className="rounded-[10px] bg-bg-soft px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+          className="rounded-sm bg-bg-soft px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
         />
       </label>
 
@@ -60,7 +60,7 @@ export function SuggestionForm({ defaultSigned }: { defaultSigned: boolean }) {
       </label>
 
       <div aria-live="polite" className="min-h-5 text-sm">
-        {state.ok && <span className="font-medium text-accent-600">{t('ack')}</span>}
+        {state.ok && <span className="font-medium text-link">{t('ack')}</span>}
         {errorKey && (
           <span role="alert" className="text-danger">
             {t(`error.${errorKey}`)}
@@ -71,7 +71,7 @@ export function SuggestionForm({ defaultSigned }: { defaultSigned: boolean }) {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex min-h-touch-lg w-fit items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
+        className="inline-flex min-h-touch-lg w-fit items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent hover:bg-accent-600 disabled:opacity-50"
       >
         {isPending ? t('submitting') : t('submit')}
       </button>

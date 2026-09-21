@@ -60,18 +60,18 @@ export default async function PackAccueilPage({ params }: Props) {
       <Link
         href={`/${locale}/community`}
         aria-label={t('back')}
-        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
       >
         <ArrowLeft className="size-5" aria-hidden />
       </Link>
 
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
 
       {sections.length === 0 ? (
-        <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
+        <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
           {t('empty')}
         </p>
       ) : (

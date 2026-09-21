@@ -15,7 +15,7 @@ import { CREATE_ARTISAN_INITIAL } from '../state';
 type Tag = { key: string; label: string };
 
 const INPUT_CLASS =
-  'min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
+  'min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
 
 export function CreateArtisanForm({
   locale,
@@ -43,18 +43,18 @@ export function CreateArtisanForm({
 
   if (state.ok) {
     return (
-      <div role="status" className="flex flex-col gap-3 rounded-[14px] bg-accent-50 p-5">
+      <div role="status" className="flex flex-col gap-3 rounded bg-accent-50 p-5">
         <p className="text-base text-neutral-900">
           {t(smsDisabled ? 'successSmsDisabled' : 'success', { name: state.display_name })}
         </p>
         {state.smsFailed && (
-          <p role="alert" className="rounded-[10px] bg-bg-soft px-3 py-2 text-sm text-warning">
+          <p role="alert" className="rounded-sm bg-bg-soft px-3 py-2 text-sm text-warning">
             {t('smsFailedWarning')}
           </p>
         )}
         <Link
           href={`/${locale}/community/annuaire`}
-          className="inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600"
+          className="inline-flex min-h-touch w-fit items-center justify-center rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent hover:bg-accent-600"
         >
           {t('back')}
         </Link>
@@ -73,13 +73,13 @@ export function CreateArtisanForm({
       {error && (
         <div
           role="alert"
-          className="flex flex-col gap-2 rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger"
+          className="flex flex-col gap-2 rounded bg-bg-soft px-4 py-3 text-sm text-danger"
         >
           <span>{errorKey ? tErr(errorKey) : tErr('artisan.submit_failed')}</span>
           {duplicateSlug && (
             <Link
               href={`/${locale}/community/artisan/${duplicateSlug}`}
-              className="w-fit font-medium text-accent-600 underline-offset-4 hover:underline"
+              className="w-fit font-medium text-link underline-offset-4 hover:underline"
             >
               {t('duplicateView')}
             </Link>
@@ -131,7 +131,7 @@ export function CreateArtisanForm({
           {tags.map((tag) => (
             <label
               key={tag.key}
-              className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-full bg-bg-soft px-3 text-sm text-neutral-700 has-[:checked]:bg-accent-500 has-[:checked]:text-white"
+              className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-full bg-bg-soft px-3 text-sm text-neutral-700 has-[:checked]:bg-accent-500 has-[:checked]:text-on-accent"
             >
               <input type="checkbox" name="tag_keys" value={tag.key} className="sr-only" />
               {tag.label}
@@ -140,7 +140,7 @@ export function CreateArtisanForm({
         </div>
         <Link
           href={`/${locale}/community/profil/parametres/suggestion`}
-          className="self-start text-xs font-medium text-accent-600 underline-offset-4 hover:underline"
+          className="self-start text-xs font-medium text-link underline-offset-4 hover:underline"
         >
           {t('suggestTag')}
         </Link>
@@ -175,7 +175,7 @@ export function CreateArtisanForm({
           maxLength={500}
           rows={3}
           placeholder={t('commentPlaceholder')}
-          className="rounded-[14px] border border-neutral-300 bg-bg-card px-4 py-3 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
+          className="rounded border border-neutral-300 bg-bg-card px-4 py-3 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30"
         />
       </label>
 
@@ -209,7 +209,7 @@ export function CreateArtisanForm({
       <button
         type="submit"
         disabled={isPending || !consent}
-        className="inline-flex min-h-touch-lg items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+        className="inline-flex min-h-touch-lg items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
       >
         {isPending ? t('submitting') : t('submit')}
       </button>

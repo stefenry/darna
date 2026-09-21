@@ -51,7 +51,7 @@ export function TipPublishForm({
       {errMsg && (
         <p
           role="alert"
-          className="rounded-[14px] border border-danger/30 bg-bg-soft p-3 text-sm text-danger"
+          className="rounded border border-danger/30 bg-bg-soft p-3 text-sm text-danger"
         >
           {errMsg}
         </p>
@@ -64,7 +64,7 @@ export function TipPublishForm({
             {TIP_CATEGORY_KEYS.map((key, i) => (
               <label
                 key={key}
-                className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-[10px] bg-bg-soft px-4 text-sm font-medium text-neutral-800 has-[:checked]:bg-accent-100 has-[:checked]:text-accent-700 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent-500"
+                className="inline-flex min-h-touch cursor-pointer items-center gap-2 rounded-sm bg-bg-soft px-4 text-sm font-medium text-neutral-800 has-[:checked]:bg-accent-100 has-[:checked]:text-link-hover has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent-500"
               >
                 <input
                   type="radio"
@@ -87,7 +87,7 @@ export function TipPublishForm({
             required
             maxLength={200}
             placeholder={t('new.titlePlaceholder')}
-            className="min-h-touch rounded-[10px] bg-bg-soft px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+            className="min-h-touch rounded-sm bg-bg-soft px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
           />
         </label>
 
@@ -99,7 +99,7 @@ export function TipPublishForm({
             rows={4}
             maxLength={5000}
             placeholder={t('new.bodyPlaceholder')}
-            className="rounded-[10px] bg-bg-soft px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+            className="rounded-sm bg-bg-soft px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
           />
         </label>
 
@@ -112,12 +112,12 @@ export function TipPublishForm({
             min={minDate}
             max={maxDate}
             defaultValue={maxDate}
-            className="min-h-touch w-fit rounded-[10px] bg-bg-soft px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+            className="min-h-touch w-fit rounded-sm bg-bg-soft px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
           />
           <span className="text-xs text-neutral-500">{t('new.expiresHint')}</span>
         </label>
 
-        <details className="rounded-[10px] bg-bg-soft px-3 py-2">
+        <details className="rounded-sm bg-bg-soft px-3 py-2">
           <summary className="cursor-pointer text-sm font-medium text-neutral-600">
             {t('new.addArabic')}
           </summary>
@@ -128,7 +128,7 @@ export function TipPublishForm({
                 name="title_ar"
                 type="text"
                 maxLength={200}
-                className="min-h-touch rounded-[10px] bg-white px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+                className="min-h-touch rounded-sm bg-bg-card px-3 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
               />
             </label>
             <label className="flex flex-col gap-1">
@@ -137,7 +137,7 @@ export function TipPublishForm({
                 name="body_ar"
                 rows={4}
                 maxLength={5000}
-                className="rounded-[10px] bg-white px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+                className="rounded-sm bg-bg-card px-3 py-2 text-base text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
               />
             </label>
           </div>
@@ -149,7 +149,7 @@ export function TipPublishForm({
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex min-h-touch-lg w-full items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
+            className="inline-flex min-h-touch-lg w-full items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent hover:bg-accent-600 disabled:opacity-50"
           >
             {isPending ? t('new.publishing') : t('new.publish')}
           </button>

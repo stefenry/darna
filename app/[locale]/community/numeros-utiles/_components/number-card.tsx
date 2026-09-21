@@ -18,7 +18,7 @@ function formatPhone(e164: string): string {
 export function NumberCard({ number }: { number: UsefulNumber }) {
   const t = useTranslations('community.numerosUtiles');
   return (
-    <div className="flex flex-col gap-2 rounded-[14px] bg-white p-4 shadow-xs">
+    <div className="flex flex-col gap-2 rounded bg-bg-card p-4 shadow-xs">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">

@@ -13,21 +13,19 @@ export async function IOSSafariInstructions() {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-          {t('pageTitle')}
-        </h1>
+        <h1 className="page-title">{t('pageTitle')}</h1>
         <p className="text-base text-neutral-500">{t('intro')}</p>
       </header>
 
-      <aside className="rounded-[14px] bg-bg-soft p-4 text-sm text-neutral-700" role="note">
+      <aside className="rounded bg-bg-soft p-4 text-sm text-neutral-700" role="note">
         {t('whatsappNotice')}
       </aside>
 
       <ol className="flex flex-col gap-4">
         {steps.map(({ key, image }) => (
-          <li key={key} className="flex flex-col gap-3 rounded-[14px] bg-bg-card p-4 shadow-xs">
+          <li key={key} className="flex flex-col gap-3 rounded bg-bg-card p-4 shadow-xs">
             <div className="flex items-center gap-3">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-sm font-semibold text-white">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-accent-500 text-sm font-semibold text-on-accent">
                 {key}
               </span>
               <h2 className="text-base font-medium text-neutral-900">
@@ -42,7 +40,7 @@ export async function IOSSafariInstructions() {
               alt={t(`step${key}Alt` as 'step1Alt' | 'step2Alt' | 'step3Alt')}
               width={400}
               height={240}
-              className="rounded-[10px] border border-bg-soft"
+              className="rounded-sm border border-bg-soft"
             />
           </li>
         ))}

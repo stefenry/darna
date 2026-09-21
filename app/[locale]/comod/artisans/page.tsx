@@ -43,12 +43,12 @@ export default async function ComodArtisansQueuePage({ params }: Props) {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
 
       {!artisans || artisans.length === 0 ? (
-        <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
+        <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
           {t('empty')}
         </p>
       ) : (
@@ -57,7 +57,7 @@ export default async function ComodArtisansQueuePage({ params }: Props) {
             <li key={artisan.id}>
               <Link
                 href={`/${locale}/community/artisan/${artisan.slug}`}
-                className="flex flex-col gap-1 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft"
+                className="flex flex-col gap-1 rounded bg-bg-card p-4 shadow-xs hover:bg-bg-soft"
               >
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <span className="text-base font-semibold text-neutral-900">
@@ -70,7 +70,7 @@ export default async function ComodArtisansQueuePage({ params }: Props) {
                 <span className="text-sm text-neutral-700" dir="ltr">
                   {artisan.phone_e164}
                 </span>
-                <span className="mt-1 text-sm font-medium text-accent-600">{t('openCta')}</span>
+                <span className="mt-1 text-sm font-medium text-link">{t('openCta')}</span>
               </Link>
             </li>
           ))}

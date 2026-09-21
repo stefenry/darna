@@ -102,7 +102,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
             setNote('');
             setMode('remove');
           }}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-danger px-5 text-sm font-semibold text-white hover:opacity-90"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-danger px-5 text-sm font-semibold text-on-danger hover:opacity-90"
         >
           {t('actions.remove')}
         </button>
@@ -113,7 +113,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
             setNote('');
             setMode('keep');
           }}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-bg-soft px-5 text-sm font-semibold text-accent-600 hover:bg-neutral-300"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-bg-soft px-5 text-sm font-semibold text-link hover:bg-neutral-300"
         >
           {t('actions.keep')}
         </button>
@@ -124,7 +124,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
             setNote('');
             setMode('escalate');
           }}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] border border-neutral-200 px-5 text-sm font-semibold text-neutral-700 hover:bg-bg-soft"
+          className="inline-flex min-h-touch items-center justify-center rounded border border-neutral-200 px-5 text-sm font-semibold text-neutral-700 hover:bg-bg-soft"
         >
           {t('actions.escalate')}
         </button>
@@ -153,7 +153,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
       onKeyDown={(e) => {
         if (e.key === 'Escape') setMode(null);
       }}
-      className="flex flex-col gap-3 rounded-[14px] border border-neutral-200 bg-bg-soft p-4"
+      className="flex flex-col gap-3 rounded border border-neutral-200 bg-bg-soft p-4"
     >
       <p className="text-sm font-semibold text-neutral-800">{formTitle}</p>
 
@@ -164,7 +164,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
             ref={firstFieldRef as React.RefObject<HTMLSelectElement>}
             value={motive}
             onChange={(e) => setMotive(e.target.value as RemovalMotive)}
-            className="min-h-touch rounded-[10px] border border-neutral-200 bg-white px-3 text-sm"
+            className="min-h-touch rounded-sm border border-neutral-200 bg-bg-card px-3 text-sm"
           >
             <option value="" disabled>
               {t('removeForm.motivePlaceholder')}
@@ -188,7 +188,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
           maxLength={mode === 'escalate' ? 1000 : 2000}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
-          className="rounded-[10px] border border-neutral-200 bg-white px-3 py-2 text-sm"
+          className="rounded-sm border border-neutral-200 bg-bg-card px-3 py-2 text-sm"
           placeholder={
             mode === 'escalate' ? t('escalateForm.contextPlaceholder') : t('notePlaceholder')
           }
@@ -204,7 +204,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
       {warn && (
         <div
           role="alert"
-          className="flex flex-col gap-1 rounded-[10px] border border-danger bg-bg-card p-3 text-sm text-neutral-800"
+          className="flex flex-col gap-1 rounded-sm border border-danger bg-bg-card p-3 text-sm text-neutral-800"
         >
           <span>{warn.text}</span>
           {warn.url && (
@@ -212,7 +212,7 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
               href={warn.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-accent-600 underline"
+              className="font-semibold text-link underline"
             >
               {t('escalateForm.dossierLink')}
             </a>
@@ -225,14 +225,14 @@ export function ModerationActions({ reportId, locale }: { reportId: string; loca
           type="button"
           onClick={submitFor[mode]}
           disabled={isPending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-4 text-sm font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-4 text-sm font-semibold text-on-accent hover:bg-accent-600 disabled:opacity-50"
         >
           {isPending ? t('submitting') : t('confirm')}
         </button>
         <button
           type="button"
           onClick={() => setMode(null)}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] px-3 text-sm font-medium text-neutral-600 hover:bg-white"
+          className="inline-flex min-h-touch items-center justify-center rounded px-3 text-sm font-medium text-neutral-600 hover:bg-bg-card"
         >
           {t('cancel')}
         </button>

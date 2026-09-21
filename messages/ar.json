@@ -319,12 +319,18 @@
         "numeros": "",
         "alertes": "تنبيهات وعروض جيدة",
         "bonsPlans": ""
-      }
+      },
+      "findArtisan": "",
+      "practical": ""
     },
     "nav": {
       "home": "",
       "settings": "",
-      "comod": ""
+      "comod": "",
+      "main": "",
+      "annuaire": "",
+      "alertes": "",
+      "profil": ""
     },
     "guide": {
       "title": "",
@@ -416,7 +422,8 @@
         "call": "",
         "price": "",
         "invoice": "",
-        "invoiceOnRequest": ""
+        "invoiceOnRequest": "",
+        "reviews": ""
       },
       "filters": {
         "competence": "",
@@ -434,6 +441,12 @@
       "offline": {
         "banner": "",
         "bannerUnknown": ""
+      },
+      "axesShort": {
+        "depannage": "",
+        "petits-travaux": "",
+        "travail-soigne": "",
+        "urgences": ""
       }
     },
     "artisan": {
@@ -467,7 +480,8 @@
         "title": "",
         "edit": "",
         "remove": ""
-      }
+      },
+      "ratings": ""
     },
     "artisanCreate": {
       "title": "",

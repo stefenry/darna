@@ -80,17 +80,17 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
     <form action={formAction} noValidate className="flex flex-col gap-5" aria-busy={isPending}>
       {landingPath && <input type="hidden" name="next" value={landingPath} />}
       {duplicate && (
-        <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
+        <div role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-neutral-700">
           {tErrors('duplicate_pending')}
         </div>
       )}
       {rateLimited && (
-        <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
+        <div role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-neutral-700">
           {tRate('exceeded')}
         </div>
       )}
       {submitFailed && (
-        <div role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+        <div role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
           {tErrors('submit_failed')}
         </div>
       )}
@@ -108,7 +108,7 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
           placeholder={t('villaPlaceholder')}
           aria-invalid={villaErr ? true : undefined}
           aria-describedby={villaErr ? villaErrId : undefined}
-          className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
+          className="min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
         />
         {villaErr && (
           <span id={villaErrId} role="alert" className="text-sm text-danger">
@@ -126,7 +126,7 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
           defaultValue=""
           aria-invalid={trancheErr ? true : undefined}
           aria-describedby={trancheErr ? trancheErrId : undefined}
-          className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
+          className="min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
         >
           <option value="" disabled>
             {t('tranchePlaceholder')}
@@ -160,7 +160,7 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
           placeholder={t('firstNamePlaceholder')}
           aria-invalid={firstNameErr ? true : undefined}
           aria-describedby={firstNameErr ? firstNameErrId : undefined}
-          className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
+          className="min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
         />
         {firstNameErr && (
           <span id={firstNameErrId} role="alert" className="text-sm text-danger">
@@ -184,7 +184,7 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
           placeholder={t('emailPlaceholder')}
           aria-invalid={emailErr ? true : undefined}
           aria-describedby={emailErr ? emailErrId : undefined}
-          className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
+          className="min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
         />
         {emailErr && (
           <span id={emailErrId} role="alert" className="text-sm text-danger">
@@ -206,7 +206,7 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
             {t('cguLabel')}{' '}
             <Link
               href={cguHref}
-              className="font-medium text-accent-500 underline-offset-4 hover:underline"
+              className="font-medium text-link underline-offset-4 hover:underline"
             >
               {t('cguLinkText')}
             </Link>
@@ -223,7 +223,7 @@ export function AdmissionForm({ locale, cguHref, landingPath }: Props) {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+        className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
       >
         {isPending ? t('submitting') : t('submit')}
       </button>

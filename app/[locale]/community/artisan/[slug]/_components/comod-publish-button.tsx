@@ -34,14 +34,14 @@ export function ComodPublishButton({ artisanId, locale }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-[14px] bg-warning/10 p-4 shadow-xs">
+    <div className="flex flex-col gap-2 rounded bg-warning/10 p-4 shadow-xs">
       <p className="text-sm font-medium text-neutral-900">{t('pendingTitle')}</p>
       <p className="text-xs text-neutral-700">{t('pendingHint')}</p>
       <button
         type="button"
         onClick={onClick}
         disabled={isPending}
-        className="mt-1 inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-warning px-5 text-sm font-semibold text-white shadow-sm hover:bg-warning/90 disabled:opacity-60"
+        className="mt-1 inline-flex min-h-touch w-fit items-center justify-center rounded bg-warning px-5 text-sm font-semibold text-on-warning shadow-sm hover:bg-warning/90 disabled:opacity-60"
       >
         {isPending ? t('publishing') : t('publishCta')}
       </button>

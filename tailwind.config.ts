@@ -1,5 +1,10 @@
 import type { Config } from 'tailwindcss';
 
+// Les couleurs sont des variables CSS (app/globals.css) : un seul jeu de classes
+// sert le thème clair et le thème sombre. Format « R G B » pour garder les
+// modificateurs d'opacité Tailwind (`bg-danger/10`).
+const v = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
+
 export default {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,55 +14,82 @@ export default {
   theme: {
     extend: {
       colors: {
+        // `accent` = couleur d'ACTION (encre en clair, lime en sombre), jamais
+        // décorative. Le texte posé dessus est `on-accent`. Les liens utilisent
+        // `link`. 50/100/200 sont les anciens aplats pâles, ramenés au neutre.
         accent: {
-          50: '#ECF4EE',
-          100: '#D5E8DA',
-          200: '#ABD0B4',
-          // Vert « porte de riad » (icône Darna). 500 = 6.38:1 sur blanc,
-          // 6.11:1 sur bg-page — WCAG 2 AA (≥4.5:1) pour texte blanc sur
-          // bouton accent ET liens accent sur fond clair.
-          500: '#3B6944',
-          600: '#305A38',
-          700: '#274C2E',
-          900: '#1F3823',
+          DEFAULT: v('soft'), // shadcn : survol des items de menu
+          foreground: v('text'),
+          50: v('soft'),
+          100: v('soft'),
+          200: v('border'),
+          500: v('primary'),
+          600: v('primary-hover'),
+          700: v('primary-hover'),
+          900: v('primary-hover'),
         },
+        'on-accent': v('on-primary'),
+        link: { DEFAULT: v('link'), hover: v('link-hover') },
         bg: {
-          page: '#FBFAF6',
-          card: '#FFFFFF',
-          soft: '#F4F2EC',
+          page: v('bg'),
+          card: v('surface'),
+          soft: v('soft'),
         },
         neutral: {
-          300: '#C8C2B5',
-          // 5.02:1 sur bg-page, 4.68:1 sur bg-soft (placeholders) — AA.
-          400: '#716C5D',
-          500: '#6E6A5C',
-          700: '#38362E',
-          900: '#1A1812',
+          100: v('soft'),
+          200: v('border'),
+          300: v('border-strong'),
+          400: v('muted'),
+          500: v('muted'),
+          600: v('text-2'),
+          700: v('text-2'),
+          800: v('text'),
+          900: v('text'),
         },
-        success: '#5B9C66',
-        warning: '#D4A24A',
-        danger: '#D45B4A',
-        info: '#4A82A8',
+        success: v('success'),
+        warning: v('warning'),
+        'on-warning': v('on-warning'),
+        danger: v('danger'),
+        'on-danger': v('on-danger'),
+        info: v('info'),
+        // Jauges monochromes : la longueur et le chiffre portent l'information,
+        // plus une teinte par axe. Les 4 clés restent pour ne pas toucher aux
+        // composants.
         gauge: {
-          depannage: '#4A82A8',
-          'petits-travaux': '#5B9C66',
-          'travail-soigne': '#CB7B2A',
-          urgences: '#D45B4A',
-          track: '#ECEAE2',
+          depannage: v('text'),
+          'petits-travaux': v('text'),
+          'travail-soigne': v('text'),
+          urgences: v('text'),
+          track: v('soft'),
         },
+        // Tokens shadcn (components/ui) — jamais définis jusqu'ici.
+        background: v('bg'),
+        foreground: v('text'),
+        primary: { DEFAULT: v('primary'), foreground: v('on-primary') },
+        secondary: { DEFAULT: v('soft'), foreground: v('text') },
+        destructive: { DEFAULT: v('danger'), foreground: v('on-danger') },
+        muted: { DEFAULT: v('soft'), foreground: v('muted') },
+        popover: { DEFAULT: v('surface'), foreground: v('text') },
+        input: v('border-strong'),
+        ring: v('primary'),
+      },
+      borderColor: {
+        DEFAULT: v('border'),
       },
       borderRadius: {
         sm: '10px',
-        DEFAULT: '14px',
+        DEFAULT: '16px',
         lg: '20px',
       },
+      // Design bordé : les anciennes ombres de carte deviennent un filet de 1 px,
+      // ce qui borde toutes les cartes `shadow-xs` sans toucher aux composants.
       boxShadow: {
-        xs: '0 1px 1px rgba(20, 18, 14, 0.025)',
-        sm: '0 2px 6px rgba(20, 18, 14, 0.04)',
-        DEFAULT: '0 6px 18px rgba(20, 18, 14, 0.06)',
+        xs: '0 0 0 1px rgb(var(--border))',
+        sm: '0 0 0 1px rgb(var(--border))',
+        DEFAULT: '0 0 0 1px rgb(var(--border)), 0 8px 24px rgb(0 0 0 / 0.12)',
       },
       fontFamily: {
-        sans: ['Inter Variable', 'system-ui', 'sans-serif'],
+        sans: ['Schibsted Grotesk Variable', 'Inter Variable', 'system-ui', 'sans-serif'],
       },
       minHeight: {
         touch: '48px',

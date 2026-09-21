@@ -32,7 +32,7 @@ export function RetireConfirm({ kind, id }: { kind: DurableKind; id: string }) {
           setError(null);
           setOpen(true);
         }}
-        className="inline-flex min-h-touch items-center justify-center rounded-[10px] px-3 text-sm font-medium text-danger hover:bg-bg-soft"
+        className="inline-flex min-h-touch items-center justify-center rounded-sm px-3 text-sm font-medium text-danger hover:bg-bg-soft"
       >
         {t('retire')}
       </button>
@@ -59,7 +59,7 @@ export function RetireConfirm({ kind, id }: { kind: DurableKind; id: string }) {
       onKeyDown={(e) => {
         if (e.key === 'Escape') setOpen(false);
       }}
-      className="flex flex-col gap-2 rounded-[10px] border border-danger/30 bg-bg-soft p-3"
+      className="flex flex-col gap-2 rounded-sm border border-danger/30 bg-bg-soft p-3"
     >
       <p className="text-sm font-medium text-neutral-800">{t('confirmRetire')}</p>
       <label className="flex flex-col gap-1 text-xs text-neutral-500">
@@ -68,7 +68,7 @@ export function RetireConfirm({ kind, id }: { kind: DurableKind; id: string }) {
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           maxLength={500}
-          className="min-h-touch rounded-[10px] bg-white px-3 text-sm text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
+          className="min-h-touch rounded-sm bg-bg-card px-3 text-sm text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-500"
         />
       </label>
       {error && (
@@ -82,14 +82,14 @@ export function RetireConfirm({ kind, id }: { kind: DurableKind; id: string }) {
           type="button"
           onClick={onConfirm}
           disabled={isPending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[10px] bg-danger px-4 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+          className="inline-flex min-h-touch items-center justify-center rounded-sm bg-danger px-4 text-sm font-semibold text-on-danger hover:opacity-90 disabled:opacity-50"
         >
           {t('retire')}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="inline-flex min-h-touch items-center justify-center rounded-[10px] px-3 text-sm font-medium text-neutral-600 hover:bg-white"
+          className="inline-flex min-h-touch items-center justify-center rounded-sm px-3 text-sm font-medium text-neutral-600 hover:bg-bg-card"
         >
           {t('cancel')}
         </button>

@@ -36,9 +36,7 @@ export default async function ComodLayout({ children, params }: Props) {
     return (
       <PageContainer className="py-10" as="main">
         <section className="flex flex-col gap-2">
-          <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-            {t('title')}
-          </h1>
+          <h1 className="page-title">{t('title')}</h1>
           <p className="text-base text-neutral-700">{t('body')}</p>
         </section>
       </PageContainer>
@@ -53,7 +51,7 @@ export default async function ComodLayout({ children, params }: Props) {
         <Link
           href={`/${locale}/community`}
           aria-label={t('community')}
-          className="inline-flex min-h-touch min-w-touch items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+          className="inline-flex min-h-touch min-w-touch items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
         >
           <Home className="size-5" aria-hidden />
         </Link>

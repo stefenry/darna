@@ -21,9 +21,9 @@ export function GuideThemeSection({
   return (
     <details
       open={defaultOpen}
-      className="group rounded-[14px] bg-white shadow-xs [&_summary::-webkit-details-marker]:hidden"
+      className="group rounded bg-bg-card shadow-xs [&_summary::-webkit-details-marker]:hidden"
     >
-      <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-[14px] px-4 py-3 font-semibold text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500">
+      <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded px-4 py-3 font-semibold text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500">
         <span>{t(`themes.${group.themeKey}`)}</span>
         <span className="flex items-center gap-2">
           <span className="text-sm font-normal text-neutral-500">
@@ -40,7 +40,7 @@ export function GuideThemeSection({
           <li key={entry.slug}>
             <Link
               href={`/${locale}/community/guide/${entry.slug}`}
-              className="flex min-h-touch items-center justify-between gap-2 rounded-[10px] px-2 py-2 text-base text-neutral-800 hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+              className="flex min-h-touch items-center justify-between gap-2 rounded-sm px-2 py-2 text-base text-neutral-800 hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
             >
               <span>{entry.title}</span>
               {entry.untranslated && (

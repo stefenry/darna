@@ -33,14 +33,14 @@ export function FiltersBar({ tags }: { tags: Tag[] }) {
 
   return (
     <details
-      className="group rounded-[14px] bg-bg-soft"
+      className="group rounded border border-neutral-200 bg-bg-card"
       {...(activeCount > 0 ? { open: true } : {})}
     >
-      <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-2 rounded-[14px] px-4 py-3 text-sm font-medium text-neutral-800 hover:bg-neutral-200/50 [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-200/50 [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-2">
           <span>{t('toggleLabel')}</span>
           {activeCount > 0 && (
-            <span className="rounded-full bg-accent-500 px-2 py-0.5 text-xs font-semibold text-white">
+            <span className="rounded-full bg-accent-500 px-2 py-0.5 text-xs font-semibold text-on-accent">
               {activeCount}
             </span>
           )}
@@ -49,7 +49,7 @@ export function FiltersBar({ tags }: { tags: Tag[] }) {
           ▾
         </span>
       </summary>
-      <div className="flex flex-col gap-4 px-4 pb-4">
+      <div className="flex flex-col gap-3 px-4 pb-3">
         <FilterSection label={t('competence')}>
           {tags.map((tag) => (
             <FilterChip

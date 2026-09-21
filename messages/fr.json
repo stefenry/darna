@@ -621,12 +621,18 @@
         "alertes": "Alertes",
         "bonsPlans": "Bons plans",
         "suggestions": "Suggestions"
-      }
+      },
+      "findArtisan": "Trouver un artisan",
+      "practical": "Pratique"
     },
     "nav": {
       "home": "Accueil",
       "settings": "Mon profil",
-      "comod": "Espace co-mod"
+      "comod": "Espace co-mod",
+      "main": "Navigation principale",
+      "annuaire": "Annuaire",
+      "alertes": "Alertes",
+      "profil": "Profil"
     },
     "guide": {
       "title": "Guide de la résidence",
@@ -718,7 +724,8 @@
         "call": "Appeler {name}",
         "price": "Prix indicatif {price}",
         "invoice": "Facture émise",
-        "invoiceOnRequest": "Facture sur demande"
+        "invoiceOnRequest": "Facture sur demande",
+        "reviews": "{count, plural, one {# avis} other {# avis}}"
       },
       "filters": {
         "toggleLabel": "Filtres",
@@ -737,6 +744,12 @@
       "offline": {
         "banner": "Mode hors ligne — mise à jour il y a {hours, plural, =0 {moins d’une heure} one {# heure} other {# heures}}",
         "bannerUnknown": "Mode hors ligne — affichage des données en cache"
+      },
+      "axesShort": {
+        "depannage": "Dépannage",
+        "petits-travaux": "Petits trav.",
+        "travail-soigne": "Soigné",
+        "urgences": "Urgences"
       }
     },
     "artisan": {
@@ -770,7 +783,8 @@
         "title": "Votre contribution",
         "edit": "Modifier ma contribution",
         "remove": "Retirer"
-      }
+      },
+      "ratings": "Notes des voisins"
     },
     "artisanCreate": {
       "title": "Ajouter un artisan",

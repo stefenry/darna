@@ -53,16 +53,16 @@ export default async function NumerosUtilesPage({ params }: Props) {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
 
       {failed ? (
-        <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+        <p role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
           {tErr('fetch_failed')}
         </p>
       ) : groups.length === 0 ? (
-        <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
+        <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
           {t('empty')}
         </p>
       ) : (
