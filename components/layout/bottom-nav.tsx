@@ -34,7 +34,7 @@ export function BottomNav({ items, label }: { items: BottomNavItem[]; label: str
       aria-label={label}
       className="fixed inset-x-0 bottom-0 z-20 border-t border-neutral-200 bg-bg-card pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="mx-auto flex max-w-2xl px-3">
+      <ul className="community-nav mx-auto flex px-3 sm:px-5">
         {items.map(({ key, href, label: itemLabel, exact }) => {
           const Icon = ICONS[key];
           const active = exact ? pathname === href : pathname.startsWith(href);

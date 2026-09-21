@@ -69,10 +69,10 @@ export default async function CommunityHomePage({ params }: Props) {
       </Link>
 
       <nav
-        className="flex flex-col gap-4 md:grid md:grid-cols-2 md:items-start md:gap-6"
+        className="flex flex-col gap-4 md:grid md:grid-cols-[1fr_1fr_1.4fr] md:items-start md:gap-4"
         aria-label={t('title')}
       >
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 md:col-span-2 md:gap-4">
           {tiles.map(({ key, href, Icon }) => (
             <Link
               key={key}

@@ -121,11 +121,18 @@ describe('RatingGauge', () => {
     expect(meter.textContent).toContain('4 voisins');
   });
 
-  it('axe non noté (NA) : score NA, aria-valuenow 0', () => {
-    wrap(<RatingGauge axis="urgences" average={null} count={0} />);
+  it('axe non noté (fiche) : score NA, aria-valuenow 0', () => {
+    wrap(<RatingGauge axis="urgences" average={null} count={0} variant="full" />);
     const meter = screen.getByRole('meter');
     expect(meter.getAttribute('aria-valuenow')).toBe('0');
     expect(within(meter).getByText('NA')).toBeDefined();
+  });
+
+  it('axe non noté (carte) : un blanc, pas de « NA »', () => {
+    wrap(<RatingGauge axis="urgences" average={null} count={0} />);
+    const meter = screen.getByRole('meter');
+    expect(meter.textContent).not.toContain('NA');
+    expect(meter.getAttribute('aria-valuetext')).toBe('Urgences non noté');
   });
 });
 

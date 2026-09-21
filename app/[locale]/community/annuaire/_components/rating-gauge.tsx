@@ -32,6 +32,8 @@ export function RatingGauge({ axis, average, count, variant = 'cell', highlight 
   const isNa = average === null || count === 0;
   const fillPct = isNa ? 0 : Math.max(0, Math.min(100, (average / 5) * 100));
   const scoreText = isNa ? t('na') : average.toFixed(1);
+  // Carte : un axe non noté reste vide — « NA » ×4 alourdissait la liste.
+  const cellText = isNa ? '' : scoreText;
   const valueText = isNa
     ? t('valueTextNa', { axis: label })
     : t('valueText', { axis: label, average: scoreText, count });
@@ -89,7 +91,9 @@ export function RatingGauge({ axis, average, count, variant = 'cell', highlight 
         {tShort(axis)}
       </span>
       <div className="flex items-center gap-1.5 text-sm leading-tight">
-        {score}
+        <span className="min-w-[1.6rem] shrink-0 font-bold tabular-nums text-neutral-900">
+          {cellText}
+        </span>
         {bar('h-[3px]')}
       </div>
     </div>

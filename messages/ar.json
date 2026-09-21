@@ -434,7 +434,8 @@
         "activeBadge": "",
         "toggleAria": "",
         "activeList": "",
-        "remove": ""
+        "remove": "",
+        "showResults": ""
       },
       "empty": {
         "title": "",

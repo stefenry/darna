@@ -107,52 +107,64 @@ export function FiltersBar({ tags }: { tags: Tag[] }) {
         </ul>
       )}
 
-      <div
-        id={panelId}
-        hidden={!open}
-        className="flex flex-col gap-3 rounded border border-neutral-200 bg-bg-card px-4 py-3"
-      >
-        <FilterSection label={t('competence')}>
-          {tags.map((tag) => (
-            <FilterChip
-              key={tag.key}
-              label={tag.label}
-              active={activeTag === tag.key}
-              onClick={() => toggleParam('tag', tag.key)}
-            />
-          ))}
-        </FilterSection>
+      {/* Rendu conditionnel, pas `hidden` : l'attribut serait écrasé par `flex`. */}
+      {open && (
+        <div
+          id={panelId}
+          className="flex flex-col gap-3 rounded border border-neutral-200 bg-bg-card px-4 py-3"
+        >
+          <FilterSection label={t('competence')}>
+            {tags.map((tag) => (
+              <FilterChip
+                key={tag.key}
+                label={tag.label}
+                active={activeTag === tag.key}
+                onClick={() => toggleParam('tag', tag.key)}
+              />
+            ))}
+          </FilterSection>
 
-        <FilterSection label={t('price')}>
-          {PRICE_VALUES.map((price) => (
-            <FilterChip
-              key={price}
-              label={price}
-              active={activePrice === price}
-              onClick={() => toggleParam('price', price)}
-            />
-          ))}
-        </FilterSection>
+          <FilterSection label={t('price')}>
+            {PRICE_VALUES.map((price) => (
+              <FilterChip
+                key={price}
+                label={price}
+                active={activePrice === price}
+                onClick={() => toggleParam('price', price)}
+              />
+            ))}
+          </FilterSection>
 
-        <FilterSection label={t('invoice')}>
-          <FilterChip
-            label={t('invoice')}
-            active={activeFacture === 'oui'}
-            onClick={() => toggleParam('facture', 'oui')}
-          />
-        </FilterSection>
-
-        <FilterSection label={t('minRating')}>
-          {MIN_RATING_VALUES.map((stars) => (
+          <FilterSection label={t('invoice')}>
             <FilterChip
-              key={stars}
-              label={t('minRatingValue', { stars })}
-              active={activeMin === String(stars)}
-              onClick={() => toggleParam('min_rating', String(stars))}
+              label={t('invoice')}
+              active={activeFacture === 'oui'}
+              onClick={() => toggleParam('facture', 'oui')}
             />
-          ))}
-        </FilterSection>
-      </div>
+          </FilterSection>
+
+          <FilterSection label={t('minRating')}>
+            {MIN_RATING_VALUES.map((stars) => (
+              <FilterChip
+                key={stars}
+                label={t('minRatingValue', { stars })}
+                active={activeMin === String(stars)}
+                onClick={() => toggleParam('min_rating', String(stars))}
+              />
+            ))}
+          </FilterSection>
+
+          {activeCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="flex min-h-11 items-center justify-center rounded bg-accent-500 px-4 text-sm font-semibold text-on-accent motion-safe:transition-colors hover:bg-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+            >
+              {t('showResults')}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
