@@ -73,7 +73,7 @@ export default async function AnnuairePage({ params, searchParams }: Props) {
     : ('fr' as Locale);
 
   return (
-    <section className="flex flex-col gap-3">
+    <section data-wide className="flex flex-col gap-3">
       {/* En-tête compact (2026-07-26) : titre et bouton « + » sur UNE ligne, accroche
           sur une seconde. Le bouton devient une icône seule — son libellé passe en
           aria-label, la cible tactile reste à 44 px. */}
@@ -170,7 +170,7 @@ async function ResultsSection({
   return (
     <>
       <ResultsHeader count={artisans.length} hasMore={hasMore} />
-      <ul className="grid gap-2">
+      <ul className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
         {artisans.map((artisan) => (
           <li key={artisan.slug}>
             <ArtisanCard locale={locale} artisan={artisan} />

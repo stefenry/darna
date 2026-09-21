@@ -48,7 +48,7 @@ export default async function CommunityLayout({ children, params }: Props) {
   // pb-28 : le contenu ne passe pas sous la barre d'onglets fixe.
   return (
     <>
-      <PageContainer id="main-content" className="pb-28 pt-4" as="main">
+      <PageContainer id="main-content" className="community-main pb-28 pt-4" as="main">
         {children}
       </PageContainer>
       <BottomNav items={items} label={t('main')} />

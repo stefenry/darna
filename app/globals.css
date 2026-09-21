@@ -120,6 +120,24 @@
 }
 
 @layer components {
+  /* Zone communautaire : gouttière de 12 px sur téléphone (chaque pixel compte).
+     Une page « liste » (accueil, annuaire) pose `data-wide` sur sa racine pour
+     prendre toute la largeur sur tablette et ordinateur ; les pages de lecture et
+     les formulaires gardent la colonne étroite, plus lisible. */
+  /* `main.` : spécificité au-dessus des utilitaires `px-4`/`max-w-2xl` du
+     PageContainer partagé, qu'on ne veut pas modifier pour les pages publiques. */
+  main.community-main {
+    padding-inline: 0.75rem;
+  }
+  @media (min-width: 640px) {
+    main.community-main {
+      padding-inline: 1.25rem;
+    }
+  }
+  main.community-main:has([data-wide]) {
+    max-width: 64rem;
+  }
+
   /* Titre de page (h1) — un seul endroit pour la taille, au lieu de 35 valeurs
      arbitraires. Condensé : 22 px, serré. */
   .page-title {

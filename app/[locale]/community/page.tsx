@@ -52,7 +52,7 @@ export default async function CommunityHomePage({ params }: Props) {
     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500';
 
   return (
-    <section className="flex flex-col gap-4">
+    <section data-wide className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
         <h1 className="page-title">{t('title')}</h1>
         <p className="text-sm text-neutral-500">{t('body')}</p>
@@ -68,7 +68,10 @@ export default async function CommunityHomePage({ params }: Props) {
         {t('findArtisan')}
       </Link>
 
-      <nav className="flex flex-col gap-4" aria-label={t('title')}>
+      <nav
+        className="flex flex-col gap-4 md:grid md:grid-cols-2 md:items-start md:gap-6"
+        aria-label={t('title')}
+      >
         <div className="grid grid-cols-2 gap-3">
           {tiles.map(({ key, href, Icon }) => (
             <Link
