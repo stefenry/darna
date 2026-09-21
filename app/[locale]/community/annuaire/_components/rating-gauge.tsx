@@ -2,7 +2,8 @@
 // et score toujours présents. Animation de remplissage sous `motion-safe:`.
 //
 // Refonte 2026-09 : une seule teinte. La longueur de la barre et le chiffre
-// portent l'information — plus de couleur par axe, on s'y perdait.
+// portent l'information — plus de couleur par axe, on s'y perdait. Seule
+// exception : `highlight` (meilleur axe) passe en couleur d'appoint.
 //   - `cell` (carte annuaire) : libellé court, note, mini-barre. Les 4 axes
 //     tiennent sur une rangée ; le nombre de voix n'est pas affiché (il reste
 //     dans `aria-valuetext`, et en clair sur la fiche).
@@ -18,9 +19,11 @@ type Props = {
   average: number | null;
   count: number;
   variant?: 'cell' | 'full';
+  /** Meilleur axe de l'artisan : seul endroit où la couleur d'appoint apparaît. */
+  highlight?: boolean;
 };
 
-export function RatingGauge({ axis, average, count, variant = 'cell' }: Props) {
+export function RatingGauge({ axis, average, count, variant = 'cell', highlight = false }: Props) {
   const t = useTranslations('community.annuaire.gauge');
   const tAxes = useTranslations('community.annuaire.axes');
   const tShort = useTranslations('community.annuaire.axesShort');
@@ -47,7 +50,10 @@ export function RatingGauge({ axis, average, count, variant = 'cell' }: Props) {
       aria-hidden
     >
       <div
-        className="h-full rounded-full bg-neutral-900 motion-safe:transition-[width] motion-safe:duration-500"
+        className={cn(
+          'h-full rounded-full motion-safe:transition-[width] motion-safe:duration-500',
+          highlight ? 'bg-pop' : 'bg-neutral-900',
+        )}
         style={{ width: `${fillPct}%` }}
       />
     </div>
@@ -57,7 +63,7 @@ export function RatingGauge({ axis, average, count, variant = 'cell' }: Props) {
     <span
       className={cn(
         'shrink-0 font-bold tabular-nums',
-        isNa ? 'text-neutral-500' : 'text-neutral-900',
+        isNa ? 'text-neutral-500' : highlight ? 'text-pop' : 'text-neutral-900',
       )}
     >
       {scoreText}

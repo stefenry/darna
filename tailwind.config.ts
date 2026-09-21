@@ -52,6 +52,8 @@ export default {
         danger: v('danger'),
         'on-danger': v('on-danger'),
         info: v('info'),
+        pop: v('pop'),
+        'on-pop': v('on-pop'),
         // Jauges monochromes : la longueur et le chiffre portent l'information,
         // plus une teinte par axe. Les 4 clés restent pour ne pas toucher aux
         // composants.

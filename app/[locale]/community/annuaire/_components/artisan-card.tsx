@@ -11,6 +11,7 @@ import { useTranslations } from 'next-intl';
 import { Check, Phone } from 'lucide-react';
 import { RatingGauge } from './rating-gauge';
 import { RATING_AXES, type AxisScore } from '@/lib/artisans/rating';
+import { bestAxes } from '@/lib/artisans/best-axis';
 import type { Database } from '@/lib/supabase/types.generated';
 
 type PriceRelative = Database['public']['Enums']['artisan_price_relative'];
@@ -30,6 +31,7 @@ export type ArtisanCardData = {
 export function ArtisanCard({ locale, artisan }: { locale: string; artisan: ArtisanCardData }) {
   const t = useTranslations('community.annuaire.card');
   const byAxis = new Map(artisan.axes.map((a) => [a.axis, a]));
+  const best = bestAxes(artisan.axes);
   // Pas de total de votants dans l'agrégat : l'axe le plus noté en donne la
   // borne basse (un voisin note rarement un seul axe).
   const reviews = Math.max(0, ...artisan.axes.map((a) => a.count));
@@ -90,7 +92,15 @@ export function ArtisanCard({ locale, artisan }: { locale: string; artisan: Arti
       <div className="flex gap-3 pe-1">
         {RATING_AXES.map((axis) => {
           const s = byAxis.get(axis) ?? { axis, average: null, count: 0 };
-          return <RatingGauge key={axis} axis={axis} average={s.average} count={s.count} />;
+          return (
+            <RatingGauge
+              key={axis}
+              axis={axis}
+              average={s.average}
+              count={s.count}
+              highlight={best.has(axis)}
+            />
+          );
         })}
       </div>
     </article>

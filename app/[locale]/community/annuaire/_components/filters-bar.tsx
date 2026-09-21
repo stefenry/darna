@@ -40,7 +40,7 @@ export function FiltersBar({ tags }: { tags: Tag[] }) {
         <span className="flex items-center gap-2">
           <span>{t('toggleLabel')}</span>
           {activeCount > 0 && (
-            <span className="rounded-full bg-accent-500 px-2 py-0.5 text-xs font-semibold text-on-accent">
+            <span className="rounded-full bg-pop px-2 py-0.5 text-xs font-semibold text-on-pop">
               {activeCount}
             </span>
           )}

@@ -27,6 +27,10 @@
     --danger: 179 38 30; /* #B3261E */
     --on-danger: 255 255 255; /* #FFFFFF */
     --info: 47 111 158; /* #2F6F9E */
+    /* Couleur d'appoint (complémentaire du lime) : dose homéopathique — meilleure
+       note d'un artisan, filtre actif. Jamais pour une action ni un état. */
+    --pop: 91 63 214; /* #5B3FD6 */
+    --on-pop: 255 255 255; /* #FFFFFF */
   }
 
   @media (prefers-color-scheme: dark) {
@@ -51,6 +55,8 @@
       --danger: 255 131 115; /* #FF8373 */
       --on-danger: 42 11 8; /* #2A0B08 */
       --info: 125 184 224; /* #7DB8E0 */
+      --pop: 180 165 255; /* #B4A5FF */
+      --on-pop: 20 16 43; /* #14102B */
     }
   }
 
@@ -75,6 +81,8 @@
     --danger: 255 131 115; /* #FF8373 */
     --on-danger: 42 11 8; /* #2A0B08 */
     --info: 125 184 224; /* #7DB8E0 */
+    --pop: 180 165 255; /* #B4A5FF */
+    --on-pop: 20 16 43; /* #14102B */
   }
 
   @font-face {
