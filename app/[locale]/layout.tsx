@@ -6,6 +6,7 @@ import { routing } from '@/lib/i18n/routing';
 import { getDirection, type Locale } from '@/lib/i18n/config';
 import { FooterAttribution } from '@/components/layout/footer-attribution';
 import { ServiceWorkerUpdater } from '@/components/pwa/sw-updater';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 
 type Props = {
   children: React.ReactNode;
@@ -71,11 +72,13 @@ export default async function LocaleLayout({ children, params }: Props) {
         >
           {tA11y('skipToContent')}
         </a>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-          <FooterAttribution />
-          <ServiceWorkerUpdater />
-        </NextIntlClientProvider>
+        <ThemeProvider>
+          <NextIntlClientProvider messages={messages}>
+            {children}
+            <FooterAttribution />
+            <ServiceWorkerUpdater />
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

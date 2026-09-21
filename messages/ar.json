@@ -709,7 +709,12 @@
       "submitCta": "",
       "submitting": "",
       "cancelCta": ""
-    }
+    },
+    "themeLabel": "",
+    "themeHint": "",
+    "themeSystem": "",
+    "themeLight": "",
+    "themeDark": ""
   },
   "install": {
     "pageTitle": "",

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { ThemeSwitch } from '@/components/theme/theme-switch';
 import { createClient } from '@/lib/supabase/server';
 import { routing } from '@/lib/i18n/routing';
 import { SignoutButtons } from './_components/signout-buttons';
@@ -71,6 +72,16 @@ export default async function ProfilPage({ params }: Props) {
         <Row label={t('languageLabel')} value={(profile?.language ?? 'fr').toUpperCase()} />
         <Row label={t('visibilityLabel')} value={visibility} />
       </dl>
+
+      <ThemeSwitch
+        labels={{
+          legend: t('themeLabel'),
+          hint: t('themeHint'),
+          system: t('themeSystem'),
+          light: t('themeLight'),
+          dark: t('themeDark'),
+        }}
+      />
 
       <section className="flex flex-col gap-2 rounded bg-bg-soft p-4">
         <h2 className="text-sm font-medium text-neutral-900">{t('notifStubTitle')}</h2>

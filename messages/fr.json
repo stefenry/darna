@@ -1063,7 +1063,12 @@
       "submitCta": "Supprimer définitivement",
       "submitting": "Suppression…",
       "cancelCta": "Annuler, garder mon compte"
-    }
+    },
+    "themeLabel": "Apparence",
+    "themeHint": "Ce choix est enregistré sur cet appareil.",
+    "themeSystem": "Système",
+    "themeLight": "Clair",
+    "themeDark": "Sombre"
   },
   "install": {
     "pageTitle": "Installer Darna",
