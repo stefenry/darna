@@ -9,12 +9,19 @@
 //   v2 : 4 sections empilées flex-wrap (trop de hauteur pour 16 compétences)
 //   v3 : <details>/<summary> natif → replié par défaut, l'user déplie au besoin.
 //       Compteur de filtres actifs sur le summary pour signaler "tu filtres déjà".
+//   v4 (refonte 2026-09) : le bandeau « Filtres » pleine largeur devient un
+//       bouton-icône à droite de la recherche — une rangée de gagnée. Le panneau
+//       reste replié même quand on filtre : les filtres actifs s'affichent en
+//       puces retirables sous la recherche (rien si aucun filtre). Pas de rangée
+//       défilante de toutes les compétences : la v1 cachait les puces de droite.
 
-import { Check } from 'lucide-react';
+import { useId, useState } from 'react';
+import { Check, SlidersHorizontal, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { useFilterParams } from './use-filter-params';
 import { chipClassName } from './chip';
+import { SearchInput } from './search-input';
 import { MIN_RATING_VALUES, PRICE_VALUES } from '../schema';
 
 type Tag = { key: string; label: string };
@@ -28,28 +35,83 @@ export function FiltersBar({ tags }: { tags: Tag[] }) {
   const activeFacture = searchParams.get('facture');
   const activeMin = searchParams.get('min_rating');
 
-  const activeCount =
-    (activeTag ? 1 : 0) + (activePrice ? 1 : 0) + (activeFacture ? 1 : 0) + (activeMin ? 1 : 0);
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
+
+  // Filtres actifs, dans l'ordre des sections du panneau.
+  const active = [
+    activeTag && {
+      key: 'tag',
+      value: activeTag,
+      label: tags.find((tag) => tag.key === activeTag)?.label ?? activeTag,
+    },
+    activePrice && { key: 'price', value: activePrice, label: activePrice },
+    activeFacture && { key: 'facture', value: activeFacture, label: t('invoice') },
+    activeMin && {
+      key: 'min_rating',
+      value: activeMin,
+      label: t('minRatingValue', { stars: activeMin }),
+    },
+  ].filter((x): x is { key: string; value: string; label: string } => Boolean(x));
+  const activeCount = active.length;
 
   return (
-    <details
-      className="group rounded border border-neutral-200 bg-bg-card"
-      {...(activeCount > 0 ? { open: true } : {})}
-    >
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 rounded px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-200/50 [&::-webkit-details-marker]:hidden">
-        <span className="flex items-center gap-2">
-          <span>{t('toggleLabel')}</span>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <SearchInput />
+        </div>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls={panelId}
+          aria-label={t('toggleAria', { count: activeCount })}
+          className={cn(
+            'relative inline-flex size-11 shrink-0 items-center justify-center rounded border text-neutral-900 motion-safe:transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500',
+            open
+              ? 'border-neutral-900 bg-bg-soft'
+              : 'border-neutral-200 bg-bg-card hover:bg-bg-soft',
+          )}
+        >
+          <SlidersHorizontal className="size-5" aria-hidden />
           {activeCount > 0 && (
-            <span className="rounded-full bg-pop px-2 py-0.5 text-xs font-semibold text-on-pop">
+            <span
+              aria-hidden
+              className="absolute -end-1 -top-1 inline-flex min-w-[18px] items-center justify-center rounded-full bg-pop px-1 text-[11px] font-bold leading-[18px] text-on-pop"
+            >
               {activeCount}
             </span>
           )}
-        </span>
-        <span className="text-xs text-neutral-500 transition-transform group-open:rotate-180">
-          ▾
-        </span>
-      </summary>
-      <div className="flex flex-col gap-3 px-4 pb-3">
+        </button>
+      </div>
+
+      {activeCount > 0 && (
+        <ul className="flex flex-wrap gap-1.5" aria-label={t('activeList')}>
+          {active.map((f) => (
+            <li key={f.key}>
+              <button
+                type="button"
+                onClick={() => toggleParam(f.key, f.value)}
+                aria-label={t('remove', { label: f.label })}
+                className={cn(
+                  chipClassName({ active: true, interactive: true }),
+                  'whitespace-nowrap',
+                )}
+              >
+                {f.label}
+                <X className="-me-0.5 size-3.5" aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div
+        id={panelId}
+        hidden={!open}
+        className="flex flex-col gap-3 rounded border border-neutral-200 bg-bg-card px-4 py-3"
+      >
         <FilterSection label={t('competence')}>
           {tags.map((tag) => (
             <FilterChip
@@ -91,7 +153,7 @@ export function FiltersBar({ tags }: { tags: Tag[] }) {
           ))}
         </FilterSection>
       </div>
-    </details>
+    </div>
   );
 }
 

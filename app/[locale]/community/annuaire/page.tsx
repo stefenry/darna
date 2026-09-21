@@ -16,7 +16,6 @@ import { createClient } from '@/lib/supabase/server';
 import { log } from '@/lib/logger';
 import { parseAnnuaireParams, type AnnuaireSearchParams } from './schema';
 import { fetchAnnuaire, fetchTags, PAGE_SIZE } from './data';
-import { SearchInput } from './_components/search-input';
 import { FiltersBar } from './_components/filters-bar';
 import { ArtisanCard } from './_components/artisan-card';
 import { EmptyState } from './_components/empty-state';
@@ -119,12 +118,7 @@ async function FiltersSection({ locale }: { locale: Locale }) {
       payload: { errorCode: (error as { code?: string })?.code ?? 'unknown' },
     });
   }
-  return (
-    <div className="flex flex-col gap-3">
-      <SearchInput />
-      <FiltersBar tags={tags} />
-    </div>
-  );
+  return <FiltersBar tags={tags} />;
 }
 
 async function ResultsSection({
@@ -183,16 +177,9 @@ async function ResultsSection({
 
 function FiltersSkeleton() {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="h-11 motion-safe:animate-pulse rounded bg-bg-soft" />
-      <div className="flex gap-2 overflow-hidden">
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="h-8 w-20 shrink-0 motion-safe:animate-pulse rounded-full bg-bg-soft"
-          />
-        ))}
-      </div>
+    <div className="flex gap-2">
+      <div className="h-11 flex-1 motion-safe:animate-pulse rounded bg-bg-soft" />
+      <div className="size-11 shrink-0 motion-safe:animate-pulse rounded bg-bg-soft" />
     </div>
   );
 }

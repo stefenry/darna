@@ -734,7 +734,10 @@
         "invoice": "Facture émise",
         "minRating": "Note min",
         "minRatingValue": "{stars}★",
-        "activeBadge": "Filtre sélectionné"
+        "activeBadge": "Filtre sélectionné",
+        "toggleAria": "{count, plural, =0 {Filtres} one {Filtres, # actif} other {Filtres, # actifs}}",
+        "activeList": "Filtres actifs",
+        "remove": "Retirer le filtre {label}"
       },
       "empty": {
         "title": "Aucun artisan correspondant",

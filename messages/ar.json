@@ -431,7 +431,10 @@
         "invoice": "",
         "minRating": "",
         "minRatingValue": "",
-        "activeBadge": ""
+        "activeBadge": "",
+        "toggleAria": "",
+        "activeList": "",
+        "remove": ""
       },
       "empty": {
         "title": "",
