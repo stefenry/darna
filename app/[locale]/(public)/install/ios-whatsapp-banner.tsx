@@ -72,7 +72,7 @@ export function IOSWhatsAppBanner() {
       <button
         type="button"
         onClick={handleOpenInSafari}
-        className="inline-flex min-h-touch items-center justify-center self-start rounded-[14px] bg-neutral-900 px-5 text-sm font-semibold text-white"
+        className="inline-flex min-h-touch items-center justify-center self-start rounded bg-neutral-900 px-5 text-sm font-semibold text-bg-page"
       >
         {t('openInSafari')}
       </button>
@@ -84,7 +84,7 @@ export function IOSWhatsAppBanner() {
       {copyState === 'failed' && fallbackUrl && (
         <div className="flex flex-col gap-1" role="status">
           <p className="text-sm">{t('openFailed')}</p>
-          <code className="block break-all rounded-md bg-neutral-900 px-3 py-2 text-xs text-white">
+          <code className="block break-all rounded-md bg-neutral-900 px-3 py-2 text-xs text-bg-page">
             {fallbackUrl}
           </code>
         </div>

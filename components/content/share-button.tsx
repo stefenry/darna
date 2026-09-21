@@ -64,8 +64,8 @@ export function ShareButton({ kind, id, url, title, text, variant = 'button' }: 
 
   const className =
     variant === 'button'
-      ? 'inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-[14px] bg-bg-soft px-5 text-sm font-semibold text-accent-600 hover:bg-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500'
-      : 'inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-[10px] px-3 text-sm font-medium text-accent-600 hover:bg-bg-soft';
+      ? 'inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded bg-bg-soft px-5 text-sm font-semibold text-link hover:bg-neutral-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500'
+      : 'inline-flex min-h-touch min-w-touch items-center justify-center gap-2 rounded-sm px-3 text-sm font-medium text-link hover:bg-bg-soft';
 
   return (
     <div className="flex items-center gap-2">
@@ -73,7 +73,7 @@ export function ShareButton({ kind, id, url, title, text, variant = 'button' }: 
         <Share2 className="size-4 shrink-0" aria-hidden />
         {t('share')}
       </button>
-      <span aria-live="polite" className="text-sm text-accent-600">
+      <span aria-live="polite" className="text-sm text-link">
         {copied ? t('copied') : ''}
       </span>
     </div>

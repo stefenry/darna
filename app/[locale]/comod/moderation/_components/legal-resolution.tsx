@@ -37,7 +37,7 @@ export function LegalResolution({ reportId, locale }: { reportId: string; locale
   };
 
   return (
-    <section className="flex flex-col gap-3 rounded-[14px] border border-neutral-200 bg-bg-soft p-4">
+    <section className="flex flex-col gap-3 rounded border border-neutral-200 bg-bg-soft p-4">
       <p className="text-sm font-semibold text-neutral-800">{t('legal.pendingTitle')}</p>
       <p className="text-sm text-neutral-600">{t('legal.pendingHint')}</p>
 
@@ -48,7 +48,7 @@ export function LegalResolution({ reportId, locale }: { reportId: string; locale
           maxLength={2000}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
-          className="rounded-[10px] border border-neutral-200 bg-white px-3 py-2 text-sm"
+          className="rounded-sm border border-neutral-200 bg-bg-card px-3 py-2 text-sm"
           placeholder={t('legal.notePlaceholder')}
         />
       </label>
@@ -64,7 +64,7 @@ export function LegalResolution({ reportId, locale }: { reportId: string; locale
           type="button"
           onClick={() => submit('approved')}
           disabled={isPending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-bg-card px-4 text-sm font-semibold text-accent-600 hover:bg-neutral-200 disabled:opacity-50"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-bg-card px-4 text-sm font-semibold text-link hover:bg-neutral-200 disabled:opacity-50"
         >
           {t('legal.approve')}
         </button>
@@ -72,7 +72,7 @@ export function LegalResolution({ reportId, locale }: { reportId: string; locale
           type="button"
           onClick={() => submit('removed')}
           disabled={isPending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-danger px-4 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-danger px-4 text-sm font-semibold text-on-danger hover:opacity-90 disabled:opacity-50"
         >
           {t('legal.remove')}
         </button>

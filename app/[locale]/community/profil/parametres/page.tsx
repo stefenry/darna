@@ -67,9 +67,7 @@ export default async function ProfilSettingsPage({ params }: Props) {
 
   return (
     <section className="flex flex-col gap-8">
-      <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-        {t('pageTitle')}
-      </h1>
+      <h1 className="page-title">{t('pageTitle')}</h1>
       <SettingsForm
         initialIdentityMode={profile?.identity_mode === 'identified' ? 'identified' : 'pseudo'}
         initialLanguage={profile?.language === 'ar' ? 'ar' : 'fr'}
@@ -82,7 +80,7 @@ export default async function ProfilSettingsPage({ params }: Props) {
 
       <Link
         href={`/${locale}/community/profil/parametres/suggestion`}
-        className="flex min-h-touch items-center justify-between gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        className="flex min-h-touch items-center justify-between gap-2 rounded bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
       >
         <span className="text-base font-medium text-neutral-900">{tSuggestion('title')}</span>
         <ChevronRight className="size-5 shrink-0 text-neutral-400 rtl:rotate-180" aria-hidden />
@@ -90,7 +88,7 @@ export default async function ProfilSettingsPage({ params }: Props) {
 
       <Link
         href={`/${locale}/community/profil/export`}
-        className="flex min-h-touch items-center justify-between gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+        className="flex min-h-touch items-center justify-between gap-2 rounded bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
       >
         <span className="text-base font-medium text-neutral-900">{tExport('title')}</span>
         <ChevronRight className="size-5 shrink-0 text-neutral-400 rtl:rotate-180" aria-hidden />

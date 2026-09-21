@@ -10,7 +10,7 @@ import { TRANCHES, TEST_TRANCHE, type Tranche } from '@/lib/validation/admission
 // Inputs borderless v2 (spec UX ux-design-directions.html) : pas de border,
 // fond bg-card, shadow-xs. Focus = shadow-xs + ring accent.
 const INPUT_CLASS =
-  'min-h-touch w-full rounded-[14px] bg-bg-card px-4 text-base text-neutral-900 shadow-xs placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent-500/40';
+  'min-h-touch w-full rounded bg-bg-card px-4 text-base text-neutral-900 shadow-xs placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent-500/40';
 
 type Props = {
   initialIdentityMode: 'pseudo' | 'identified';
@@ -210,7 +210,7 @@ export function SettingsForm({
       </label>
 
       <div aria-live="polite" className="min-h-5 text-sm">
-        {saved && <span className="text-accent-600">{t('saved')}</span>}
+        {saved && <span className="text-link">{t('saved')}</span>}
         {error && (
           <span role="alert" className="text-danger">
             {error}
@@ -245,7 +245,7 @@ function VisibilityToggle({
       aria-describedby={descId}
       disabled={disabled}
       onClick={() => onToggle(!on)}
-      className="flex items-center justify-between gap-4 rounded-[14px] bg-bg-card p-4 text-start shadow-xs focus:outline-none focus:ring-2 focus:ring-accent-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex items-center justify-between gap-4 rounded bg-bg-card p-4 text-start shadow-xs focus:outline-none focus:ring-2 focus:ring-accent-500/40 disabled:cursor-not-allowed disabled:opacity-60"
     >
       <span className="flex flex-col gap-1">
         <span className="text-sm font-semibold text-neutral-900">{title}</span>

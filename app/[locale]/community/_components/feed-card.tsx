@@ -40,7 +40,7 @@ export function FeedCard({ item, locale }: { item: FeedItem; locale: Locale }) {
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-[14px] bg-white p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:transition-colors"
+      className="flex items-center gap-3 rounded bg-bg-card p-4 shadow-xs hover:bg-bg-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 motion-safe:transition-colors"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         {(item.category || item.untranslated) && (

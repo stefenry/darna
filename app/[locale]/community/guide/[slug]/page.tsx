@@ -54,7 +54,7 @@ export default async function GuideEntryPage({ params }: Props) {
       <Link
         href={`/${locale}/community/guide`}
         aria-label={t('entry.back')}
-        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
       >
         <ArrowLeft className="size-5" aria-hidden />
       </Link>

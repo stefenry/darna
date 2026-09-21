@@ -621,12 +621,18 @@
         "alertes": "Alertes",
         "bonsPlans": "Bons plans",
         "suggestions": "Suggestions"
-      }
+      },
+      "findArtisan": "Trouver un artisan",
+      "practical": "Pratique"
     },
     "nav": {
       "home": "Accueil",
       "settings": "Mon profil",
-      "comod": "Espace co-mod"
+      "comod": "Espace co-mod",
+      "main": "Navigation principale",
+      "annuaire": "Annuaire",
+      "alertes": "Alertes",
+      "profil": "Profil"
     },
     "guide": {
       "title": "Guide de la résidence",
@@ -718,7 +724,8 @@
         "call": "Appeler {name}",
         "price": "Prix indicatif {price}",
         "invoice": "Facture émise",
-        "invoiceOnRequest": "Facture sur demande"
+        "invoiceOnRequest": "Facture sur demande",
+        "reviews": "{count, plural, one {# avis} other {# avis}}"
       },
       "filters": {
         "toggleLabel": "Filtres",
@@ -727,7 +734,11 @@
         "invoice": "Facture émise",
         "minRating": "Note min",
         "minRatingValue": "{stars}★",
-        "activeBadge": "Filtre sélectionné"
+        "activeBadge": "Filtre sélectionné",
+        "toggleAria": "{count, plural, =0 {Filtres} one {Filtres, # actif} other {Filtres, # actifs}}",
+        "activeList": "Filtres actifs",
+        "remove": "Retirer le filtre {label}",
+        "showResults": "Voir les résultats"
       },
       "empty": {
         "title": "Aucun artisan correspondant",
@@ -737,6 +748,12 @@
       "offline": {
         "banner": "Mode hors ligne — mise à jour il y a {hours, plural, =0 {moins d’une heure} one {# heure} other {# heures}}",
         "bannerUnknown": "Mode hors ligne — affichage des données en cache"
+      },
+      "axesShort": {
+        "depannage": "Dépannage",
+        "petits-travaux": "Petits trav.",
+        "travail-soigne": "Soigné",
+        "urgences": "Urgences"
       }
     },
     "artisan": {
@@ -770,7 +787,8 @@
         "title": "Votre contribution",
         "edit": "Modifier ma contribution",
         "remove": "Retirer"
-      }
+      },
+      "ratings": "Notes des voisins"
     },
     "artisanCreate": {
       "title": "Ajouter un artisan",
@@ -1046,7 +1064,12 @@
       "submitCta": "Supprimer définitivement",
       "submitting": "Suppression…",
       "cancelCta": "Annuler, garder mon compte"
-    }
+    },
+    "themeLabel": "Apparence",
+    "themeHint": "Ce choix est enregistré sur cet appareil.",
+    "themeSystem": "Système",
+    "themeLight": "Clair",
+    "themeDark": "Sombre"
   },
   "install": {
     "pageTitle": "Installer Darna",

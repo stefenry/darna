@@ -38,10 +38,10 @@ export function LoginForm() {
         <div
           role="status"
           aria-live="polite"
-          className="rounded-[14px] bg-accent-50 p-4 text-sm text-accent-700 shadow-xs"
+          className="rounded bg-accent-50 p-4 text-sm text-link-hover shadow-xs"
         >
           <p className="font-medium">{t('sentTitle')}</p>
-          <p className="mt-1 text-accent-700/80">
+          <p className="mt-1 text-link-hover/80">
             {linkState.emailMasked
               ? t('sentBodyWithEmail', { email: linkState.emailMasked })
               : t('sentBody')}
@@ -70,7 +70,7 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             aria-invalid={emailError ? true : undefined}
             aria-describedby={emailError ? 'email-error' : undefined}
-            className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
+            className="min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
           />
           {emailError && (
             <span id="email-error" role="alert" className="text-sm text-danger">
@@ -82,7 +82,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={linkPending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
         >
           {linkPending ? t('submitting') : t('submit')}
         </button>
@@ -115,7 +115,7 @@ export function LoginForm() {
             placeholder={t('emailPlaceholder')}
             defaultValue={email}
             aria-invalid={codeEmailError ? true : undefined}
-            className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
+            className="min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
           />
         </label>
         <label className="flex flex-col gap-2 text-sm">
@@ -131,7 +131,7 @@ export function LoginForm() {
             placeholder="123456"
             aria-invalid={codeError || codeEmailError ? true : undefined}
             aria-describedby={codeError ? 'code-error' : undefined}
-            className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-center text-2xl font-semibold tracking-[0.4em] text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
+            className="min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-center text-2xl font-semibold tracking-[0.4em] text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30 aria-[invalid=true]:border-danger"
           />
           {(codeError || codeEmailError) && (
             <span id="code-error" role="alert" className="text-sm text-danger">
@@ -143,7 +143,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={codePending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
         >
           {codePending ? t('codeSubmitting') : t('codeSubmit')}
         </button>

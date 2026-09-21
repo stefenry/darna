@@ -12,9 +12,9 @@ import { useTranslations } from 'next-intl';
 import type { HomeCta } from '@/lib/auth/home-cta';
 
 const PRIMARY =
-  'inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-medium text-white shadow-sm transition-colors hover:bg-accent-600';
+  'inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-medium text-on-accent shadow-sm transition-colors hover:bg-accent-600';
 const SECONDARY =
-  'inline-flex min-h-touch items-center justify-center rounded-[14px] bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-300';
+  'inline-flex min-h-touch items-center justify-center rounded bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-300';
 // Masqué quand la PWA tourne en mode installé : à cet endroit le bouton est du
 // bruit. CSS pur (variante arbitraire Tailwind), aucun JS.
 const HIDE_WHEN_INSTALLED = '[@media(display-mode:standalone)]:hidden';
@@ -55,7 +55,7 @@ export function HomeActions({
           {t('login_hint')}{' '}
           <Link
             href={`/${locale}/auth/login`}
-            className="font-medium text-accent-500 underline-offset-4 hover:underline"
+            className="font-medium text-link underline-offset-4 hover:underline"
           >
             {t('login_cta')}
           </Link>

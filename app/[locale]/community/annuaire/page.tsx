@@ -16,7 +16,6 @@ import { createClient } from '@/lib/supabase/server';
 import { log } from '@/lib/logger';
 import { parseAnnuaireParams, type AnnuaireSearchParams } from './schema';
 import { fetchAnnuaire, fetchTags, PAGE_SIZE } from './data';
-import { SearchInput } from './_components/search-input';
 import { FiltersBar } from './_components/filters-bar';
 import { ArtisanCard } from './_components/artisan-card';
 import { EmptyState } from './_components/empty-state';
@@ -73,24 +72,22 @@ export default async function AnnuairePage({ params, searchParams }: Props) {
     : ('fr' as Locale);
 
   return (
-    <section className="flex flex-col gap-6">
+    <section data-wide className="flex flex-col gap-3">
       {/* En-tête compact (2026-07-26) : titre et bouton « + » sur UNE ligne, accroche
           sur une seconde. Le bouton devient une icône seule — son libellé passe en
           aria-label, la cible tactile reste à 44 px. */}
       <header className="flex flex-col gap-1">
         <div className="flex items-center justify-between gap-3">
-          <h1 className="min-w-0 truncate text-2xl font-semibold tracking-tight text-neutral-900">
-            {t('title')}
-          </h1>
+          <h1 className="page-title min-w-0 truncate">{t('title')}</h1>
           <a
             href={`/${safeLocale}/community/annuaire/nouveau`}
             aria-label={t('addCtaAria')}
-            className="inline-flex min-h-touch min-w-touch shrink-0 items-center justify-center rounded-[14px] bg-accent-500 text-xl font-semibold leading-none text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 text-xl leading-none text-neutral-900 motion-safe:transition-colors hover:bg-bg-soft"
           >
             <span aria-hidden>+</span>
           </a>
         </div>
-        <p className="text-sm text-neutral-700">{t('intro')}</p>
+        <p className="sr-only">{t('intro')}</p>
       </header>
 
       {residenceId && <CacheStamp residenceId={residenceId} locale={safeLocale} />}
@@ -121,12 +118,7 @@ async function FiltersSection({ locale }: { locale: Locale }) {
       payload: { errorCode: (error as { code?: string })?.code ?? 'unknown' },
     });
   }
-  return (
-    <div className="flex flex-col gap-4">
-      <SearchInput />
-      <FiltersBar tags={tags} />
-    </div>
-  );
+  return <FiltersBar tags={tags} />;
 }
 
 async function ResultsSection({
@@ -155,7 +147,7 @@ async function ResultsSection({
   }
   if (!data) {
     return (
-      <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+      <p role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
         {tErr('fetch_failed')}
       </p>
     );
@@ -172,7 +164,7 @@ async function ResultsSection({
   return (
     <>
       <ResultsHeader count={artisans.length} hasMore={hasMore} />
-      <ul className="grid gap-3">
+      <ul className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
         {artisans.map((artisan) => (
           <li key={artisan.slug}>
             <ArtisanCard locale={locale} artisan={artisan} />
@@ -185,16 +177,9 @@ async function ResultsSection({
 
 function FiltersSkeleton() {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="h-12 motion-safe:animate-pulse rounded-[14px] bg-bg-soft" />
-      <div className="flex gap-2 overflow-hidden">
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <div
-            key={i}
-            className="h-8 w-20 shrink-0 motion-safe:animate-pulse rounded-full bg-bg-soft"
-          />
-        ))}
-      </div>
+    <div className="flex gap-2">
+      <div className="h-11 flex-1 motion-safe:animate-pulse rounded bg-bg-soft" />
+      <div className="size-11 shrink-0 motion-safe:animate-pulse rounded bg-bg-soft" />
     </div>
   );
 }
@@ -204,7 +189,7 @@ function ResultsSkeleton() {
     <div className="flex flex-col gap-3">
       <div className="h-5 w-32 motion-safe:animate-pulse rounded bg-bg-soft" />
       {Array.from({ length: PAGE_SIZE / 4 }, (_, i) => (
-        <div key={i} className="h-36 motion-safe:animate-pulse rounded-[14px] bg-bg-soft" />
+        <div key={i} className="h-24 motion-safe:animate-pulse rounded bg-bg-soft" />
       ))}
     </div>
   );

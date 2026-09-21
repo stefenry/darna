@@ -36,13 +36,13 @@ export function ServiceWorkerUpdater() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed inset-x-0 bottom-0 z-50 mx-auto mb-4 flex max-w-md items-center justify-between gap-3 rounded-[14px] bg-neutral-900 px-4 py-3 text-sm text-white shadow-lg"
+      className="fixed inset-x-0 bottom-0 z-50 mx-auto mb-4 flex max-w-md items-center justify-between gap-3 rounded bg-neutral-900 px-4 py-3 text-sm text-bg-page shadow-lg"
     >
       <span>{t('updateAvailable')}</span>
       <button
         type="button"
         onClick={() => window.location.reload()}
-        className="inline-flex min-h-touch items-center gap-1 rounded-[10px] bg-white/15 px-3 font-medium hover:bg-white/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        className="inline-flex min-h-touch items-center gap-1 rounded-sm bg-bg-page/15 px-3 font-medium hover:bg-bg-page/25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       >
         <RefreshCw className="size-4" aria-hidden />
         {t('refresh')}

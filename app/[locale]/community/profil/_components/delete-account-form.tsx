@@ -55,7 +55,7 @@ export function DeleteAccountForm({ locale }: Props) {
           spellCheck={false}
           placeholder={t('confirmPlaceholder')}
           onChange={(e) => setConfirm(e.target.value)}
-          className="min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/30"
+          className="min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/30"
         />
       </label>
 
@@ -69,7 +69,7 @@ export function DeleteAccountForm({ locale }: Props) {
         type="button"
         onClick={submit}
         disabled={!ready || isPending}
-        className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-danger px-6 text-base font-semibold text-white transition-colors hover:bg-danger/90 disabled:bg-neutral-300 disabled:text-neutral-500"
+        className="inline-flex min-h-touch items-center justify-center rounded bg-danger px-6 text-base font-semibold text-on-danger transition-colors hover:bg-danger/90 disabled:bg-neutral-300 disabled:text-neutral-500"
       >
         {isPending ? t('submitting') : t('submitCta')}
       </button>

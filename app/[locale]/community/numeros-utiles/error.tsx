@@ -30,12 +30,12 @@ export default function NumerosError({
 
   return (
     <section className="flex flex-col gap-3">
-      <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+      <p role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
         {t('fetch_failed')}
       </p>
       <button
         onClick={reset}
-        className="inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600"
+        className="inline-flex min-h-touch w-fit items-center justify-center rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent hover:bg-accent-600"
       >
         {t('retry')}
       </button>

@@ -24,7 +24,7 @@ export async function Counters({
         {COUNTER_KEYS.map((key) => (
           <div
             key={key}
-            className="flex flex-col gap-1 rounded-[14px] border border-neutral-200 bg-white p-4"
+            className="flex flex-col gap-1 rounded border border-neutral-200 bg-bg-card p-4"
           >
             <dd className="text-3xl font-semibold tracking-tight text-neutral-900">
               {nf.format(counters[key])}

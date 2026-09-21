@@ -50,7 +50,7 @@ export default async function ErrorPage({ params, searchParams }: Props) {
     <PageContainer className="py-10" as="main">
       <section className="flex flex-col gap-6">
         <header className="flex flex-col gap-2">
-          <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
+          <h1 className="page-title">
             {t(titleKey as 'expiredTitle' | 'invalidTitle' | 'usedTitle' | 'fallbackTitle')}
           </h1>
           <p className="text-base text-neutral-700">
@@ -61,13 +61,13 @@ export default async function ErrorPage({ params, searchParams }: Props) {
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
             href={`/${locale}/auth/login`}
-            className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm hover:bg-accent-600"
+            className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm hover:bg-accent-600"
           >
             {t('backToLogin')}
           </Link>
           <Link
             href={`/${locale}/`}
-            className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-bg-soft px-6 text-base font-medium text-neutral-700 hover:bg-neutral-300"
+            className="inline-flex min-h-touch items-center justify-center rounded bg-bg-soft px-6 text-base font-medium text-neutral-700 hover:bg-neutral-300"
           >
             {t('backHome')}
           </Link>

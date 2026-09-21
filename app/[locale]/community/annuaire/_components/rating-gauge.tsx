@@ -1,84 +1,100 @@
-// Story 2.2 (AC1/AC7) — jauge typée par axe. Composant signature de l'annuaire :
-// barre colorée + label + score + nombre de voix. La COULEUR n'est jamais seule
-// porteuse d'information (label + score toujours présents — a11y deutéranopie).
-// `role="meter"` ARIA. Animation de remplissage sous `motion-safe:` uniquement.
+// Story 2.2 (AC1/AC7) — jauge par axe de notation. `role="meter"` ARIA, libellé
+// et score toujours présents. Animation de remplissage sous `motion-safe:`.
 //
-// Variante `compact` = carte (liste) ; `full` viendra avec la fiche (story 2.3).
+// Refonte 2026-09 : une seule teinte. La longueur de la barre et le chiffre
+// portent l'information — plus de couleur par axe, on s'y perdait. Seule
+// exception : `highlight` (meilleur axe) passe en couleur d'appoint.
+//   - `cell` (carte annuaire) : libellé court, note, mini-barre. Les 4 axes
+//     tiennent sur une rangée ; le nombre de voix n'est pas affiché (il reste
+//     dans `aria-valuetext`, et en clair sur la fiche).
+//   - `full` (fiche) : une ligne par axe — libellé, barre, note, voix — alignée
+//     comme un tableau.
 
 import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import type { RatingAxis } from '@/lib/artisans/rating';
 
-const AXIS_BAR_COLOR: Record<RatingAxis, string> = {
-  depannage: 'bg-gauge-depannage',
-  'petits-travaux': 'bg-gauge-petits-travaux',
-  'travail-soigne': 'bg-gauge-travail-soigne',
-  urgences: 'bg-gauge-urgences',
-};
-
 type Props = {
   axis: RatingAxis;
   average: number | null;
   count: number;
-  variant?: 'compact' | 'full';
+  variant?: 'cell' | 'full';
+  /** Meilleur axe de l'artisan : seul endroit où la couleur d'appoint apparaît. */
+  highlight?: boolean;
 };
 
-export function RatingGauge({ axis, average, count, variant = 'compact' }: Props) {
+export function RatingGauge({ axis, average, count, variant = 'cell', highlight = false }: Props) {
   const t = useTranslations('community.annuaire.gauge');
   const tAxes = useTranslations('community.annuaire.axes');
+  const tShort = useTranslations('community.annuaire.axesShort');
 
   const label = tAxes(axis);
   const isNa = average === null || count === 0;
   const fillPct = isNa ? 0 : Math.max(0, Math.min(100, (average / 5) * 100));
   const scoreText = isNa ? t('na') : average.toFixed(1);
+  // Carte : un axe non noté reste vide — « NA » ×4 alourdissait la liste.
+  const cellText = isNa ? '' : scoreText;
   const valueText = isNa
     ? t('valueTextNa', { axis: label })
     : t('valueText', { axis: label, average: scoreText, count });
 
-  const isCompact = variant === 'compact';
+  const meter = {
+    role: 'meter',
+    'aria-valuemin': 0,
+    'aria-valuemax': 5,
+    'aria-valuenow': average ?? 0,
+    'aria-valuetext': valueText,
+  } as const;
 
-  return (
+  const bar = (height: string) => (
     <div
-      role="meter"
-      aria-valuemin={0}
-      aria-valuemax={5}
-      aria-valuenow={average ?? 0}
-      aria-valuetext={valueText}
-      className="flex flex-col gap-1"
+      className={cn('min-w-0 flex-1 overflow-hidden rounded-full bg-gauge-track', height)}
+      aria-hidden
     >
       <div
         className={cn(
-          'flex items-baseline justify-between gap-2',
-          isCompact ? 'text-xs' : 'text-[13px]',
+          'h-full rounded-full motion-safe:transition-[width] motion-safe:duration-500',
+          highlight ? 'bg-pop' : 'bg-neutral-900',
         )}
-      >
-        {/* min-w-0 + truncate : en variante compacte les jauges sont côte à côte,
-            un libellé long doit rogner plutôt que pousser le score hors de la carte. */}
-        <span className="min-w-0 truncate font-medium text-neutral-700">{label}</span>
-        <span className="shrink-0 tabular-nums text-neutral-500">
-          {scoreText}
-          {!isNa && (
-            <span className={cn('ms-1', count === 1 ? 'text-neutral-400' : 'text-neutral-500')}>
-              · {t('voters', { count })}
-            </span>
-          )}
+        style={{ width: `${fillPct}%` }}
+      />
+    </div>
+  );
+
+  const score = (
+    <span
+      className={cn(
+        'shrink-0 font-bold tabular-nums',
+        isNa ? 'text-neutral-500' : highlight ? 'text-pop' : 'text-neutral-900',
+      )}
+    >
+      {scoreText}
+    </span>
+  );
+
+  if (variant === 'full') {
+    return (
+      <div {...meter} className="flex items-center gap-2.5 text-[13px]">
+        <span className="w-[6.5rem] shrink-0 font-semibold text-neutral-900">{label}</span>
+        {bar('h-1')}
+        <span className="w-7 shrink-0 text-end">{score}</span>
+        <span className="w-16 shrink-0 text-end tabular-nums text-neutral-500">
+          {!isNa && t('voters', { count })}
         </span>
       </div>
-      <div
-        className={cn(
-          'w-full overflow-hidden rounded-full bg-gauge-track',
-          isCompact ? 'h-1.5' : 'h-2',
-          isNa && 'bg-bg-soft',
-        )}
-        aria-hidden
-      >
-        <div
-          className={cn(
-            'h-full rounded-full motion-safe:transition-[width] motion-safe:duration-500',
-            isNa ? 'bg-transparent' : AXIS_BAR_COLOR[axis],
-          )}
-          style={{ width: `${fillPct}%` }}
-        />
+    );
+  }
+
+  return (
+    <div {...meter} className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="truncate text-[11px] font-medium leading-tight text-neutral-500">
+        {tShort(axis)}
+      </span>
+      <div className="flex items-center gap-1.5 text-sm leading-tight">
+        <span className="min-w-[1.6rem] shrink-0 font-bold tabular-nums text-neutral-900">
+          {cellText}
+        </span>
+        {bar('h-[3px]')}
       </div>
     </div>
   );

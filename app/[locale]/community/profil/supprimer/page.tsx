@@ -33,11 +33,9 @@ export default async function ProfilDeletePage({ params }: Props) {
 
   return (
     <section className="flex flex-col gap-6">
-      <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-        {t('pageTitle')}
-      </h1>
+      <h1 className="page-title">{t('pageTitle')}</h1>
 
-      <div className="flex flex-col gap-3 rounded-[14px] border border-danger/40 bg-danger/5 p-5">
+      <div className="flex flex-col gap-3 rounded border border-danger/40 bg-danger/5 p-5">
         <h2 className="text-base font-semibold text-danger">{t('dangerTitle')}</h2>
         <p className="text-sm text-neutral-700">{t('cascadeBody')}</p>
         <DeleteAccountForm locale={locale} />

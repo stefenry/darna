@@ -83,7 +83,7 @@ export function NotificationPrefsForm({ initialPrefs }: { initialPrefs: Prefs })
       </ul>
 
       <div aria-live="polite" className="min-h-5 text-sm">
-        {saved && <span className="text-accent-600">{t('saved')}</span>}
+        {saved && <span className="text-link">{t('saved')}</span>}
         {error && (
           <span role="alert" className="text-danger">
             {error}

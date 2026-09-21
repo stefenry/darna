@@ -71,7 +71,7 @@ export default async function NewAlertPage({ params }: Props) {
       <Link
         href={`/${locale}/community/alertes`}
         aria-label={t('new.back')}
-        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
       >
         <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden />
       </Link>
@@ -82,7 +82,7 @@ export default async function NewAlertPage({ params }: Props) {
       </header>
 
       {failed ? (
-        <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+        <p role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
           {(await getTranslations('errors.alertes'))('fetch_failed')}
         </p>
       ) : (

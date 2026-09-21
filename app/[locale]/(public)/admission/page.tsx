@@ -47,9 +47,7 @@ export default async function AdmissionPage({ params, searchParams }: Props) {
     <PageContainer id="main-content" className="py-10" as="main">
       <section className="flex flex-col gap-6">
         <header className="flex flex-col gap-2">
-          <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-            {t('pageTitle')}
-          </h1>
+          <h1 className="page-title">{t('pageTitle')}</h1>
           <p className="text-base text-neutral-700">{t('intro')}</p>
         </header>
 
@@ -59,7 +57,7 @@ export default async function AdmissionPage({ params, searchParams }: Props) {
           {t('alreadyAccessHint')}{' '}
           <Link
             href={`/${locale}/auth/login`}
-            className="font-medium text-accent-500 underline-offset-4 hover:underline"
+            className="font-medium text-link underline-offset-4 hover:underline"
           >
             {t('alreadyAccessCta')}
           </Link>

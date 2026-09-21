@@ -51,9 +51,9 @@ export function ReactionButton({ targetType, targetId, initialCount, initialReac
       disabled={isPending}
       aria-pressed={reacted}
       aria-label={t('like')}
-      className={`inline-flex min-h-touch min-w-touch items-center justify-center gap-1.5 rounded-[10px] px-3 text-sm font-semibold transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
+      className={`inline-flex min-h-touch min-w-touch items-center justify-center gap-1.5 rounded-sm px-3 text-sm font-semibold transition-colors disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500 ${
         reacted
-          ? 'bg-accent-100 text-accent-700'
+          ? 'bg-accent-100 text-link-hover'
           : 'bg-bg-soft text-neutral-700 hover:bg-neutral-300'
       }`}
     >

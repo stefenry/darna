@@ -10,7 +10,7 @@ import { requestArtisanContactLink } from '../actions';
 import { CONTACT_LINK_INITIAL } from '../state';
 
 const INPUT_CLASS =
-  'min-h-touch rounded-[14px] border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
+  'min-h-touch rounded border border-neutral-300 bg-bg-card px-4 text-base text-neutral-900 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500/30';
 
 export function ContactForm() {
   const t = useTranslations('artisanContact');
@@ -42,7 +42,7 @@ export function ContactForm() {
         <p
           role="alert"
           aria-live="polite"
-          className="rounded-[14px] bg-accent-50 px-4 py-3 text-sm text-neutral-800"
+          className="rounded bg-accent-50 px-4 py-3 text-sm text-neutral-800"
         >
           {t('successGeneric')}
         </p>
@@ -65,7 +65,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={isPending || cooldown > 0}
-        className="inline-flex min-h-touch-lg items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+        className="inline-flex min-h-touch-lg items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
       >
         {cooldown > 0 ? `${t('submit')} (${cooldown}s)` : t('submit')}
       </button>

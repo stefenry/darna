@@ -19,9 +19,9 @@ export function PackSection({
   return (
     <details
       open={defaultOpen}
-      className="group rounded-[14px] bg-white shadow-xs [&_summary::-webkit-details-marker]:hidden"
+      className="group rounded bg-bg-card shadow-xs [&_summary::-webkit-details-marker]:hidden"
     >
-      <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded-[14px] px-4 py-3 font-semibold text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500">
+      <summary className="flex min-h-touch cursor-pointer list-none items-center justify-between gap-3 rounded px-4 py-3 font-semibold text-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500">
         <span>{section.sectionKey}</span>
         <ChevronDown
           className="size-5 shrink-0 text-neutral-400 motion-safe:transition-transform group-open:rotate-180"

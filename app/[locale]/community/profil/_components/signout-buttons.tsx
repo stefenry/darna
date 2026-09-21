@@ -13,7 +13,7 @@ export async function SignoutButtons() {
       <form method="post" action="/auth/signout?scope=local">
         <button
           type="submit"
-          className="inline-flex min-h-touch w-full items-center justify-center rounded-[14px] bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+          className="inline-flex min-h-touch w-full items-center justify-center rounded bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
         >
           {t('signOutLocal')}
         </button>
@@ -21,7 +21,7 @@ export async function SignoutButtons() {
       <form method="post" action="/auth/signout?scope=global">
         <button
           type="submit"
-          className="inline-flex min-h-touch w-full items-center justify-center rounded-[14px] bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
+          className="inline-flex min-h-touch w-full items-center justify-center rounded bg-bg-soft px-6 text-base font-medium text-neutral-700 transition-colors hover:bg-neutral-200"
         >
           {t('signOutGlobal')}
         </button>

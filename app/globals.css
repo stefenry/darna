@@ -3,6 +3,88 @@
 @tailwind utilities;
 
 @layer base {
+  /* Palette « encre + lime » (refonte 2026-09). Triplets R G B consommés par
+     tailwind.config.ts. Le sombre suit le réglage du système ; `data-theme`
+     sur <html> force l'un ou l'autre (choix manuel du profil). */
+  :root {
+    color-scheme: light;
+    --bg: 243 245 242; /* #F3F5F2 */
+    --surface: 255 255 255; /* #FFFFFF */
+    --soft: 232 236 231; /* #E8ECE7 */
+    --border: 218 224 217; /* #DAE0D9 */
+    --border-strong: 136 142 136; /* #888E88 */
+    --text: 11 13 14; /* #0B0D0E */
+    --text-2: 42 47 44; /* #2A2F2C */
+    --muted: 86 94 90; /* #565E5A */
+    --primary: 11 13 14; /* #0B0D0E */
+    --primary-hover: 42 47 44; /* #2A2F2C */
+    --on-primary: 200 245 96; /* #C8F560 */
+    --link: 59 99 0; /* #3B6300 */
+    --link-hover: 47 80 0; /* #2F5000 */
+    --success: 59 99 0; /* #3B6300 */
+    --warning: 138 90 0; /* #8A5A00 */
+    --on-warning: 255 255 255; /* #FFFFFF */
+    --danger: 179 38 30; /* #B3261E */
+    --on-danger: 255 255 255; /* #FFFFFF */
+    --info: 47 111 158; /* #2F6F9E */
+    /* Couleur d'appoint (complémentaire du lime) : dose homéopathique — meilleure
+       note d'un artisan, filtre actif. Jamais pour une action ni un état. */
+    --pop: 91 63 214; /* #5B3FD6 */
+    --on-pop: 255 255 255; /* #FFFFFF */
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      color-scheme: dark;
+      --bg: 11 13 14; /* #0B0D0E */
+      --surface: 20 23 25; /* #141719 */
+      --soft: 28 32 35; /* #1C2023 */
+      --border: 42 47 51; /* #2A2F33 */
+      --border-strong: 91 99 95; /* #5B635F */
+      --text: 242 245 243; /* #F2F5F3 */
+      --text-2: 213 218 214; /* #D5DAD6 */
+      --muted: 164 172 168; /* #A4ACA8 */
+      --primary: 200 245 96; /* #C8F560 */
+      --primary-hover: 221 251 148; /* #DDFB94 */
+      --on-primary: 17 21 10; /* #11150A */
+      --link: 200 245 96; /* #C8F560 */
+      --link-hover: 221 251 148; /* #DDFB94 */
+      --success: 200 245 96; /* #C8F560 */
+      --warning: 240 195 107; /* #F0C36B */
+      --on-warning: 31 21 0; /* #1F1500 */
+      --danger: 255 131 115; /* #FF8373 */
+      --on-danger: 42 11 8; /* #2A0B08 */
+      --info: 125 184 224; /* #7DB8E0 */
+      --pop: 180 165 255; /* #B4A5FF */
+      --on-pop: 20 16 43; /* #14102B */
+    }
+  }
+
+  :root[data-theme='dark'] {
+    color-scheme: dark;
+    --bg: 11 13 14; /* #0B0D0E */
+    --surface: 20 23 25; /* #141719 */
+    --soft: 28 32 35; /* #1C2023 */
+    --border: 42 47 51; /* #2A2F33 */
+    --border-strong: 91 99 95; /* #5B635F */
+    --text: 242 245 243; /* #F2F5F3 */
+    --text-2: 213 218 214; /* #D5DAD6 */
+    --muted: 164 172 168; /* #A4ACA8 */
+    --primary: 200 245 96; /* #C8F560 */
+    --primary-hover: 221 251 148; /* #DDFB94 */
+    --on-primary: 17 21 10; /* #11150A */
+    --link: 200 245 96; /* #C8F560 */
+    --link-hover: 221 251 148; /* #DDFB94 */
+    --success: 200 245 96; /* #C8F560 */
+    --warning: 240 195 107; /* #F0C36B */
+    --on-warning: 31 21 0; /* #1F1500 */
+    --danger: 255 131 115; /* #FF8373 */
+    --on-danger: 42 11 8; /* #2A0B08 */
+    --info: 125 184 224; /* #7DB8E0 */
+    --pop: 180 165 255; /* #B4A5FF */
+    --on-pop: 20 16 43; /* #14102B */
+  }
+
   @font-face {
     font-family: 'Inter Variable';
     font-style: normal;
@@ -22,7 +104,7 @@
   */
 
   html {
-    font-family: 'Inter Variable', system-ui, sans-serif;
+    font-family: 'Schibsted Grotesk Variable', 'Inter Variable', system-ui, sans-serif;
   }
 
   body {
@@ -42,5 +124,33 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  /* Zone communautaire : gouttière de 12 px sur téléphone (chaque pixel compte).
+     Une page « liste » (accueil, annuaire) pose `data-wide` sur sa racine pour
+     prendre toute la largeur sur tablette et ordinateur, alignée sur la barre du
+     bas (`.community-nav`) ; les pages de lecture et les formulaires gardent la
+     colonne étroite, plus lisible. */
+  /* `main.` : spécificité au-dessus des utilitaires `px-4`/`max-w-2xl` du
+     PageContainer partagé, qu'on ne veut pas modifier pour les pages publiques. */
+  main.community-main {
+    padding-inline: 0.75rem;
+  }
+  @media (min-width: 640px) {
+    main.community-main {
+      padding-inline: 1.25rem;
+    }
+  }
+  main.community-main:has([data-wide]),
+  .community-nav {
+    max-width: 80rem;
+  }
+
+  /* Titre de page (h1) — un seul endroit pour la taille, au lieu de 35 valeurs
+     arbitraires. Condensé : 22 px, serré. */
+  .page-title {
+    @apply text-[22px] font-semibold leading-[1.1] tracking-[-0.7px] text-neutral-900;
   }
 }

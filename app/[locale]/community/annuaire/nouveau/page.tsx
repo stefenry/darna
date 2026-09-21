@@ -52,13 +52,13 @@ export default async function NouveauArtisanPage({ params }: Props) {
   return (
     <section className="flex flex-col gap-6 pb-12">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-base text-neutral-700">
           {t(isSmsDisabled() ? 'introSmsDisabled' : 'intro')}
         </p>
       </header>
       {tags.length === 0 ? (
-        <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+        <p role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
           {t('tagsUnavailable')}
         </p>
       ) : (

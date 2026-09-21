@@ -34,13 +34,11 @@ export async function DesktopInstall({ locale }: Props) {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-          {t('pageTitle')}
-        </h1>
+        <h1 className="page-title">{t('pageTitle')}</h1>
         <p className="text-base text-neutral-500">{t('body')}</p>
       </header>
 
-      <div className="flex flex-col items-center gap-4 rounded-[14px] bg-bg-card p-6 shadow-xs">
+      <div className="flex flex-col items-center gap-4 rounded bg-bg-card p-6 shadow-xs">
         <Image
           src={qrDataUrl}
           alt={t('qrAlt', { url: absoluteUrl })}
@@ -52,7 +50,7 @@ export async function DesktopInstall({ locale }: Props) {
         <p className="text-center text-sm text-neutral-500">{absoluteUrl}</p>
       </div>
 
-      <div className="rounded-[14px] bg-bg-soft p-4 text-sm text-neutral-700">
+      <div className="rounded bg-bg-soft p-4 text-sm text-neutral-700">
         <h2 className="text-base font-medium text-neutral-900">{t('instructionsTitle')}</h2>
         <p className="mt-2">{t('instructionsChrome')}</p>
       </div>

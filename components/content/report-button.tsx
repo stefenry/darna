@@ -39,7 +39,7 @@ export function ReportButton({ targetType, targetId, variant = 'link' }: Props) 
 
   if (done) {
     return (
-      <p role="status" className="text-sm font-medium text-accent-600">
+      <p role="status" className="text-sm font-medium text-link">
         {t('success')}
       </p>
     );
@@ -48,7 +48,7 @@ export function ReportButton({ targetType, targetId, variant = 'link' }: Props) 
   if (!open) {
     const triggerClass =
       variant === 'button'
-        ? 'inline-flex min-h-touch w-fit items-center justify-center rounded-[10px] border border-neutral-200 px-3 text-sm font-medium text-neutral-600 hover:bg-bg-soft'
+        ? 'inline-flex min-h-touch w-fit items-center justify-center rounded-sm border border-neutral-200 px-3 text-sm font-medium text-neutral-600 hover:bg-bg-soft'
         : 'inline-flex min-h-touch w-fit items-center text-sm font-medium text-neutral-500 underline underline-offset-2 hover:text-neutral-700';
     return (
       <button
@@ -97,7 +97,7 @@ export function ReportButton({ targetType, targetId, variant = 'link' }: Props) 
       onKeyDown={(e) => {
         if (e.key === 'Escape') setOpen(false);
       }}
-      className="flex flex-col gap-3 rounded-[10px] border border-neutral-200 bg-bg-soft p-3"
+      className="flex flex-col gap-3 rounded-sm border border-neutral-200 bg-bg-soft p-3"
     >
       <p className="text-sm font-semibold text-neutral-800">{t('dialogTitle')}</p>
 
@@ -107,7 +107,7 @@ export function ReportButton({ targetType, targetId, variant = 'link' }: Props) 
           ref={selectRef}
           value={reason}
           onChange={(e) => setReason(e.target.value as ReportReason)}
-          className="min-h-touch rounded-[10px] border border-neutral-200 bg-white px-3 text-sm"
+          className="min-h-touch rounded-sm border border-neutral-200 bg-bg-card px-3 text-sm"
         >
           <option value="" disabled>
             {t('reasonPlaceholder')}
@@ -127,7 +127,7 @@ export function ReportButton({ targetType, targetId, variant = 'link' }: Props) 
           maxLength={REPORT_NOTE_MAXLEN}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
-          className="rounded-[10px] border border-neutral-200 bg-white px-3 py-2 text-sm"
+          className="rounded-sm border border-neutral-200 bg-bg-card px-3 py-2 text-sm"
           placeholder={t('notePlaceholder')}
         />
         <span className="text-xs text-neutral-400">
@@ -146,14 +146,14 @@ export function ReportButton({ targetType, targetId, variant = 'link' }: Props) 
           type="button"
           onClick={onSubmit}
           disabled={isPending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[10px] bg-accent-500 px-4 text-sm font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
+          className="inline-flex min-h-touch items-center justify-center rounded-sm bg-accent-500 px-4 text-sm font-semibold text-on-accent hover:bg-accent-600 disabled:opacity-50"
         >
           {isPending ? t('submitting') : t('submit')}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="inline-flex min-h-touch items-center justify-center rounded-[10px] px-3 text-sm font-medium text-neutral-600 hover:bg-white"
+          className="inline-flex min-h-touch items-center justify-center rounded-sm px-3 text-sm font-medium text-neutral-600 hover:bg-bg-card"
         >
           {t('cancel')}
         </button>

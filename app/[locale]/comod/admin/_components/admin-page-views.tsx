@@ -32,13 +32,11 @@ export async function AdminListView({ kind, locale }: { kind: DurableKind; local
   return (
     <section className="flex flex-col gap-5">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-          {t('pageTitle')}
-        </h1>
+        <h1 className="page-title">{t('pageTitle')}</h1>
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
       {failed ? (
-        <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+        <p role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
           {(await getTranslations('errors.comod.content'))('submit_failed')}
         </p>
       ) : (
@@ -74,7 +72,7 @@ export async function AdminEditorView({
       <header className="flex flex-col gap-1">
         <a
           href={`/${locale}/comod/admin/${DURABLE_CONFIG[kind].readRoute}`}
-          className="text-sm text-accent-600 hover:underline"
+          className="text-sm text-link hover:underline"
         >
           ← {t('backToList')}
         </a>

@@ -51,14 +51,14 @@ export default async function TipDetailPage({ params }: Props) {
       <Link
         href={`/${locale}/community/alertes`}
         aria-label={t('detail.back')}
-        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
       >
         <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden />
       </Link>
 
       <header className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex w-fit items-center gap-1 rounded-sm bg-accent-100 px-2 py-0.5 text-xs font-semibold text-accent-700">
+          <span className="inline-flex w-fit items-center gap-1 rounded-sm bg-accent-100 px-2 py-0.5 text-xs font-semibold text-link-hover">
             <span aria-hidden>🎁</span>
             {t('badge.tip')}
           </span>

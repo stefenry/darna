@@ -38,21 +38,21 @@ export function CommentsList({
   const tAxes = useTranslations('community.annuaire.axes');
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-lg font-medium text-neutral-900">{t('title')}</h2>
+    <section className="flex flex-col gap-1.5">
+      <h2 className="text-xs font-semibold text-neutral-500">{t('title')}</h2>
       {comments.length === 0 ? (
-        <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
+        <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
           {t('empty')}
         </p>
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col">
           {comments.map((comment) => {
             const formattedDate = formatDate(comment.createdAt, locale);
             return (
               <li
                 key={comment.id}
                 id={`rating-${comment.id}`}
-                className="flex flex-col gap-2 scroll-mt-4 rounded-[14px] bg-bg-card p-4 shadow-xs"
+                className="flex scroll-mt-4 flex-col gap-1 border-t border-neutral-200 px-0.5 py-2.5"
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-neutral-900">
@@ -73,7 +73,7 @@ export function CommentsList({
                     ))}
                   </div>
                 )}
-                <p className="text-base text-neutral-700">{comment.commentText}</p>
+                <p className="text-sm text-neutral-700">{comment.commentText}</p>
                 <div className="flex items-center justify-between gap-2">
                   <ReactionButton
                     targetType="rating"

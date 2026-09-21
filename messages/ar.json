@@ -319,12 +319,18 @@
         "numeros": "",
         "alertes": "تنبيهات وعروض جيدة",
         "bonsPlans": ""
-      }
+      },
+      "findArtisan": "",
+      "practical": ""
     },
     "nav": {
       "home": "",
       "settings": "",
-      "comod": ""
+      "comod": "",
+      "main": "",
+      "annuaire": "",
+      "alertes": "",
+      "profil": ""
     },
     "guide": {
       "title": "",
@@ -416,7 +422,8 @@
         "call": "",
         "price": "",
         "invoice": "",
-        "invoiceOnRequest": ""
+        "invoiceOnRequest": "",
+        "reviews": ""
       },
       "filters": {
         "competence": "",
@@ -424,7 +431,11 @@
         "invoice": "",
         "minRating": "",
         "minRatingValue": "",
-        "activeBadge": ""
+        "activeBadge": "",
+        "toggleAria": "",
+        "activeList": "",
+        "remove": "",
+        "showResults": ""
       },
       "empty": {
         "title": "",
@@ -434,6 +445,12 @@
       "offline": {
         "banner": "",
         "bannerUnknown": ""
+      },
+      "axesShort": {
+        "depannage": "",
+        "petits-travaux": "",
+        "travail-soigne": "",
+        "urgences": ""
       }
     },
     "artisan": {
@@ -467,7 +484,8 @@
         "title": "",
         "edit": "",
         "remove": ""
-      }
+      },
+      "ratings": ""
     },
     "artisanCreate": {
       "title": "",
@@ -692,7 +710,12 @@
       "submitCta": "",
       "submitting": "",
       "cancelCta": ""
-    }
+    },
+    "themeLabel": "",
+    "themeHint": "",
+    "themeSystem": "",
+    "themeLight": "",
+    "themeDark": ""
   },
   "install": {
     "pageTitle": "",

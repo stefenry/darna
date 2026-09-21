@@ -50,7 +50,7 @@ export default async function RateArtisanPage({ params }: Props) {
       <header className="flex flex-col gap-1">
         <Link
           href={`/${locale}/community/artisan/${slug}`}
-          className="text-sm font-medium text-accent-600 underline-offset-4 hover:underline"
+          className="text-sm font-medium text-link underline-offset-4 hover:underline"
         >
           {t('back')}
         </Link>

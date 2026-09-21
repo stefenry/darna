@@ -35,7 +35,7 @@ export default async function HomePage({ params }: Props) {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-2xl text-center">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="mt-3 text-lg text-neutral-500">{t('subtitle')}</p>
         <p className="mt-4 text-base text-neutral-400">{t('description')}</p>
 

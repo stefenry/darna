@@ -32,11 +32,11 @@ export function CallButton({
   const inline = variant === 'inline';
 
   const linkClass = inline
-    ? 'inline-flex min-h-touch-lg items-center justify-center gap-2 rounded-[14px] bg-accent-500 px-5 text-base font-semibold text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600'
-    : 'flex min-h-touch-lg items-center justify-center gap-2 rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm motion-safe:transition-colors hover:bg-accent-600';
+    ? 'inline-flex min-h-touch-lg items-center justify-center gap-2 rounded bg-accent-500 px-5 text-base font-semibold text-on-accent shadow-sm motion-safe:transition-colors hover:bg-accent-600'
+    : 'flex min-h-touch-lg items-center justify-center gap-2 rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm motion-safe:transition-colors hover:bg-accent-600';
   const unavailableClass = inline
-    ? 'inline-flex min-h-touch-lg items-center gap-2 rounded-[14px] bg-bg-soft px-5 text-sm font-medium text-neutral-500'
-    : 'flex min-h-touch-lg items-center justify-center gap-2 rounded-[14px] bg-bg-soft px-6 text-base font-medium text-neutral-500';
+    ? 'inline-flex min-h-touch-lg items-center gap-2 rounded bg-bg-soft px-5 text-sm font-medium text-neutral-500'
+    : 'flex min-h-touch-lg items-center justify-center gap-2 rounded bg-bg-soft px-6 text-base font-medium text-neutral-500';
 
   const inner = isValid ? (
     <a href={`tel:${phoneE164}`} aria-label={ariaLabel} className={linkClass}>

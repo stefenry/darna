@@ -86,7 +86,7 @@ export function JournalFeed({
 
   if (entries.length === 0) {
     return (
-      <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
+      <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
         {t('empty')}
       </p>
     );
@@ -96,7 +96,7 @@ export function JournalFeed({
     <>
       <ol className="flex flex-col gap-3">
         {entries.map((e) => (
-          <li key={e.id} className="flex flex-col gap-1 rounded-[14px] bg-bg-card p-4 shadow-xs">
+          <li key={e.id} className="flex flex-col gap-1 rounded bg-bg-card p-4 shadow-xs">
             <p className="text-base font-medium text-neutral-900">{describe(e)}</p>
             <div className="flex flex-wrap items-center gap-2 text-base text-neutral-600">
               <time dateTime={e.createdAt}>{formatDate(e.createdAt)}</time>
@@ -117,7 +117,7 @@ export function JournalFeed({
             type="button"
             onClick={loadMore}
             disabled={loading}
-            className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-bg-soft px-5 text-sm font-semibold text-accent-600 hover:bg-neutral-300 disabled:opacity-50"
+            className="inline-flex min-h-touch items-center justify-center rounded bg-bg-soft px-5 text-sm font-semibold text-link hover:bg-neutral-300 disabled:opacity-50"
           >
             {loading ? t('loading') : t('loadMore')}
           </button>

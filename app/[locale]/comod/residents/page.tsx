@@ -61,7 +61,7 @@ export default async function ComodResidentsPage({ params }: Props) {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-base text-neutral-700">{t('intro')}</p>
         <p className="text-sm text-neutral-500">{t('reloginNote')}</p>
       </header>
@@ -82,7 +82,7 @@ export default async function ComodResidentsPage({ params }: Props) {
                     {t('villaCount', { count: residents.length })}
                   </span>
                 </div>
-                <ul className="flex flex-col divide-y divide-neutral-200 rounded-[14px] bg-white shadow-xs">
+                <ul className="flex flex-col divide-y divide-neutral-200 rounded bg-bg-card shadow-xs">
                   {residents.map((r) => (
                     <li key={r.userId} className="flex flex-col gap-2 px-4 py-3">
                       <div className="flex items-center justify-between gap-3">
@@ -97,7 +97,7 @@ export default async function ComodResidentsPage({ params }: Props) {
                           )}
                         </div>
                         {r.isComod ? (
-                          <span className="inline-flex shrink-0 items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                          <span className="inline-flex shrink-0 items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-on-accent">
                             {t('comodBadge')}
                           </span>
                         ) : (

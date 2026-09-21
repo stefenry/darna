@@ -37,14 +37,14 @@ export async function EphemeralFeedPage({
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{title}</h1>
+        <h1 className="page-title">{title}</h1>
         <p className="text-base text-neutral-700">{intro}</p>
       </header>
 
       <div className="flex flex-wrap gap-2">
         <Link
           href={publish.href}
-          className="inline-flex min-h-touch items-center gap-2 rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
+          className="inline-flex min-h-touch items-center gap-2 rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent hover:bg-accent-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500"
         >
           <Plus className="size-4" aria-hidden />
           {publish.label}
@@ -77,7 +77,7 @@ async function FeedList({
     });
     const t = await getTranslations('errors.alertes');
     return (
-      <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+      <p role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
         {t('fetch_failed')}
       </p>
     );
@@ -86,12 +86,12 @@ async function FeedList({
   if (items.length === 0) {
     const { Icon } = empty;
     return (
-      <div className="flex flex-col items-center gap-4 rounded-[14px] bg-bg-soft px-4 py-10 text-center">
+      <div className="flex flex-col items-center gap-4 rounded bg-bg-soft px-4 py-10 text-center">
         <Icon className="size-8 text-neutral-400" aria-hidden />
         <p className="text-base text-neutral-600">{empty.text}</p>
         <Link
           href={publish.href}
-          className="inline-flex min-h-touch items-center gap-2 rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600"
+          className="inline-flex min-h-touch items-center gap-2 rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent hover:bg-accent-600"
         >
           <Plus className="size-4" aria-hidden />
           {empty.cta}

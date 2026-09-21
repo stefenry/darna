@@ -50,7 +50,7 @@ export default async function AlertDetailPage({ params }: Props) {
       <Link
         href={`/${locale}/community/alertes`}
         aria-label={t('detail.back')}
-        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
       >
         <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden />
       </Link>

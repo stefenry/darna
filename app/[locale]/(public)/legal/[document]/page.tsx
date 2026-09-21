@@ -25,7 +25,7 @@ export default async function LegalPage({ params }: Props) {
 
   return (
     <PageContainer className="py-12" as="main">
-      <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+      <h1 className="page-title">{t('title')}</h1>
       <div className="mt-6 text-base leading-relaxed text-neutral-700">
         <p>{t('content')}</p>
       </div>

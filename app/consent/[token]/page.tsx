@@ -56,7 +56,7 @@ export default async function ConsentPage({ params, searchParams }: Props) {
       <div className="flex justify-end">
         <Link
           href={`?lang=${otherLang}`}
-          className="text-sm font-medium text-accent-600 underline-offset-4 hover:underline"
+          className="text-sm font-medium text-link underline-offset-4 hover:underline"
         >
           {t('langToggle')}
         </Link>
@@ -68,7 +68,7 @@ export default async function ConsentPage({ params, searchParams }: Props) {
           <header className="flex flex-col gap-2">
             {result.reconsent ? (
               <>
-                <span className="inline-flex w-fit items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+                <span className="inline-flex w-fit items-center rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-on-accent">
                   {t('reconsentBadge')}
                 </span>
                 <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
@@ -96,7 +96,7 @@ export default async function ConsentPage({ params, searchParams }: Props) {
           </header>
 
           {result.reconsent && (
-            <div className="flex flex-col gap-1 rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-neutral-700">
+            <div className="flex flex-col gap-1 rounded bg-bg-soft px-4 py-3 text-sm text-neutral-700">
               <p className="font-medium text-neutral-900">{t('reconsentIntro')}</p>
               {result.reconsent.name && (
                 <p>
@@ -134,7 +134,7 @@ export default async function ConsentPage({ params, searchParams }: Props) {
               type="submit"
               name="decision"
               value="accept"
-              className="flex min-h-touch-lg items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm hover:bg-accent-600"
+              className="flex min-h-touch-lg items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm hover:bg-accent-600"
             >
               {t('accept')}
             </button>
@@ -142,7 +142,7 @@ export default async function ConsentPage({ params, searchParams }: Props) {
               type="submit"
               name="decision"
               value="refuse"
-              className="flex min-h-touch items-center justify-center rounded-[14px] bg-bg-soft px-6 text-base font-medium text-neutral-700 hover:bg-neutral-300"
+              className="flex min-h-touch items-center justify-center rounded bg-bg-soft px-6 text-base font-medium text-neutral-700 hover:bg-neutral-300"
             >
               {t('refuse')}
             </button>

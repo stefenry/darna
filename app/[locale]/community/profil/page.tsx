@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { ThemeSwitch } from '@/components/theme/theme-switch';
 import { createClient } from '@/lib/supabase/server';
 import { routing } from '@/lib/i18n/routing';
 import { SignoutButtons } from './_components/signout-buttons';
@@ -60,9 +61,7 @@ export default async function ProfilPage({ params }: Props) {
   return (
     <section className="flex flex-col gap-8">
       <header>
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-          {t('pageTitle')}
-        </h1>
+        <h1 className="page-title">{t('pageTitle')}</h1>
       </header>
 
       <dl className="flex flex-col gap-3">
@@ -74,7 +73,17 @@ export default async function ProfilPage({ params }: Props) {
         <Row label={t('visibilityLabel')} value={visibility} />
       </dl>
 
-      <section className="flex flex-col gap-2 rounded-[14px] bg-bg-soft p-4">
+      <ThemeSwitch
+        labels={{
+          legend: t('themeLabel'),
+          hint: t('themeHint'),
+          system: t('themeSystem'),
+          light: t('themeLight'),
+          dark: t('themeDark'),
+        }}
+      />
+
+      <section className="flex flex-col gap-2 rounded bg-bg-soft p-4">
         <h2 className="text-sm font-medium text-neutral-900">{t('notifStubTitle')}</h2>
         <p className="text-sm text-neutral-500">{t('notifStubHint')}</p>
         <ul className="flex flex-col gap-1 text-sm text-neutral-500">
@@ -93,7 +102,7 @@ export default async function ProfilPage({ params }: Props) {
       <div className="flex flex-col gap-3">
         <Link
           href={`/${locale}/community/profil/parametres`}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white shadow-sm transition-colors hover:bg-accent-600"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600"
         >
           {t('settingsCta')}
         </Link>

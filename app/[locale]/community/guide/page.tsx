@@ -47,7 +47,7 @@ export default async function GuidePage({ params, searchParams }: Props) {
   return (
     <section className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
 
@@ -62,9 +62,9 @@ export default async function GuidePage({ params, searchParams }: Props) {
               premier login ou un « Plus tard », et c'était le seul chemin. */}
           <Link
             href={`/${locale}/community/guide/pack-accueil`}
-            className="flex items-center gap-3 rounded-[14px] bg-accent-50 p-4 shadow-xs hover:bg-bg-soft"
+            className="flex items-center gap-3 rounded bg-accent-50 p-4 shadow-xs hover:bg-bg-soft"
           >
-            <PackageOpen className="size-6 shrink-0 text-accent-600" aria-hidden />
+            <PackageOpen className="size-6 shrink-0 text-link" aria-hidden />
             <span className="flex flex-col">
               <span className="text-base font-semibold text-neutral-900">{t('packTitle')}</span>
               <span className="text-sm text-neutral-700">{t('packDescription')}</span>
@@ -98,7 +98,7 @@ async function ListBranch({ locale, errorLabel }: { locale: Locale; errorLabel: 
   if (groups.length === 0) {
     const t = await getTranslations('community.guide');
     return (
-      <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
+      <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-600">
         {t('empty')}
       </p>
     );
@@ -145,7 +145,7 @@ async function SearchBranch({
 
 function ErrorNote({ label }: { label: string }) {
   return (
-    <p role="alert" className="rounded-[14px] bg-bg-soft px-4 py-3 text-sm text-danger">
+    <p role="alert" className="rounded bg-bg-soft px-4 py-3 text-sm text-danger">
       {label}
     </p>
   );

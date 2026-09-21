@@ -47,7 +47,7 @@ export function ExportButton({ locale }: { locale: 'fr' | 'ar' }) {
         onClick={onClick}
         disabled={isPending}
         aria-busy={isPending}
-        className="inline-flex min-h-touch-lg w-fit items-center justify-center rounded-[14px] bg-accent-500 px-6 text-base font-semibold text-white hover:bg-accent-600 disabled:opacity-50"
+        className="inline-flex min-h-touch-lg w-fit items-center justify-center rounded bg-accent-500 px-6 text-base font-semibold text-on-accent hover:bg-accent-600 disabled:opacity-50"
       >
         {isPending ? t('generating') : t('cta')}
       </button>
@@ -55,11 +55,11 @@ export function ExportButton({ locale }: { locale: 'fr' | 'ar' }) {
       <div aria-live="polite" className="min-h-5 text-sm">
         {result?.ok && result.mode === 'url' && (
           <span className="flex flex-col gap-1">
-            <span className="font-medium text-accent-600">{t('ready')}</span>
+            <span className="font-medium text-link">{t('ready')}</span>
             <a
               href={result.url}
               download={result.filename}
-              className="w-fit font-medium text-accent-600 underline underline-offset-2 hover:text-accent-700"
+              className="w-fit font-medium text-link underline underline-offset-2 hover:text-link-hover"
             >
               {t('download')}
             </a>
@@ -67,7 +67,7 @@ export function ExportButton({ locale }: { locale: 'fr' | 'ar' }) {
           </span>
         )}
         {result?.ok && result.mode === 'inline' && (
-          <span className="font-medium text-accent-600">{t('downloaded')}</span>
+          <span className="font-medium text-link">{t('downloaded')}</span>
         )}
         {result && !result.ok && (
           <span role="alert" className="text-danger">

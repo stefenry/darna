@@ -54,7 +54,7 @@ export default async function ExportPage({ params }: Props) {
       <Link
         href={`/${locale}/community/profil/parametres`}
         aria-label={t('back')}
-        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded-[14px] text-neutral-700 hover:bg-bg-soft"
+        className="inline-flex min-h-touch min-w-touch w-fit items-center justify-center rounded text-neutral-700 hover:bg-bg-soft"
       >
         <ArrowLeft className="size-5 rtl:rotate-180" aria-hidden />
       </Link>
@@ -64,7 +64,7 @@ export default async function ExportPage({ params }: Props) {
         <p className="text-base text-neutral-700">{t('intro')}</p>
       </header>
 
-      <section className="flex flex-col gap-3 rounded-[14px] bg-bg-soft p-5">
+      <section className="flex flex-col gap-3 rounded bg-bg-soft p-5">
         <h2 className="text-base font-medium text-neutral-900">{t('itemsTitle')}</h2>
         <ul className="list-disc space-y-1 ps-5 text-base text-neutral-700">
           {ITEM_KEYS.map((k) => (

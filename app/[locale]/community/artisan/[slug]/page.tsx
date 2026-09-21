@@ -77,23 +77,28 @@ export default async function ArtisanPage({ params }: Props) {
   const showComodPublish = isComod && artisan.state === 'pending_consent';
 
   return (
-    <article className="flex flex-col gap-6 pb-32">
+    <article className="flex flex-col gap-3 pb-24">
       <ArtisanHeader locale={locale} artisan={artisan} />
       {showComodPublish && (
         <ComodPublishButton artisanId={artisan.id} locale={locale as 'fr' | 'ar'} />
       )}
       {artisan.isOwner && <ContributorPanel locale={locale} slug={slug} />}
-      <RatingGaugesFull axes={artisan.axes} />
-      {/* Review 2.6 P6 — hide CTA "Noter" si l'utilisateur est le créateur
-          (self-rating biaiserait les agrégats ; gate déjà côté action). */}
-      {!artisan.isOwner && (
-        <Link
-          href={`/${locale}/community/artisan/${slug}/noter`}
-          className="inline-flex min-h-touch w-fit items-center justify-center rounded-[14px] bg-bg-soft px-5 text-sm font-semibold text-accent-600 hover:bg-neutral-300"
-        >
-          {myRating ? tc('rateUpdate') : tc('rate')}
-        </Link>
-      )}
+      {/* Review 2.6 P6 — pas de CTA « Noter » si l'utilisateur est le créateur
+          (self-rating biaiserait les agrégats ; gate déjà côté action). Le lien
+          garde une zone de clic de 44 px (`after`) dans un en-tête de 24 px. */}
+      <RatingGaugesFull
+        axes={artisan.axes}
+        action={
+          !artisan.isOwner && (
+            <Link
+              href={`/${locale}/community/artisan/${slug}/noter`}
+              className="relative text-[13px] font-semibold text-link underline underline-offset-2 after:absolute after:-inset-x-2 after:-inset-y-3 hover:text-link-hover"
+            >
+              {myRating ? tc('rateUpdate') : tc('rate')}
+            </Link>
+          )
+        }
+      />
       <CommentsList locale={locale} comments={comments} reactions={commentReactions} />
       <ArtisanResponses responses={responses} artisanName={artisan.displayName} locale={locale} />
       <ShareButton

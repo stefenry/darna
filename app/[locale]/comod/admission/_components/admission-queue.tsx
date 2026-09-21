@@ -25,7 +25,7 @@ export function AdmissionQueue({ locale, items }: Props) {
 
   if (items.length === 0) {
     return (
-      <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
+      <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
         {t('emptyState')}
       </p>
     );
@@ -72,7 +72,7 @@ function QueueRow({ locale, item }: { locale: string; item: QueueItem }) {
   });
 
   return (
-    <li className="flex flex-col gap-3 rounded-[14px] bg-bg-card p-4 shadow-xs">
+    <li className="flex flex-col gap-3 rounded bg-bg-card p-4 shadow-xs">
       <div className="flex flex-col gap-1">
         <p className="text-base font-medium text-neutral-900">
           {t('columnVilla')} {item.villa}
@@ -91,7 +91,7 @@ function QueueRow({ locale, item }: { locale: string; item: QueueItem }) {
           type="button"
           onClick={validate}
           disabled={isPending}
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent shadow-sm transition-colors hover:bg-accent-600 disabled:bg-neutral-300 disabled:text-neutral-500"
         >
           {isPending ? t('submitting') : t('validateCta')}
         </button>

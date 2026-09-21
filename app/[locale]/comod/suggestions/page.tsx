@@ -66,7 +66,7 @@ export default async function ComodSuggestionsPage({ params }: Props) {
       </header>
 
       {items.length === 0 ? (
-        <p className="rounded-[14px] bg-bg-soft px-4 py-10 text-center text-base text-neutral-600">
+        <p className="rounded bg-bg-soft px-4 py-10 text-center text-base text-neutral-600">
           {t('empty')}
         </p>
       ) : (
@@ -85,10 +85,7 @@ export default async function ComodSuggestionsPage({ params }: Props) {
                     ? t('authorNamedNoVilla', { name: resolved.name })
                     : t('authorNamed', { name: resolved.name, villa: resolved.villa });
             return (
-              <li
-                key={s.id}
-                className="flex flex-col gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs"
-              >
+              <li key={s.id} className="flex flex-col gap-2 rounded bg-bg-card p-4 shadow-xs">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium text-neutral-900">{author}</span>
                   <time dateTime={s.created_at} className="text-xs text-neutral-400">
@@ -97,7 +94,7 @@ export default async function ComodSuggestionsPage({ params }: Props) {
                 </div>
                 <p className="whitespace-pre-wrap text-base text-neutral-800">{s.body}</p>
                 {s.state === 'reviewed' ? (
-                  <span className="w-fit rounded-sm bg-accent-100 px-2 py-0.5 text-xs font-medium text-accent-700">
+                  <span className="w-fit rounded-sm bg-accent-100 px-2 py-0.5 text-xs font-medium text-link-hover">
                     {t('stateReviewed')}
                   </span>
                 ) : (

@@ -43,14 +43,12 @@ export default async function ComodModerationPage({ params }: Props) {
     <PageContainer className="py-10" as="main">
       <section className="flex flex-col gap-6">
         <header className="flex flex-col gap-2">
-          <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">
-            {t('pageTitle')}
-          </h1>
+          <h1 className="page-title">{t('pageTitle')}</h1>
           <p className="text-base text-neutral-700">{t('intro')}</p>
         </header>
 
         {items.length === 0 ? (
-          <p className="rounded-[14px] bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
+          <p className="rounded bg-bg-soft px-4 py-6 text-center text-base text-neutral-700">
             {t('emptyState')}
           </p>
         ) : (
@@ -59,7 +57,7 @@ export default async function ComodModerationPage({ params }: Props) {
               <li key={item.id}>
                 <Link
                   href={`/${locale}/comod/moderation/${item.id}`}
-                  className="flex flex-col gap-2 rounded-[14px] bg-bg-card p-4 shadow-xs hover:bg-bg-soft"
+                  className="flex flex-col gap-2 rounded bg-bg-card p-4 shadow-xs hover:bg-bg-soft"
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center rounded-sm bg-danger/10 px-2 py-0.5 text-xs font-semibold text-danger">
@@ -69,7 +67,7 @@ export default async function ComodModerationPage({ params }: Props) {
                       {t(`targets.${item.targetType}`)}
                     </span>
                     {item.slaBreached && (
-                      <span className="inline-flex items-center rounded-sm bg-danger px-2 py-0.5 text-xs font-semibold text-white">
+                      <span className="inline-flex items-center rounded-sm bg-danger px-2 py-0.5 text-xs font-semibold text-on-danger">
                         {t('slaBreached')}
                       </span>
                     )}

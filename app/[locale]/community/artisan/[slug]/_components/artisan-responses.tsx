@@ -29,8 +29,8 @@ export function ArtisanResponses({
       <ul className="flex flex-col gap-3">
         {responses.map((r) => (
           <li key={r.id}>
-            <blockquote className="flex flex-col gap-2 rounded-[14px] border-s-4 border-accent-500 bg-accent-50 px-4 py-3">
-              <p className="text-xs font-medium text-accent-700">
+            <blockquote className="flex flex-col gap-2 rounded border-s-4 border-accent-500 bg-accent-50 px-4 py-3">
+              <p className="text-xs font-medium text-link-hover">
                 {t('signature', { name: artisanName })} · {formatDate(r.createdAt, locale)}
               </p>
               {r.targetKind === 'rating' &&

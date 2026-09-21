@@ -53,7 +53,7 @@ export default async function TransparencePage({ params, searchParams }: Props) 
   return (
     <PageContainer id="main-content" className="py-12" as="main">
       <header className="flex flex-col gap-2">
-        <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900">{t('title')}</h1>
+        <h1 className="page-title">{t('title')}</h1>
         <p className="text-base text-neutral-700">{t('journal.intro')}</p>
       </header>
 
@@ -69,7 +69,7 @@ export default async function TransparencePage({ params, searchParams }: Props) 
           <select
             name="filter"
             defaultValue={filter}
-            className="min-h-touch rounded-[10px] border border-neutral-200 bg-white px-3 text-sm"
+            className="min-h-touch rounded-sm border border-neutral-200 bg-bg-card px-3 text-sm"
           >
             {FILTER_KEYS.map((k) => (
               <option key={k} value={k}>
@@ -84,7 +84,7 @@ export default async function TransparencePage({ params, searchParams }: Props) 
             type="date"
             name="from"
             defaultValue={sp.from ?? ''}
-            className="min-h-touch rounded-[10px] border border-neutral-200 bg-white px-3 text-sm"
+            className="min-h-touch rounded-sm border border-neutral-200 bg-bg-card px-3 text-sm"
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
@@ -93,12 +93,12 @@ export default async function TransparencePage({ params, searchParams }: Props) 
             type="date"
             name="to"
             defaultValue={sp.to ?? ''}
-            className="min-h-touch rounded-[10px] border border-neutral-200 bg-white px-3 text-sm"
+            className="min-h-touch rounded-sm border border-neutral-200 bg-bg-card px-3 text-sm"
           />
         </label>
         <button
           type="submit"
-          className="inline-flex min-h-touch items-center justify-center rounded-[14px] bg-accent-500 px-5 text-sm font-semibold text-white hover:bg-accent-600"
+          className="inline-flex min-h-touch items-center justify-center rounded bg-accent-500 px-5 text-sm font-semibold text-on-accent hover:bg-accent-600"
         >
           {t('journal.applyFilter')}
         </button>
@@ -116,10 +116,7 @@ export default async function TransparencePage({ params, searchParams }: Props) 
 
       {/* Story 8.2 — section bilingue « Comment vos données sont protégées »
           (contenu éditorial versionné en git, FR/AR, langage clair sans jargon). */}
-      <section
-        aria-labelledby="data-protection-heading"
-        className="mt-12 rounded-[14px] bg-bg-soft p-5"
-      >
+      <section aria-labelledby="data-protection-heading" className="mt-12 rounded bg-bg-soft p-5">
         <h2 id="data-protection-heading" className="text-lg font-semibold text-neutral-900">
           {t('dataProtection.title')}
         </h2>
